@@ -1,6 +1,6 @@
 // desktopMode.js
 import { map } from './map.js';
-import { addPoiFeature, getPoiName } from './data.js'; // Correction import getPoiName
+import { addPoiFeature } from './data.js';
 import { state } from './state.js';
 import { saveAppState } from './database.js';
 import { logModification } from './logger.js';
@@ -10,10 +10,9 @@ let desktopDraftMarker = null;
 const BASE_CATEGORIES = ["Mosquée", "Site historique", "Curiosité", "Hôtel", "Restaurant", "Café", "Taxi", "Commerce"];
 
 export function enableDesktopCreationMode() {
-    // Rend la carte accessible globalement (utile pour le debug/console)
-    window.map = map;
-
     // GESTION DU CLIC-DROIT
+    if (!map) return;
+    
     map.on('contextmenu', (e) => {
         const { lat, lng } = e.latlng;
         if (desktopDraftMarker) {
@@ -50,7 +49,9 @@ export function createDraftMarker(lat, lng, mapInstance) {
             openDesktopAddModal(finalLatLng.lat, finalLatLng.lng);
             
             // Nettoyage
-            mapInstance.removeLayer(desktopDraftMarker);
+            if (mapInstance && desktopDraftMarker) {
+                mapInstance.removeLayer(desktopDraftMarker);
+            }
             desktopDraftMarker = null;
             document.body.removeEventListener('click', validateHandler);
         }
@@ -64,7 +65,7 @@ export function createDraftMarker(lat, lng, mapInstance) {
 export function openDesktopAddModal(lat, lng) {
     const modal = document.getElementById('add-poi-modal');
     if (!modal) {
-        alert("Erreur: La modale 'add-poi-modal' n'est pas dans le HTML."); 
+        console.error("Erreur: La modale 'add-poi-modal' est introuvable."); 
         return;
     }
 
