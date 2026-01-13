@@ -15,8 +15,7 @@ import {
 
 import {
     toggleSelectionMode,
-    setupCircuitPanelEventListeners,
-    clearCircuit
+    setupCircuitPanelEventListeners
 } from './circuit.js';
 
 import { displayGeoJSON, applyFilters, getPoiId, getPoiName } from './data.js';
@@ -63,7 +62,7 @@ async function initializeApp() {
 
     try {
         await initDB();
-        console.log("Connexion à IndexedDB réussie.");
+        // Base de données prête
 
         const savedTheme = await getAppState('currentTheme');
         if (savedTheme) {

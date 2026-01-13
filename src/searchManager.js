@@ -53,7 +53,6 @@ export function setupSmartSearch() {
     DOM.searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const query = DOM.searchInput.value.trim();
-            console.log("SmartSearch: Touche Entrée détectée. Recherche :", query);
             
             // Regex pour détecter "33.8787, 10.8413" ou "33.8787 10.8413"
             const coordsRegex = /^(-?\d+(\.\d+)?)[,\s]+(-?\d+(\.\d+)?)$/;
@@ -62,15 +61,12 @@ export function setupSmartSearch() {
             if (match) {
                 const lat = parseFloat(match[1]);
                 const lng = parseFloat(match[3]);
-                console.log("Coordonnées valides :", lat, lng);
 
                 const mapInstance = (typeof map !== 'undefined' ? map : window.map);
                 
                 if (mapInstance) {
                     mapInstance.flyTo([lat, lng], 18, { duration: 1.5 });
                     DOM.searchResults.style.display = 'none';
-                } else {
-                    console.error("Erreur : La carte est introuvable pour le zoom.");
                 }
             }
         }

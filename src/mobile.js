@@ -15,7 +15,6 @@ export function isMobileView() {
 }
 
 export function initMobileMode() {
-    console.log("Mobile mode initialized");
     document.body.classList.add('mobile-mode');
     
     // Bottom Nav
@@ -53,7 +52,6 @@ function handleMobileViewChange(view) {
     }
 }
 
-// --- FONCTION AJOUTÉE (Correction de l'erreur ui.js) ---
 export function updatePoiPosition(lat, lng) {
     const coordsEl = document.getElementById('new-poi-coords');
     if (coordsEl) {
