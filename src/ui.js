@@ -2,10 +2,10 @@
 import { state } from './state.js';
 import { getPoiId, getPoiName, updatePoiData, getDomainFromUrl, applyFilters } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
-import { loadCircuitById, clearCircuit, renderCircuitPanel, navigatePoiDetails } from './circuit.js';
+import { loadCircuitById, clearCircuit, navigatePoiDetails } from './circuit.js';
 import { escapeXml, recalculatePlannedCountersForMap } from './gpx.js';
 import { map } from './map.js';
-import { deleteCircuitById, clearAllUserData } from './database.js';
+import { deleteCircuitById } from './database.js'; // Nettoyage: suppression de clearAllUserData non utilisé
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 
@@ -16,11 +16,9 @@ let currentEditor = { fieldId: null, poiId: null, callback: null };
 let currentPhotoList = [];
 let currentPhotoIndex = 0;
 
-// SVG icons
+// SVG icons (Définition centralisée)
 const ICONS = {
-    mosque: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-custom">
-        <path d="M20 20H4v-7a8 8 0 0 1 16 0z"/><path d="M12 5V2"/><circle cx="12" cy="8" r="2"/>
-    </svg>`,    
+    mosque: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H4v-7a8 8 0 0 1 16 0z"/><path d="M12 5V2"/><circle cx="12" cy="8" r="2"/></svg>`,    
     pen: `<i data-lucide="pencil" style="width:18px;height:18px;"></i>`,
     check: `<i data-lucide="check" style="width:18px;height:18px;"></i>`,
     chevronLeft: `<i data-lucide="chevron-left" style="width:18px;height:18px;"></i>`,
@@ -58,8 +56,10 @@ export function initializeDomReferences() {
     });
     DOM.tabButtons = document.querySelectorAll('.tab-button');
     DOM.sidebarPanels = document.querySelectorAll('.sidebar-panel');
-    DOM.editorCancelBtn.addEventListener('click', () => DOM.fullscreenEditor.style.display = 'none');
-    DOM.editorSaveBtn.addEventListener('click', () => {
+    
+    // Initialisation Editeur Plein Écran
+    if (DOM.editorCancelBtn) DOM.editorCancelBtn.addEventListener('click', () => DOM.fullscreenEditor.style.display = 'none');
+    if (DOM.editorSaveBtn) DOM.editorSaveBtn.addEventListener('click', () => {
         if (currentEditor.callback) currentEditor.callback(DOM.editorTextarea.value);
         DOM.fullscreenEditor.style.display = 'none';
     });
@@ -76,18 +76,8 @@ export function initializeDomReferences() {
     }
     
     // Navigation Diaporama
-    if(DOM.viewerNext) {
-        DOM.viewerNext.addEventListener('click', (e) => {
-            e.stopPropagation();
-            changePhoto(1);
-        });
-    }
-    if(DOM.viewerPrev) {
-        DOM.viewerPrev.addEventListener('click', (e) => {
-            e.stopPropagation();
-            changePhoto(-1);
-        });
-    }
+    if(DOM.viewerNext) DOM.viewerNext.addEventListener('click', (e) => { e.stopPropagation(); changePhoto(1); });
+    if(DOM.viewerPrev) DOM.viewerPrev.addEventListener('click', (e) => { e.stopPropagation(); changePhoto(-1); });
     
     document.addEventListener('keydown', (e) => {
         if (DOM.photoViewer && DOM.photoViewer.style.display === 'block') {
@@ -159,9 +149,7 @@ export function setupEditableField(fieldId, poiId) {
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
             if(displayEl) displayEl.style.display = (inputEl.tagName === 'TEXTAREA' || fieldId === 'title') ? '' : 'block';
-            if(fieldId === 'title') {
-                 if(displayEl) displayEl.style.display = 'block';
-            }
+            if(fieldId === 'title') { if(displayEl) displayEl.style.display = 'block'; }
             inputEl.style.display = 'none';
             editBtn.style.display = 'inline-flex';
             if(speakBtn) speakBtn.style.display = 'inline-flex';
@@ -171,9 +159,7 @@ export function setupEditableField(fieldId, poiId) {
     }
     
     if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            saveValue(inputEl.value);
-        });
+        saveBtn.addEventListener('click', () => { saveValue(inputEl.value); });
     }
 
     if (speakBtn) {
@@ -204,7 +190,7 @@ function setupAllEditableFields(poiId) {
     });
 }
 
-// Helper pour compresser les images (Logique : Le plus petit côté = 800px)
+// Helper pour compresser les images
 async function compressImage(file, targetMinSize = 800) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -216,28 +202,22 @@ async function compressImage(file, targetMinSize = 800) {
                 const elem = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-
-                // On trouve le côté le plus petit (Largeur ou Hauteur ?)
                 const smallestSide = Math.min(width, height);
-
-                // Si ce petit côté est plus grand que 800px, on réduit tout
                 if (smallestSide > targetMinSize) {
                     const ratio = targetMinSize / smallestSide;
                     width *= ratio;
                     height *= ratio;
                 }
-
                 elem.width = width;
                 elem.height = height;
                 const ctx = elem.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                
-                // Compression JPEG 80%
                 resolve(elem.toDataURL('image/jpeg', 0.8)); 
             };
         };
     });
 }
+
 function setupDetailsEventListeners(poiId) {
     document.getElementById('panel-price').addEventListener('input', (e) => updatePoiData(poiId, 'price', e.target.value));
     
@@ -255,50 +235,39 @@ function setupDetailsEventListeners(poiId) {
         updatePoiData(poiId, 'verified', e.target.checked);
     });
 
-    // --- BLOC A AJOUTER : Gestion du bouton Poubelle ---
     const softDeleteBtn = document.getElementById('btn-soft-delete');
     if (softDeleteBtn) {
         softDeleteBtn.addEventListener('click', () => {
-            // On vérifie que la fonction existe (celle qu'on a mise dans main.js)
             if (typeof window.requestSoftDelete === 'function') {
-                // On utilise state.currentFeatureId qui est l'index du POI actuellement ouvert
                 window.requestSoftDelete(state.currentFeatureId);
             } else {
-                console.error("Fonction requestSoftDelete introuvable !");
-                alert("Erreur : Fonction non trouvée. Avez-vous mis à jour main.js ?");
+                showToast("Erreur: Fonction de suppression non chargée.", "error");
             }
         });
     }
 
-    // --- GESTION BOUTON GOOGLE MAPS ---
     const gmapsBtn = document.getElementById('open-gmaps-btn');
     if (gmapsBtn) {
         gmapsBtn.addEventListener('click', () => {
             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
             if (feature && feature.geometry && feature.geometry.coordinates) {
                 const [lng, lat] = feature.geometry.coordinates;
-                // Ouvre Google Maps dans un nouvel onglet avec les coordonnées exactes
                 window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
             } else {
-                showToast("Coordonnées introuvables pour ce lieu.", "error");
+                showToast("Coordonnées introuvables.", "error");
             }
         });
     }
-   
-    // ---------------------------------------------------
 
     const photoInput = document.getElementById('panel-photo-input');
     const photoBtn = document.querySelector('.photo-placeholder');
     
-    if(photoBtn) {
-        photoBtn.addEventListener('click', () => photoInput.click());
-    }
+    if(photoBtn) photoBtn.addEventListener('click', () => photoInput.click());
 
     if(photoInput) {
         photoInput.addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             if(files.length === 0) return;
-
             showToast("Traitement des photos...", "info");
             
             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
@@ -318,7 +287,7 @@ function setupDetailsEventListeners(poiId) {
             const updatedPhotos = [...currentPhotos, ...newPhotos];
             await updatePoiData(poiId, 'photos', updatedPhotos);
             showToast(`${newPhotos.length} photo(s) ajoutée(s).`, "success");
-            openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex); // Rafraichir
+            openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
         });
     }
 
@@ -357,7 +326,7 @@ function setupDetailsEventListeners(poiId) {
         const moveBtn = document.getElementById('mobile-move-poi-btn');
         if (moveBtn) {
             moveBtn.addEventListener('click', () => {
-                if (confirm("Mettre à jour la position de ce POI avec votre position GPS actuelle ?")) {
+                if (confirm("Mettre à jour avec votre position GPS actuelle ?")) {
                     updatePoiPosition(poiId);
                 }
             });
@@ -365,7 +334,6 @@ function setupDetailsEventListeners(poiId) {
         document.getElementById('details-prev-btn')?.addEventListener('click', () => navigatePoiDetails(-1));
         document.getElementById('details-next-btn')?.addEventListener('click', () => navigatePoiDetails(1));
         document.getElementById('details-close-btn')?.addEventListener('click', () => closeDetailsPanel(true));
-
     } else {
         document.getElementById('prev-poi-button')?.addEventListener('click', () => navigatePoiDetails(-1));
         document.getElementById('next-poi-button')?.addEventListener('click', () => navigatePoiDetails(1));
@@ -407,9 +375,9 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
                 <div class="input-group">
                     ${ICONS.clock}
                     <div class="time-editor">
-                        <button class="time-adjust-btn" id="time-decrement-btn" title="Diminuer de 5 minutes">${ICONS.minus}</button>
+                        <button class="time-adjust-btn" id="time-decrement-btn" title="- 5 min">${ICONS.minus}</button>
                         <span id="panel-time-display" class="duration-picker-trigger" data-hours="${hours}" data-minutes="${minutes}">${timeText}</span>
-                        <button class="time-adjust-btn" id="time-increment-btn" title="Augmenter de 5 minutes">${ICONS.plus}</button>
+                        <button class="time-adjust-btn" id="time-increment-btn" title="+ 5 min">${ICONS.plus}</button>
                     </div>
                 </div>
                 <div class="input-group">
@@ -421,7 +389,6 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
             </div>
         </div>`;
 
-    // --- MODIFICATION ICI : Suppression du style inline ---
     const gmapsButtonHtml = `<button class="action-button" id="open-gmaps-btn" title="Itinéraire Google Maps">${ICONS.googleMaps}</button>`;
 
     const pcHtml = `
@@ -429,32 +396,28 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
             <div class="editable-content">
                 <h2 id="panel-title-display">${escapeXml(poiName)}</h2>
                 <p class="panel-nom-arabe">${escapeXml(allProps['Nom du site arabe'] || '')}</p>
-		<p style="color: red; font-weight: bold; font-size: 12px; margin-top: 5px;"></p>
             </div>
             <input type="text" id="panel-title-input" class="editable-input header-input" style="display: none;">
             <div class="edit-controls">
                 ${gmapsButtonHtml}
                 <button class="action-button edit-btn" title="Modifier le nom">${ICONS.pen}</button>
-                
-                <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">
-                    ${ICONS.trash}
-                </button>
+                <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
                 <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
                 <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
             </div>
             <div class="details-nav">
-                ${inCircuit ? `<button class="header-btn" id="prev-poi-button" title="POI Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
-                              <button class="header-btn" id="next-poi-button" title="POI Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
-                <button class="header-btn" id="close-details-button" title="${state.isSelectionModeActive ? 'Retour au circuit' : 'Fermer'}">${state.isSelectionModeActive ? ICONS.arrowLeftToLine : ICONS.x}</button>
+                ${inCircuit ? `<button class="header-btn" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
+                              <button class="header-btn" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
+                <button class="header-btn" id="close-details-button" title="${state.isSelectionModeActive ? 'Retour' : 'Fermer'}">${state.isSelectionModeActive ? ICONS.arrowLeftToLine : ICONS.x}</button>
             </div>
         </div>
         <div class="panel-content">
             <div class="detail-section editable-field" data-field-id="short_desc">
                 <h3>Description Courte (GPX)
                     <div class="edit-controls section-controls">
-                        <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
-                        <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
-                        <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
+                        <button class="action-button edit-btn">${ICONS.pen}</button>
+                        <button class="action-button save-btn" style="display: none;">${ICONS.check}</button>
+                        <button class="action-button cancel-btn" style="display: none;">${ICONS.x}</button>
                     </div>
                 </h3>
                 <div class="content">
@@ -465,10 +428,10 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
             <div class="detail-section editable-field description-section" data-field-id="description">
                 <h3>Description
                     <div class="edit-controls section-controls">
-                        <button class="action-button speak-btn" title="Lire la description">${ICONS.volume}</button>
-                        <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
-                        <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
-                        <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
+                        <button class="action-button speak-btn">${ICONS.volume}</button>
+                        <button class="action-button edit-btn">${ICONS.pen}</button>
+                        <button class="action-button save-btn" style="display: none;">${ICONS.check}</button>
+                        <button class="action-button cancel-btn" style="display: none;">${ICONS.x}</button>
                     </div>
                 </h3>
                 <div class="content">
@@ -489,10 +452,10 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
             <div class="detail-section editable-field notes-section" data-field-id="notes">
                 <h3>Notes Personnelles
                      <div class="edit-controls section-controls">
-                        <button class="action-button speak-btn" title="Lire les notes">${ICONS.volume}</button>
-                        <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
-                        <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
-                        <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
+                        <button class="action-button speak-btn">${ICONS.volume}</button>
+                        <button class="action-button edit-btn">${ICONS.pen}</button>
+                        <button class="action-button save-btn" style="display: none;">${ICONS.check}</button>
+                        <button class="action-button cancel-btn" style="display: none;">${ICONS.x}</button>
                     </div>
                 </h3>
                 <div class="content">
@@ -789,21 +752,18 @@ export async function handleCircuitsListClick(e) {
 }
 
 async function deleteCircuit(id) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce circuit ? Cette action est irréversible.")) return;
+    if (!confirm("Supprimer ce circuit ?")) return;
     try {
         await deleteCircuitById(id);
         state.myCircuits = state.myCircuits.filter(c => c.id !== id);
         if (state.activeCircuitId === id) await clearCircuit(false);
-
-        // <<< AJOUT : Recalcul des compteurs après suppression >>>
         await recalculatePlannedCountersForMap(state.currentMapId);
-
         renderCircuitsList();
         if(!isMobileView()) applyFilters();
-        showToast("Circuit supprimé avec succès.", 'success');
+        showToast("Circuit supprimé.", 'success');
     } catch (error) {
-        console.error("Erreur lors de la suppression du circuit :", error);
-        showToast("Erreur lors de la suppression du circuit.", 'error');
+        console.error("Erreur suppression:", error);
+        showToast("Erreur suppression.", 'error');
     }
 }
 
