@@ -1,23 +1,11 @@
 // fileManager.js
 import { DOM, showToast, closeDetailsPanel, openDetailsPanel } from './ui.js';
 import { state } from './state.js';
-
-// --- CORRECTION : On sépare la base de données et la logique circuit ---
 import { 
-    getAppState,
-    saveAppState, 
-    saveCircuit, 
-    savePoiData, 
-    getAllPoiDataForMap, 
-    getAllCircuitsForMap, 
-    deleteCircuitById 
+    getAppState, saveAppState, saveCircuit, savePoiData, 
+    getAllPoiDataForMap, getAllCircuitsForMap, deleteCircuitById 
 } from './database.js';
-
-import { 
-    clearCircuit, 
-    loadCircuitById 
-} from './circuit.js'; // <--- C'est ici qu'elles doivent être !
-
+import { clearCircuit, loadCircuitById } from './circuit.js';
 import { displayGeoJSON } from './data.js';
 import { isMobileView } from './mobile.js';
 import { downloadFile, getExifLocation, calculateDistance, resizeImage } from './utils.js';
