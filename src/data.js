@@ -5,20 +5,18 @@ import { populateZonesMenu, DOM, openDetailsPanel } from './ui.js';
 import { loadCircuitDraft } from './circuit.js';
 import { getAllPoiDataForMap, getAllCircuitsForMap, savePoiData, getAppState } from './database.js';
 import { logModification } from './logger.js';
+import { isMobileView } from './mobile.js'; 
 
 // --- FONCTIONS UTILITAIRES ---
 
 export function getPoiId(feature) {
     if (!feature) return null;
-    // 1. Cherche l'ID au niveau racine (format GeoJSON standard)
     if (feature.id) return String(feature.id);
-    // 2. Cherche dans les propriétés (votre format HW_ID)
     if (feature.properties) {
         if (feature.properties.HW_ID) return String(feature.properties.HW_ID);
         if (feature.properties.id) return String(feature.properties.id);
         if (feature.properties.ID) return String(feature.properties.ID);
     }
-    // 3. Si rien n'est trouvé
     return null;
 }
 
@@ -37,7 +35,6 @@ export async function updatePoiData(poiId, field, value) {
     if (!feature.properties.userData) feature.properties.userData = {};
 
     const oldValue = state.userData[poiId][field];
-    
     if (oldValue === value) return;
 
     state.userData[poiId][field] = value;
@@ -66,18 +63,14 @@ export function getDomainFromUrl(url) {
 // --- FONCTION D'AFFICHAGE FILTRÉ ---
 
 export function applyFilters() {
-    if (!state.geojsonLayer) return;
-    state.geojsonLayer.clearLayers();
+    if (state.geojsonLayer) state.geojsonLayer.clearLayers();
     if (!state.loadedFeatures || state.loadedFeatures.length === 0) return;
 
     const visibleFeatures = state.loadedFeatures.filter(feature => {
         const props = { ...feature.properties, ...feature.properties.userData };
         const poiId = getPoiId(feature);
         
-        // Filtrage des points masqués (Soft Delete)
-        if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) {
-            return false; 
-        }
+        if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) return false; 
 
         if (props.incontournable) return true;
 
@@ -95,7 +88,7 @@ export function applyFilters() {
         return true;
     });
 
-    if (visibleFeatures.length > 0) {
+    if (map && visibleFeatures.length > 0) {
         const newLayer = L.geoJSON(visibleFeatures, {
             pointToLayer: (feature, latlng) => {
                 const marker = L.marker(latlng, { icon: createHistoryWalkIcon(feature.properties.Catégorie) });
@@ -113,12 +106,15 @@ export function applyFilters() {
                 return marker;
             }
         });
-        newLayer.eachLayer(layer => state.geojsonLayer.addLayer(layer));
+        
+        if (state.geojsonLayer) {
+            newLayer.eachLayer(layer => state.geojsonLayer.addLayer(layer));
+        }
     }
     
     if (window.lucide) lucide.createIcons();
 
-    if (state.activeFilters.zone && state.geojsonLayer.getLayers().length > 0) {
+    if (map && state.activeFilters.zone && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
         const b = state.geojsonLayer.getBounds();
         if (b && b.isValid && b.isValid()) {
              map.flyToBounds(b.pad(0.1));
@@ -130,10 +126,10 @@ export function applyFilters() {
 
 export async function displayGeoJSON(data, mapId) {
     state.currentMapId = mapId;
-    document.getElementById('app-title').textContent = `History Walk - ${mapId}`;
+    const titleEl = document.getElementById('app-title');
+    if(titleEl) titleEl.textContent = `History Walk - ${mapId}`;
 
     try {
-        // Chargement des points masqués
         const savedHiddenPois = await getAppState(`hiddenPois_${mapId}`);
         state.hiddenPoiIds = savedHiddenPois || []; 
 
@@ -149,17 +145,25 @@ export async function displayGeoJSON(data, mapId) {
 
         state.loadedFeatures = validFeatures;
 
-        if (state.geojsonLayer) state.geojsonLayer.remove();
-        state.geojsonLayer = L.featureGroup().addTo(map);
+        if (map) {
+            if (state.geojsonLayer) state.geojsonLayer.remove();
+            state.geojsonLayer = L.featureGroup().addTo(map);
+        }
 
         populateZonesMenu();
         applyFilters(); 
         
         await loadCircuitDraft();
 
-        if (!state.activeFilters.zone && state.loadedFeatures.length > 0) {
-            const fullBounds = L.geoJSON(state.loadedFeatures).getBounds();
-            if (fullBounds.isValid()) map.flyToBounds(fullBounds.pad(0.1));
+        // --- CORRECTION CENTRAGE CARTE ---
+        // On ne zoome que sur les lieux qui NE SONT PAS dans la corbeille
+        if (map && !state.activeFilters.zone && state.loadedFeatures.length > 0) {
+            const activeFeatures = state.loadedFeatures.filter(f => !state.hiddenPoiIds.includes(getPoiId(f)));
+            
+            if (activeFeatures.length > 0) {
+                const fullBounds = L.geoJSON(activeFeatures).getBounds();
+                if (fullBounds.isValid()) map.flyToBounds(fullBounds.pad(0.1));
+            }
         }
     } catch (error) {
         console.error("Erreur lors de l'affichage du GeoJSON:", error);
@@ -167,22 +171,16 @@ export async function displayGeoJSON(data, mapId) {
     }
 }
 
-// --- AJOUT DYNAMIQUE DE POI ---
-
 export function addPoiFeature(feature) {
     if (!feature) return;
-
     state.loadedFeatures.push(feature);
-
     const poiId = getPoiId(feature);
     if (state.userData && !state.userData[poiId]) {
         state.userData[poiId] = {};
     }
-
-    if (state.geojsonLayer) {
+    if (map && state.geojsonLayer) {
         const tempLayer = L.geoJSON(feature); 
         const newMarker = tempLayer.getLayers()[0]; 
-
         if (typeof state.geojsonLayer.addLayer === 'function') {
             state.geojsonLayer.addLayer(newMarker);
         } else if (typeof state.geojsonLayer.addData === 'function') {

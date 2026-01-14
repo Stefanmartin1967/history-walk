@@ -5,6 +5,8 @@ import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { updatePolylines, getRealDistance, getOrthodromicDistance, map } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';
 import { getAppState, saveAppState, saveCircuit } from './database.js';
+// NOUVEAU : Import pour gérer l'affichage mobile
+import { isMobileView, renderMobilePoiList } from './mobile.js';
 
 export async function saveCircuitDraft() {
     if (!state.currentMapId) return;
@@ -33,15 +35,19 @@ export async function loadCircuitDraft() {
             state.currentCircuit = savedData.poiIds.map(id => state.loadedFeatures.find(feature => getPoiId(feature) === id)).filter(Boolean);
             
             const circuitName = generateCircuitName();
-            DOM.circuitTitleText.textContent = circuitName;
+            if(DOM.circuitTitleText) DOM.circuitTitleText.textContent = circuitName;
             
-            DOM.circuitDescription.value = savedData.description || '';
-            if (savedData.transport) {
-                document.getElementById('transport-aller-temps').value = savedData.transport.allerTemps || '';
+            if(DOM.circuitDescription) DOM.circuitDescription.value = savedData.description || '';
+            
+            // Sécurité si les champs n'existent pas encore dans le DOM
+            const tAllerTemps = document.getElementById('transport-aller-temps');
+            if(tAllerTemps && savedData.transport) {
+                tAllerTemps.value = savedData.transport.allerTemps || '';
                 document.getElementById('transport-aller-cout').value = savedData.transport.allerCout || '';
                 document.getElementById('transport-retour-temps').value = savedData.transport.retourTemps || '';
                 document.getElementById('transport-retour-cout').value = savedData.transport.retourCout || '';
             }
+
             if (state.currentCircuit.length > 0) {
                 if (!state.isSelectionModeActive) {
                     toggleSelectionMode();
@@ -58,14 +64,18 @@ export async function loadCircuitDraft() {
 
 export function toggleSelectionMode() {
     state.isSelectionModeActive = !state.isSelectionModeActive;
-    DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
+    if(DOM.btnModeSelection) DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
+    
     if (state.isSelectionModeActive) {
-        map.closePopup();
+        // MODIF MOBILE : On ne ferme la popup que si la carte existe
+        if (map) map.closePopup();
+        
         DOM.rightSidebar.style.display = 'flex';
         switchSidebarTab('circuit');
         renderCircuitPanel();
     } else {
         DOM.rightSidebar.style.display = 'none';
+        // MODIF MOBILE : On ne touche aux lignes que si elles existent
         if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
         if (state.realTrackPolyline) state.realTrackPolyline.remove();
     }
@@ -87,11 +97,17 @@ export function addPoiToCircuit(feature) {
 }
 
 export function renderCircuitPanel() {
+    if(!DOM.circuitStepsList) return;
+
     DOM.circuitStepsList.innerHTML = '';
     const btnLoop = document.getElementById('btn-loop-circuit');
-    btnLoop.disabled = state.currentCircuit.length === 0 || state.currentCircuit.length >= MAX_CIRCUIT_POINTS;
-    document.getElementById('btn-export-gpx').disabled = state.currentCircuit.length === 0;
-    document.getElementById('btn-import-gpx').disabled = !state.activeCircuitId;
+    if(btnLoop) btnLoop.disabled = state.currentCircuit.length === 0 || state.currentCircuit.length >= MAX_CIRCUIT_POINTS;
+    
+    const btnExport = document.getElementById('btn-export-gpx');
+    if(btnExport) btnExport.disabled = state.currentCircuit.length === 0;
+    
+    const btnImport = document.getElementById('btn-import-gpx');
+    if(btnImport) btnImport.disabled = !state.activeCircuitId;
 
     if (state.currentCircuit.length === 0) {
         DOM.circuitStepsList.innerHTML = `<p class="empty-list-info">Cliquez sur les lieux sur la carte pour les ajouter à votre circuit.</p>`;
@@ -113,8 +129,11 @@ export function renderCircuitPanel() {
         });
     }
     updateCircuitMetadata();
-    updatePolylines();
-    lucide.createIcons();
+    
+    // MODIF MOBILE : On ne dessine les lignes que si la carte est là
+    if (map) updatePolylines();
+    
+    if(window.lucide) lucide.createIcons();
 }
 
 function handleCircuitAction(action, index) {
@@ -145,6 +164,8 @@ function handleCircuitAction(action, index) {
 }
 
 export function updateCircuitMetadata(updateTitle = true) {
+    if(!DOM.circuitPoiCount) return;
+
     DOM.circuitPoiCount.textContent = `${state.currentCircuit.length}/${MAX_CIRCUIT_POINTS}`;
     const distanceIcon = document.getElementById('distance-icon');
     let totalDistance = 0;
@@ -152,18 +173,22 @@ export function updateCircuitMetadata(updateTitle = true) {
     const activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
     if (activeCircuitData && activeCircuitData.realTrack) {
         totalDistance = getRealDistance(activeCircuitData);
-        distanceIcon.setAttribute('data-lucide', 'footprints');
-        distanceIcon.title = 'Distance du tracé réel';
+        if(distanceIcon) {
+            distanceIcon.setAttribute('data-lucide', 'footprints');
+            distanceIcon.title = 'Distance du tracé réel';
+        }
     } else {
         totalDistance = getOrthodromicDistance(state.currentCircuit);
-        distanceIcon.setAttribute('data-lucide', 'bird');
-        distanceIcon.title = 'Distance à vol d\'oiseau';
+        if(distanceIcon) {
+            distanceIcon.setAttribute('data-lucide', 'bird');
+            distanceIcon.title = 'Distance à vol d\'oiseau';
+        }
     }
     
-    DOM.circuitDistance.textContent = (totalDistance / 1000).toFixed(1) + ' km';
-    lucide.createIcons();
+    if(DOM.circuitDistance) DOM.circuitDistance.textContent = (totalDistance / 1000).toFixed(1) + ' km';
+    if(window.lucide) lucide.createIcons();
     
-    if (updateTitle) {
+    if (updateTitle && DOM.circuitTitleText) {
         const fullTitle = generateCircuitName();
         DOM.circuitTitleText.textContent = fullTitle;
         DOM.circuitTitleText.title = fullTitle;
@@ -177,21 +202,18 @@ export function generateCircuitName() {
     const startPoi = getPoiName(state.currentCircuit[0]);
     const endPoi = getPoiName(state.currentCircuit[state.currentCircuit.length - 1]);
     
-    // Calcul du point médian (utilisé pour boucle ET linéaire)
     let middlePoi = "";
     if (state.currentCircuit.length > 2) {
         const middleIndex = Math.floor((state.currentCircuit.length - 1) / 2);
         middlePoi = getPoiName(state.currentCircuit[middleIndex]);
     }
 
-    // Cas 1 : BOUCLE (Départ == Arrivée)
     if (getPoiId(state.currentCircuit[0]) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) {
         if (middlePoi && startPoi !== middlePoi) {
             return `Boucle autour de ${startPoi} via ${middlePoi}`;
         }
         return `Boucle autour de ${startPoi}`;
     } 
-    // Cas 2 : LINÉAIRE (Départ != Arrivée)
     else {
         if (middlePoi) {
              return `Circuit de ${startPoi} à ${endPoi} via ${middlePoi}`;
@@ -199,19 +221,26 @@ export function generateCircuitName() {
         return `Circuit de ${startPoi} à ${endPoi}`;
     }
 }
+
 export async function clearCircuit(withConfirmation = true) {
     const doClear = async () => {
         state.currentCircuit = [];
         state.activeCircuitId = null;
         state.currentCircuitIndex = null;
-        DOM.circuitDescription.value = '';
-        document.getElementById('transport-aller-temps').value = '';
-        document.getElementById('transport-aller-cout').value = '';
-        document.getElementById('transport-retour-temps').value = '';
-        document.getElementById('transport-retour-cout').value = '';
+        if(DOM.circuitDescription) DOM.circuitDescription.value = '';
+        
+        // Sécurité éléments DOM
+        const tAller = document.getElementById('transport-aller-temps');
+        if(tAller) {
+            tAller.value = '';
+            document.getElementById('transport-aller-cout').value = '';
+            document.getElementById('transport-retour-temps').value = '';
+            document.getElementById('transport-retour-cout').value = '';
+        }
+
         await saveAppState(`circuitDraft_${state.currentMapId}`, null);
         renderCircuitPanel();
-        if (document.querySelector('#circuit-panel.active')) {
+        if (document.querySelector('#circuit-panel.active') && DOM.circuitTitleText) {
             DOM.circuitTitleText.textContent = 'Nouveau Circuit';
         }
     };
@@ -238,65 +267,89 @@ export function navigatePoiDetails(direction) {
 export async function loadCircuitById(id) {
     const circuitToLoad = state.myCircuits.find(c => c.id === id);
     if (!circuitToLoad) return;
+    
+    // On nettoie sans confirmation
     await clearCircuit(false);
+    
     state.activeCircuitId = id;
     
-    DOM.circuitTitleText.textContent = circuitToLoad.name || 'Circuit chargé';
+    if(DOM.circuitTitleText) DOM.circuitTitleText.textContent = circuitToLoad.name || 'Circuit chargé';
+    if(DOM.circuitDescription) DOM.circuitDescription.value = circuitToLoad.description || '';
     
-    DOM.circuitDescription.value = circuitToLoad.description || '';
     if (circuitToLoad.transport) {
-        document.getElementById('transport-aller-temps').value = circuitToLoad.transport.allerTemps || '';
-        document.getElementById('transport-aller-cout').value = circuitToLoad.transport.allerCout || '';
-        document.getElementById('transport-retour-temps').value = circuitToLoad.transport.retourTemps || '';
-        document.getElementById('transport-retour-cout').value = circuitToLoad.transport.retourCout || '';
+        const tAller = document.getElementById('transport-aller-temps');
+        if(tAller) {
+            tAller.value = circuitToLoad.transport.allerTemps || '';
+            document.getElementById('transport-aller-cout').value = circuitToLoad.transport.allerCout || '';
+            document.getElementById('transport-retour-temps').value = circuitToLoad.transport.retourTemps || '';
+            document.getElementById('transport-retour-cout').value = circuitToLoad.transport.retourCout || '';
+        }
     }
+    
     state.currentCircuit = circuitToLoad.poiIds.map(poiId => state.loadedFeatures.find(f => getPoiId(f) === poiId)).filter(Boolean);
-    if (!state.isSelectionModeActive) {
-        toggleSelectionMode();
-    } else {
-        renderCircuitPanel();
-    }
-    applyFilters();
 
-// ### AJOUT : ZOOM AUTOMATIQUE ###
-    if (state.currentCircuit.length > 0) {
-        // On construit un groupe temporaire pour récupérer les limites
-        const group = L.featureGroup(state.currentCircuit.map(f => {
-            const coords = f.geometry.coordinates;
-            return L.marker([coords[1], coords[0]]);
-        }));
-        // On zoome avec une petite marge (padding 0.1)
-        map.flyToBounds(group.getBounds().pad(0.1)); 
+    // MODIF MOBILE : Gestion différente de l'affichage
+    if (isMobileView()) {
+        // Sur mobile : on affiche la liste des points du circuit
+        renderMobilePoiList(state.currentCircuit);
+    } else {
+        // Sur PC : Comportement classique avec carte
+        if (!state.isSelectionModeActive) {
+            toggleSelectionMode();
+        } else {
+            renderCircuitPanel();
+        }
+        
+        applyFilters();
+
+        // Zoom auto seulement si la carte existe
+        if (map && state.currentCircuit.length > 0) {
+            const group = L.featureGroup(state.currentCircuit.map(f => {
+                const coords = f.geometry.coordinates;
+                return L.marker([coords[1], coords[0]]);
+            }));
+            map.flyToBounds(group.getBounds().pad(0.1)); 
+        }
     }
+    
+    showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
 }
 
 export function setupCircuitPanelEventListeners() {
-    document.getElementById('btn-clear-circuit').addEventListener('click', () => clearCircuit(true));
-    document.getElementById('btn-export-gpx').addEventListener('click', saveAndExportCircuit);
-    document.getElementById('btn-import-gpx').addEventListener('click', () => {
+    if(DOM.btnClearCircuit) DOM.btnClearCircuit.addEventListener('click', () => clearCircuit(true));
+    if(DOM.btnExportGpx) document.getElementById('btn-export-gpx').addEventListener('click', saveAndExportCircuit);
+    
+    if(DOM.btnImportGpx) DOM.btnImportGpx.addEventListener('click', () => {
         if (state.activeCircuitId) {
             state.circuitIdToImportFor = state.activeCircuitId;
             DOM.gpxImporter.click();
         }
     });
-    document.getElementById('close-circuit-panel-button').addEventListener('click', async () => {
-        if (state.currentCircuit.length > 0) {
-            if (confirm("Voulez-vous vraiment fermer et effacer le brouillon du circuit ?")) {
-                await clearCircuit(false);
+
+    const closeBtn = document.getElementById('close-circuit-panel-button');
+    if(closeBtn) {
+        closeBtn.addEventListener('click', async () => {
+            if (state.currentCircuit.length > 0) {
+                if (confirm("Voulez-vous vraiment fermer et effacer le brouillon du circuit ?")) {
+                    await clearCircuit(false);
+                    toggleSelectionMode();
+                }
+            } else {
                 toggleSelectionMode();
             }
-        } else {
-            toggleSelectionMode();
-        }
-    });
-    document.getElementById('btn-loop-circuit').addEventListener('click', () => {
+        });
+    }
+
+    if(DOM.btnLoopCircuit) DOM.btnLoopCircuit.addEventListener('click', () => {
         if (state.currentCircuit.length > 0 && state.currentCircuit.length < MAX_CIRCUIT_POINTS) {
             addPoiToCircuit(state.currentCircuit[0]);
         }
     });
     
-    DOM.circuitDescription.addEventListener('input', saveCircuitDraft);
+    if(DOM.circuitDescription) DOM.circuitDescription.addEventListener('input', saveCircuitDraft);
+    
     ['transport-aller-temps', 'transport-aller-cout', 'transport-retour-temps', 'transport-retour-cout'].forEach(id => {
-        document.getElementById(id).addEventListener('change', saveCircuitDraft);
+        const el = document.getElementById(id);
+        if(el) el.addEventListener('change', saveCircuitDraft);
     });
 }

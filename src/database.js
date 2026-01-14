@@ -175,3 +175,37 @@ export async function clearAllUserData() {
         }
     });
 }
+
+// --- AJOUTER À LA FIN DE database.js ---
+
+export function deleteDatabase() {
+    return new Promise((resolve, reject) => {
+        // On suppose que le nom est défini en haut du fichier, sinon on utilise la valeur par défaut
+        const dbName = 'HistoryWalkDB'; 
+        
+        // 1. On ferme la connexion active si elle existe (pour éviter le blocage)
+        if (window.db) {
+            window.db.close();
+        }
+
+        // 2. On lance la suppression
+        const request = indexedDB.deleteDatabase(dbName);
+
+        request.onsuccess = () => {
+            console.log("Base de données supprimée.");
+            localStorage.clear(); // On vide aussi le localStorage (préférences, brouillons)
+            resolve();
+        };
+
+        request.onerror = (event) => {
+            console.error("Erreur suppression DB:", event);
+            reject("Impossible de supprimer la base de données.");
+        };
+
+        request.onblocked = () => {
+            console.warn("Suppression bloquée.");
+            // Souvent causé par un autre onglet ouvert sur le même site
+            alert("Veuillez fermer les autres onglets de l'application pour permettre la réinitialisation.");
+        };
+    });
+}

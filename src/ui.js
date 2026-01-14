@@ -1,22 +1,20 @@
 // ui.js
-import { state } from './state.js';
+import { state, POI_CATEGORIES } from './state.js'; // <--- C'EST ICI QUE C'ÉTAIT MANQUANT
 import { getPoiId, getPoiName, updatePoiData, getDomainFromUrl, applyFilters } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { loadCircuitById, clearCircuit, navigatePoiDetails } from './circuit.js';
 import { escapeXml, recalculatePlannedCountersForMap } from './gpx.js';
 import { map } from './map.js';
-import { deleteCircuitById } from './database.js'; // Nettoyage: suppression de clearAllUserData non utilisé
+import { deleteCircuitById } from './database.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
 
-// Variables pour le diaporama
 let currentPhotoList = [];
 let currentPhotoIndex = 0;
 
-// SVG icons (Définition centralisée)
 const ICONS = {
     mosque: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H4v-7a8 8 0 0 1 16 0z"/><path d="M12 5V2"/><circle cx="12" cy="8" r="2"/></svg>`,    
     pen: `<i data-lucide="pencil" style="width:18px;height:18px;"></i>`,
@@ -57,14 +55,12 @@ export function initializeDomReferences() {
     DOM.tabButtons = document.querySelectorAll('.tab-button');
     DOM.sidebarPanels = document.querySelectorAll('.sidebar-panel');
     
-    // Initialisation Editeur Plein Écran
     if (DOM.editorCancelBtn) DOM.editorCancelBtn.addEventListener('click', () => DOM.fullscreenEditor.style.display = 'none');
     if (DOM.editorSaveBtn) DOM.editorSaveBtn.addEventListener('click', () => {
         if (currentEditor.callback) currentEditor.callback(DOM.editorTextarea.value);
         DOM.fullscreenEditor.style.display = 'none';
     });
 
-    // Initialisation Visionneuse Photo
     const closeViewer = document.querySelector('.close-viewer');
     if (closeViewer) {
         closeViewer.addEventListener('click', () => {
@@ -75,7 +71,6 @@ export function initializeDomReferences() {
         });
     }
     
-    // Navigation Diaporama
     if(DOM.viewerNext) DOM.viewerNext.addEventListener('click', (e) => { e.stopPropagation(); changePhoto(1); });
     if(DOM.viewerPrev) DOM.viewerPrev.addEventListener('click', (e) => { e.stopPropagation(); changePhoto(-1); });
     
@@ -115,9 +110,17 @@ export function setupEditableField(fieldId, poiId) {
     const cancelBtn = container.querySelector('.cancel-btn');
     const speakBtn = container.querySelector('.speak-btn');
     
+    const categorySelect = document.getElementById('panel-category-select');
+    
     const saveValue = async (newValue) => {
         const key = (fieldId === 'title') ? 'custom_title' : (fieldId === 'short_desc' ? 'Description_courte' : fieldId);
         await updatePoiData(poiId, key, newValue.trim());
+        
+        if (fieldId === 'title' && categorySelect) {
+             const newCat = categorySelect.value;
+             await updatePoiData(poiId, 'Catégorie', newCat);
+        }
+        
         openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
     };
     
@@ -137,6 +140,12 @@ export function setupEditableField(fieldId, poiId) {
                 inputEl.value = content;
                 if(displayEl) displayEl.style.display = 'none';
                 inputEl.style.display = (inputEl.tagName === 'TEXTAREA') ? 'flex' : 'block';
+                
+                if (fieldId === 'title' && categorySelect) {
+                    categorySelect.style.display = 'block';
+                    categorySelect.value = currentFeature.properties['Catégorie'] || 'A définir';
+                }
+                
                 editBtn.style.display = 'none';
                 if(speakBtn) speakBtn.style.display = 'none';
                 if(saveBtn) saveBtn.style.display = 'inline-flex';
@@ -150,6 +159,11 @@ export function setupEditableField(fieldId, poiId) {
         cancelBtn.addEventListener('click', () => {
             if(displayEl) displayEl.style.display = (inputEl.tagName === 'TEXTAREA' || fieldId === 'title') ? '' : 'block';
             if(fieldId === 'title') { if(displayEl) displayEl.style.display = 'block'; }
+            
+            if (fieldId === 'title' && categorySelect) {
+                categorySelect.style.display = 'none';
+            }
+
             inputEl.style.display = 'none';
             editBtn.style.display = 'inline-flex';
             if(speakBtn) speakBtn.style.display = 'inline-flex';
@@ -190,7 +204,6 @@ function setupAllEditableFields(poiId) {
     });
 }
 
-// Helper pour compresser les images
 async function compressImage(file, targetMinSize = 800) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -345,6 +358,12 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
     const allProps = { ...feature.properties, ...feature.properties.userData };
     const poiName = getPoiName(feature);
     const inCircuit = circuitIndex !== null;
+    const currentCat = allProps['Catégorie'] || '';
+
+    // Utilisation de la liste centralisée
+    const categoryOptions = POI_CATEGORIES.map(c => 
+        `<option value="${c}" ${c === currentCat ? 'selected' : ''}>${c}</option>`
+    ).join('');
 
     let timeText = '00h00', hours = 0, minutes = 0;
     if (allProps.timeH !== undefined && allProps.timeM !== undefined) {
@@ -390,25 +409,36 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
         </div>`;
 
     const gmapsButtonHtml = `<button class="action-button" id="open-gmaps-btn" title="Itinéraire Google Maps">${ICONS.googleMaps}</button>`;
+    
+    const categorySelectHtml = `
+        <select id="panel-category-select" class="editable-input header-input" style="display:none; margin-top:5px; width:100%; font-size:14px;">
+            ${categoryOptions}
+        </select>
+    `;
 
     const pcHtml = `
         <div class="panel-header editable-field" data-field-id="title">
-            <div class="editable-content">
-                <h2 id="panel-title-display">${escapeXml(poiName)}</h2>
-                <p class="panel-nom-arabe">${escapeXml(allProps['Nom du site arabe'] || '')}</p>
+            <div class="header-top-row" style="display:flex; justify-content:space-between; align-items:start; width:100%; margin-bottom:10px;">
+                <div class="editable-content" style="flex:1;">
+                    <h2 id="panel-title-display" title="${escapeXml(poiName)}">${escapeXml(poiName)}</h2>
+                    <p class="panel-nom-arabe">${escapeXml(allProps['Nom du site arabe'] || '')}</p>
+                </div>
+                <div class="details-nav">
+                    ${inCircuit ? `<button class="header-btn" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
+                                  <button class="header-btn" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
+                    <button class="header-btn" id="close-details-button" title="${state.isSelectionModeActive ? 'Retour' : 'Fermer'}">${state.isSelectionModeActive ? ICONS.arrowLeftToLine : ICONS.x}</button>
+                </div>
             </div>
-            <input type="text" id="panel-title-input" class="editable-input header-input" style="display: none;">
-            <div class="edit-controls">
+            
+            <input type="text" id="panel-title-input" class="editable-input header-input" style="display: none; width:100%;">
+            ${categorySelectHtml}
+            
+            <div class="edit-controls" style="display:flex; gap:5px; margin-top:5px; justify-content:flex-start;">
                 ${gmapsButtonHtml}
                 <button class="action-button edit-btn" title="Modifier le nom">${ICONS.pen}</button>
                 <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
                 <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
                 <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
-            </div>
-            <div class="details-nav">
-                ${inCircuit ? `<button class="header-btn" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
-                              <button class="header-btn" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
-                <button class="header-btn" id="close-details-button" title="${state.isSelectionModeActive ? 'Retour' : 'Fermer'}">${state.isSelectionModeActive ? ICONS.arrowLeftToLine : ICONS.x}</button>
             </div>
         </div>
         <div class="panel-content">
@@ -490,6 +520,8 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
                         </div>
                     </div>
                      <input type="text" class="editable-input" style="display: none;" value="${escapeXml(poiName)}">
+                     ${categorySelectHtml}
+                     
                     <div class="title-section-line">
                         <div class="title-names">
                              <p class="panel-nom-arabe editable-text">${escapeXml(allProps['Nom du site arabe'] || '')}</p>
@@ -498,6 +530,7 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
                              ${gmapsButtonHtml}
                              <button id="mobile-move-poi-btn" class="action-button" title="Mettre à jour la position">${ICONS.locate}</button>
                              <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
+                             <button class="action-button" id="btn-soft-delete" title="Supprimer (Corbeille)" style="color: var(--danger);">${ICONS.trash}</button>
                              <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
                              <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
                         </div>
@@ -567,7 +600,7 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
 
 export function openDetailsPanel(featureId, circuitIndex = null) {
     if (featureId === undefined || featureId < 0) return;
-    if(!isMobileView()) map.closePopup();
+    if(!isMobileView() && map) map.closePopup();
 
     state.currentFeatureId = featureId;
     state.currentCircuitIndex = circuitIndex;
@@ -598,7 +631,7 @@ export function closeDetailsPanel(goBackToList = false) {
     
     if (isMobileView()) {
         if(goBackToList && state.activeCircuitId) {
-            renderMobilePoiList(state.activeCircuitId);
+            renderMobilePoiList(state.currentCircuit);
         } else {
              renderMobileCircuitsList();
         }
@@ -787,4 +820,17 @@ export function showToast(message, type = 'info', duration = 4000) {
         toast.style.animation = 'fadeOut 0.5s forwards';
         toast.addEventListener('animationend', () => toast.remove());
     }, duration - 500);
+}
+
+// --- FONCTION POUR REMPLIR LA LISTE "NOUVEAU LIEU" (Modale) ---
+export function populateAddPoiModalCategories() {
+    const select = document.getElementById('new-poi-category');
+    if (!select) return;
+
+    select.innerHTML = POI_CATEGORIES.map(c => 
+        `<option value="${c}">${c}</option>`
+    ).join('');
+    
+    // Par défaut sur "A définir"
+    select.value = "A définir";
 }

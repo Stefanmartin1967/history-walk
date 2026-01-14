@@ -1,14 +1,14 @@
+// mobile.js
 import { state } from './state.js';
-import { 
-    DOM, 
-    showToast, 
-    closeDetailsPanel, 
-    openDetailsPanel, 
-    openCircuitsModal 
-} from './ui.js';
-import { toggleSelectionMode } from './circuit.js';
-import { handleRestoreFile, saveUserData, handlePhotoImport } from './fileManager.js';
-import { getPoiName, getPoiId } from './data.js';
+import { DOM, showToast, openDetailsPanel } from './ui.js';
+import { getPoiId, getPoiName, addPoiFeature } from './data.js';
+import { loadCircuitById, clearCircuit } from './circuit.js';
+import { createIcons, icons } from 'lucide';
+import { saveUserData } from './fileManager.js'; 
+import { deleteDatabase, saveAppState } from './database.js'; 
+
+// État local du mobile
+let currentView = 'circuits'; 
 
 export function isMobileView() {
     return window.innerWidth <= 768;
@@ -17,170 +17,327 @@ export function isMobileView() {
 export function initMobileMode() {
     document.body.classList.add('mobile-mode');
     
-    // Bottom Nav
-    const navButtons = document.querySelectorAll('.mobile-nav-btn');
+    const navButtons = document.querySelectorAll('.mobile-nav-btn[data-view]');
     navButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            navButtons.forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            handleMobileViewChange(e.currentTarget.dataset.view);
+            const view = btn.dataset.view;
+            switchMobileView(view);
         });
     });
 
-    setupMobileActions();
+    switchMobileView('circuits');
 }
 
-function handleMobileViewChange(view) {
-    closeDetailsPanel();
-    const rightSidebar = document.getElementById('right-sidebar');
-    if (rightSidebar) rightSidebar.style.display = 'none';
+export function switchMobileView(viewName) {
+    currentView = viewName;
+    
+    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        if (btn.dataset.view === viewName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
 
-    switch(view) {
+    const container = document.getElementById('mobile-main-container');
+    container.innerHTML = ''; 
+    
+    switch (viewName) {
         case 'circuits':
-            openCircuitsModal();
+            renderMobileCircuitsList();
             break;
         case 'search':
-            if (DOM.searchInput) DOM.searchInput.focus();
+            renderMobileSearch();
             break;
         case 'add-poi':
-            toggleSelectionMode();
-            showToast("Touchez la carte pour ajouter un lieu", "info");
+            handleAddPoiClick();
             break;
         case 'actions':
-            openMobileMenu();
+            renderMobileMenu();
             break;
     }
-}
-
-export function updatePoiPosition(lat, lng) {
-    const coordsEl = document.getElementById('new-poi-coords');
-    if (coordsEl) {
-        coordsEl.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    }
-}
-
-export function renderMobilePoiList(features) {
-    const container = document.getElementById('mobile-main-container');
-    if (!container) return;
-
-    const listData = features || state.loadedFeatures;
-    container.innerHTML = '';
     
-    const ul = document.createElement('ul');
-    ul.style.listStyle = 'none';
-    ul.style.padding = '0';
-    ul.style.margin = '0';
-
-    listData.slice(0, 50).forEach(feature => {
-        const li = document.createElement('li');
-        li.style.cssText = 'padding:15px; border-bottom:1px solid var(--border); cursor:pointer; background:var(--surface);';
-        
-        const name = getPoiName(feature);
-        const cat = feature.properties['Catégorie'] || 'Divers';
-        
-        li.innerHTML = `
-            <div style="font-weight:600; font-size:16px;">${name}</div>
-            <div style="font-size:13px; color:var(--text-soft); margin-top:4px;">${cat}</div>
-        `;
-        
-        li.addEventListener('click', () => {
-             const featureId = state.loadedFeatures.indexOf(feature);
-             if (featureId > -1) openDetailsPanel(featureId);
-        });
-        
-        ul.appendChild(li);
-    });
-
-    container.appendChild(ul);
+    createIcons({ icons });
 }
 
-export function renderMobileCircuitsList() {
-    const list = document.getElementById('circuits-list-container');
-    if (!list) return;
-
-    list.innerHTML = '';
-    
-    if (state.myCircuits.length === 0) {
-        list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Aucun circuit sauvegardé.</div>';
+async function handleAddPoiClick() {
+    if (!confirm("Capturer votre position GPS actuelle pour créer un nouveau lieu ?")) {
+        switchMobileView('circuits');
         return;
     }
 
-    state.myCircuits.forEach(circuit => {
-        const div = document.createElement('div');
-        div.className = 'circuit-card'; 
-        div.style.cssText = 'background:var(--surface); padding:15px; margin-bottom:10px; border-radius:12px; border:1px solid var(--border); box-shadow:0 2px 4px rgba(0,0,0,0.05);';
+    showToast("Acquisition GPS en cours...", "info");
+
+    if (!navigator.geolocation) {
+        showToast("GPS non supporté par ce navigateur.", "error");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            const newPoiId = `HW-MOB-${Date.now()}`;
+            
+            const newFeature = {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [longitude, latitude] },
+                properties: {
+                    "Nom du site FR": "Nouveau Lieu",
+                    "Catégorie": "A définir",
+                    "Zone": "Terrain",
+                    "Description": "Créé sur le terrain",
+                    "HW_ID": newPoiId
+                }
+            };
+
+            addPoiFeature(newFeature);
+            await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
+            
+            showToast(`Lieu créé !`, "success");
+            
+            const index = state.loadedFeatures.length - 1;
+            openDetailsPanel(index);
+        },
+        (err) => {
+            console.error(err);
+            showToast("Erreur GPS : " + err.message, "error");
+            switchMobileView('circuits');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+}
+
+export function renderMobileCircuitsList() {
+    const container = document.getElementById('mobile-main-container');
+    
+    let html = `
+        <div class="mobile-view-header">
+            <h1>Mes Circuits</h1>
+        </div>
+        <div class="panel-content" style="padding: 10px;">
+    `;
+
+    if (state.myCircuits.length === 0) {
+        html += `<p style="text-align:center; color:var(--ink-soft); margin-top:20px;">
+            Aucun circuit enregistré.<br>
+            Utilisez le menu <b>Menu > Restaurer</b> pour charger une sauvegarde.
+        </p>`;
+    } else {
+        html += `<div class="mobile-list">`;
+        state.myCircuits.forEach(circuit => {
+            html += `
+                <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}">
+                    <i data-lucide="route" style="color:var(--brand);"></i>
+                    <span>${circuit.name}</span>
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            `;
+        });
+        html += `</div>`;
+    }
+    
+    html += `</div>`;
+    container.innerHTML = html;
+
+    container.querySelectorAll('.circuit-item-mobile').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.id;
+            await loadCircuitById(id);
+        });
+    });
+}
+
+export function renderMobilePoiList(features) {
+    const listToDisplay = features || [];
+    
+    const container = document.getElementById('mobile-main-container');
+    const isCircuit = state.activeCircuitId !== null;
+    
+    let html = `
+        <div class="mobile-view-header">
+            ${isCircuit ? '<button id="mobile-back-btn"><i data-lucide="arrow-left"></i></button>' : ''}
+            <h1>${isCircuit ? state.currentCircuitName : 'Lieux'}</h1>
+        </div>
+        <div class="mobile-list">
+    `;
+
+    // Filtre des éléments supprimés (même dans la liste du circuit par sécurité)
+    const filteredList = listToDisplay.filter(f => {
+         const id = getPoiId(f);
+         return !state.hiddenPoiIds || !state.hiddenPoiIds.includes(id);
+    });
+
+    filteredList.forEach(feature => {
+        const name = getPoiName(feature);
+        const poiId = getPoiId(feature);
+        const icon = feature.properties.Catégorie === 'Mosquée' ? 'landmark' : 'map-pin';
         
-        div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                <h3 style="margin:0; font-size:16px; font-weight:600;">${circuit.name}</h3>
-                <span style="font-size:12px; background:var(--surface-muted); padding:2px 8px; border-radius:10px;">${circuit.points.length} pts</span>
-            </div>
-            <p style="font-size:14px; color:var(--text-soft); margin-bottom:12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${circuit.description || 'Aucune description'}</p>
-            <div style="display:flex; gap:10px;">
-                <button class="btn-load-circuit header-btn" data-id="${circuit.id}" style="flex:1; justify-content:center; background:var(--brand); color:white; border-radius:6px; padding:8px;"><i data-lucide="map"></i> Charger</button>
-                <button class="btn-delete-circuit header-btn" data-id="${circuit.id}" style="padding:8px; color:var(--ink); border:1px solid var(--border); border-radius:6px;"><i data-lucide="trash-2"></i></button>
-            </div>
+        html += `
+            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}">
+                <i data-lucide="${icon}"></i>
+                <span>${name}</span>
+            </button>
         `;
-        list.appendChild(div);
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+    
+    const backBtn = document.getElementById('mobile-back-btn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            clearCircuit(false); 
+            renderMobileCircuitsList(); 
+        });
+    }
+
+    container.querySelectorAll('.poi-item-mobile').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const poiId = btn.dataset.id;
+            const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+            const index = state.loadedFeatures.indexOf(feature);
+            if (index > -1) openDetailsPanel(index);
+        });
     });
     
-    if(window.lucide) window.lucide.createIcons();
+    createIcons({ icons });
 }
 
-function setupMobileActions() {
-    // Hooks pour actions futures
-}
-
-function openMobileMenu() {
-    let menu = document.getElementById('mobile-actions-menu');
-    if (!menu) {
-        menu = document.createElement('div');
-        menu.id = 'mobile-actions-menu';
-        menu.className = 'modal-overlay';
-        menu.style.display = 'flex';
-        menu.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Menu</h2>
-                    <button class="header-btn" id="close-mobile-menu"><i data-lucide="x"></i></button>
-                </div>
-                <div class="modal-body" style="display:flex; flex-direction:column; gap:10px;">
-                    <button id="mob-btn-save" class="btn" style="justify-content:flex-start; width:100%"><i data-lucide="save"></i> Sauvegarder</button>
-                    <button id="mob-btn-restore" class="btn" style="justify-content:flex-start; width:100%"><i data-lucide="folder-down"></i> Restaurer</button>
-                    <button id="mob-btn-photos" class="btn" style="justify-content:flex-start; width:100%"><i data-lucide="camera"></i> Photos GPS</button>
-                    <div class="separator" style="margin: 10px 0; border-top:1px solid var(--border);"></div>
-                    <button id="mob-btn-theme" class="btn" style="justify-content:flex-start; width:100%"><i data-lucide="palette"></i> Changer Thème</button>
-                </div>
+export function renderMobileSearch() {
+    const container = document.getElementById('mobile-main-container');
+    container.innerHTML = `
+        <div class="mobile-view-header">
+            <h1>Rechercher</h1>
+        </div>
+        <div style="padding: 16px;" class="mobile-search">
+            <div style="position:relative;">
+                <i data-lucide="search" class="search-icon" style="position:absolute; left:12px; top:12px;"></i>
+                <input type="text" id="mobile-search-input" placeholder="Nom du lieu..." 
+                    style="width:100%; padding:10px 10px 10px 40px; border-radius:12px; border:1px solid var(--line);">
             </div>
-        `;
-        document.body.appendChild(menu);
-        if(window.lucide) window.lucide.createIcons();
+            <div id="mobile-search-results" class="mobile-list" style="margin-top:20px;"></div>
+        </div>
+    `;
 
-        menu.querySelector('#close-mobile-menu').addEventListener('click', () => menu.style.display = 'none');
-        
-        menu.querySelector('#mob-btn-save').addEventListener('click', () => {
-            saveUserData();
-            menu.style.display = 'none';
+    const input = document.getElementById('mobile-search-input');
+    const resultsContainer = document.getElementById('mobile-search-results');
+
+    input.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        if (term.length < 2) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+
+        const matches = state.loadedFeatures.filter(f => {
+            const name = getPoiName(f).toLowerCase();
+            const id = getPoiId(f);
+            
+            // FILTRE DES SUPPRIMÉS
+            if (state.hiddenPoiIds && state.hiddenPoiIds.includes(id)) return false;
+
+            return name.includes(term);
         });
 
-        menu.querySelector('#mob-btn-restore').addEventListener('click', () => {
-            DOM.restoreLoader.click(); 
-            menu.style.display = 'none';
+        let html = '';
+        matches.forEach(f => {
+            html += `
+                <button class="mobile-list-item result-item" data-id="${getPoiId(f)}">
+                    <i data-lucide="map-pin"></i>
+                    <span>${getPoiName(f)}</span>
+                </button>
+            `;
         });
-        
-        menu.querySelector('#mob-btn-photos').addEventListener('click', () => {
-            document.getElementById('photo-gps-loader').click();
-            menu.style.display = 'none';
-        });
+        resultsContainer.innerHTML = html;
+        createIcons({ icons });
 
-        menu.querySelector('#mob-btn-theme').addEventListener('click', () => {
-            document.getElementById('btn-theme-selector').click(); 
+        resultsContainer.querySelectorAll('.result-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const feature = state.loadedFeatures.find(f => getPoiId(f) === btn.dataset.id);
+                const index = state.loadedFeatures.indexOf(feature);
+                openDetailsPanel(index);
+            });
         });
-    } else {
-        menu.style.display = 'flex';
-    }
+    });
+    
+    input.focus();
 }
 
-window.openGeneratorModal = function() {
-    showToast("Générateur de circuit : Bientôt disponible !", "info");
+export function renderMobileMenu() {
+    const container = document.getElementById('mobile-main-container');
+    container.innerHTML = `
+        <div class="mobile-view-header">
+            <h1>Menu</h1>
+        </div>
+        <div class="mobile-list actions-list" style="padding: 16px;">
+            
+            <button class="mobile-list-item" id="mob-action-restore">
+                <i data-lucide="folder-down"></i>
+                <span>Restaurer les données</span>
+            </button>
+
+            <button class="mobile-list-item" id="mob-action-save">
+                <i data-lucide="save"></i>
+                <span>Sauvegarder</span>
+            </button>
+            
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
+            
+             <button class="mobile-list-item" id="mob-action-geojson">
+                <i data-lucide="map"></i>
+                <span>Charger Destination (GeoJSON)</span>
+            </button>
+
+            <button class="mobile-list-item" id="mob-action-reset" style="color:var(--danger);">
+                <i data-lucide="trash-2"></i>
+                <span>Vider les données locales</span>
+            </button>
+
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
+
+            <button class="mobile-list-item" id="mob-action-theme">
+                <i data-lucide="palette"></i>
+                <span>Changer Thème</span>
+            </button>
+        </div>
+        <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
+            History Walk Mobile v${state.appVersion || '2.0'}
+        </div>
+    `;
+
+    document.getElementById('mob-action-restore').addEventListener('click', () => {
+        DOM.restoreLoader.click(); 
+    });
+
+    document.getElementById('mob-action-save').addEventListener('click', () => {
+        saveUserData(); 
+    });
+    
+    document.getElementById('mob-action-geojson').addEventListener('click', () => {
+        DOM.geojsonLoader.click(); 
+    });
+
+    document.getElementById('mob-action-reset').addEventListener('click', async () => {
+        if(confirm("ATTENTION : Cela va effacer toutes les données locales (caches, sauvegardes automatiques). Continuez ?")) {
+            await deleteDatabase();
+            location.reload();
+        }
+    });
+
+    document.getElementById('mob-action-theme').addEventListener('click', () => {
+        document.getElementById('btn-theme-selector').click(); 
+        showToast("Thème changé", "success");
+    });
+}
+
+export function updatePoiPosition(poiId) {
+    if (!navigator.geolocation) return showToast("GPS non supporté", "error");
+    
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const { latitude, longitude } = pos.coords;
+            showToast(`Position capturée: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        },
+        (err) => showToast("Erreur GPS: " + err.message, "error")
+    );
 }
