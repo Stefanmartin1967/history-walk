@@ -46,7 +46,8 @@ export function initializeDomReferences() {
         'btn-import-gpx', 'loader-overlay', 'btn-save-data', 'btn-restore-data', 'restore-loader', 'btn-open-geojson', 
         'mobile-container', 'mobile-main-container', 'mobile-nav', 'fullscreen-editor', 'editor-title', 
         'editor-cancel-btn', 'editor-save-btn', 'editor-textarea', 'destination-loader',
-        'photo-viewer', 'viewer-img', 'viewer-next', 'viewer-prev' 
+        'photo-viewer', 'viewer-img', 'viewer-next', 'viewer-prev',
+        'backup-modal', 'btn-backup-full', 'btn-backup-lite', 'btn-backup-cancel'
     ];
     ids.forEach(id => {
         const camelCaseId = id.replace(/-(\w)/g, (_, c) => c.toUpperCase());

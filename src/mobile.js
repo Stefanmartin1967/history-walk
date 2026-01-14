@@ -148,34 +148,46 @@ export function renderMobileCircuitsList() {
 }
 
 export function renderMobilePoiList(features) {
+    // Si features n'est pas fourni, on utilise tout (ou rien)
     const listToDisplay = features || [];
     
     const container = document.getElementById('mobile-main-container');
     const isCircuit = state.activeCircuitId !== null;
     
+    // Bouton Inverser (Uniquement si on est dans un circuit)
+    const reverseBtnHtml = isCircuit 
+        ? `<button id="mobile-reverse-btn" style="margin-left:auto; background:none; border:none; color:var(--brand); cursor:pointer;" title="Inverser le sens du circuit">
+             <i data-lucide="arrow-up-down"></i>
+           </button>` 
+        : '';
+
     let html = `
-        <div class="mobile-view-header">
-            ${isCircuit ? '<button id="mobile-back-btn"><i data-lucide="arrow-left"></i></button>' : ''}
-            <h1>${isCircuit ? state.currentCircuitName : 'Lieux'}</h1>
+        <div class="mobile-view-header" style="display:flex; align-items:center; justify-content:space-between; padding-right:15px;">
+            <div style="display:flex; align-items:center;">
+                ${isCircuit ? '<button id="mobile-back-btn" style="margin-right:10px;"><i data-lucide="arrow-left"></i></button>' : ''}
+                <h1 style="margin:0; font-size:18px;">${isCircuit ? state.currentCircuitName : 'Lieux'}</h1>
+            </div>
+            ${reverseBtnHtml}
         </div>
         <div class="mobile-list">
     `;
 
-    // Filtre des éléments supprimés (même dans la liste du circuit par sécurité)
-    const filteredList = listToDisplay.filter(f => {
-         const id = getPoiId(f);
-         return !state.hiddenPoiIds || !state.hiddenPoiIds.includes(id);
-    });
-
-    filteredList.forEach(feature => {
+    listToDisplay.forEach(feature => {
         const name = getPoiName(feature);
         const poiId = getPoiId(feature);
         const icon = feature.properties.Catégorie === 'Mosquée' ? 'landmark' : 'map-pin';
         
+        // On vérifie si le point est visité pour le griser ou ajouter un check (optionnel mais sympa)
+        const isVisited = feature.properties.userData?.vu;
+        const checkIcon = isVisited ? '<i data-lucide="check" style="width:14px; margin-left:5px; color:var(--ok);"></i>' : '';
+
         html += `
-            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}">
-                <i data-lucide="${icon}"></i>
-                <span>${name}</span>
+            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i data-lucide="${icon}"></i>
+                    <span>${name}</span>
+                </div>
+                ${checkIcon}
             </button>
         `;
     });
@@ -183,6 +195,7 @@ export function renderMobilePoiList(features) {
     html += `</div>`;
     container.innerHTML = html;
     
+    // 1. Gestion du bouton retour
     const backBtn = document.getElementById('mobile-back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
@@ -191,6 +204,24 @@ export function renderMobilePoiList(features) {
         });
     }
 
+    // 2. Gestion du bouton INVERSER (Nouveau !)
+    const reverseBtn = document.getElementById('mobile-reverse-btn');
+    if (reverseBtn) {
+        reverseBtn.addEventListener('click', () => {
+            if(!state.currentCircuit || state.currentCircuit.length < 2) return;
+            
+            // On inverse le tableau en mémoire
+            state.currentCircuit.reverse();
+            
+            // Petit Toast pour confirmer
+            showToast("Circuit inversé ⇅", "info");
+            
+            // On rafraîchit la liste immédiatement
+            renderMobilePoiList(state.currentCircuit);
+        });
+    }
+
+    // 3. Clic sur un lieu -> Ouvre détails
     container.querySelectorAll('.poi-item-mobile').forEach(btn => {
         btn.addEventListener('click', () => {
             const poiId = btn.dataset.id;

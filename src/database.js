@@ -209,3 +209,39 @@ export function deleteDatabase() {
         };
     });
 }
+
+// Ajoutez ceci à la fin de src/database.js
+
+export function clearStore(storeName) {
+    return new Promise((resolve, reject) => {
+        // On suppose que la DB est déjà ouverte (initDB a été appelé au démarrage)
+        // Sinon, on réouvre une connexion rapide
+        const request = indexedDB.open('HistoryWalkDB'); 
+
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            try {
+                const transaction = db.transaction([storeName], 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const clearRequest = store.clear();
+
+                clearRequest.onsuccess = () => {
+                    resolve();
+                };
+
+                clearRequest.onerror = (e) => {
+                    console.error(`Erreur lors du vidage du store ${storeName}:`, e);
+                    reject(e.target.error);
+                };
+            } catch (err) {
+                // Si le store n'existe pas, on ne fait rien (pas grave)
+                console.warn(`Le store ${storeName} n'existe pas, impossible de le vider.`);
+                resolve();
+            }
+        };
+
+        request.onerror = (event) => {
+            reject("Impossible d'ouvrir la DB pour clearStore");
+        };
+    });
+}

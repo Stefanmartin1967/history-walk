@@ -13,6 +13,28 @@
 
     <link rel="stylesheet" href="style.css?v=1.4">
 </head>
+
+<div id="backup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="background: var(--surface, #fff); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
+        <h2 style="margin-top: 0; color: var(--ink, #333);">Sauvegarder</h2>
+        <p style="color: var(--ink-light, #666); margin-bottom: 20px;">Choisissez le format de votre sauvegarde :</p>
+        
+        <button id="btn-backup-full" class="action-button" style="width: 100%; margin-bottom: 10px; background: var(--brand, #007bff); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i data-lucide="image"></i> Complet (PC)
+            <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Avec Photos</span>
+        </button>
+
+        <button id="btn-backup-lite" class="action-button" style="width: 100%; margin-bottom: 15px; background: var(--ok, #28a745); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i data-lucide="file-text"></i> Texte Seul (Mobile)
+            <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Rapide</span>
+        </button>
+
+        <button id="btn-backup-cancel" style="background: transparent; border: 1px solid var(--border, #ccc); color: var(--ink-light, #666); padding: 8px 20px; border-radius: 6px; cursor: pointer;">
+            Annuler
+        </button>
+    </div>
+</div>
+
 <body>
 
     <div class="topbar">
@@ -26,6 +48,9 @@
                 <div class="search-results" id="search-results" style="display: none;"></div>
             </div>
         </div>
+        <a href="fusion.html" target="_blank" class="btn" title="Ouvrir la Console de Fusion" style="text-decoration: none; display: flex; align-items: center; gap: 6px;">
+        <i data-lucide="combine"></i><span>Fusion</span>
+        </a>
         <div class="topbar-right">
             <button class="btn" id="btn-my-circuits" title="Mes Circuits"><i data-lucide="route"></i><span>Mes Circuits</span></button>
             <div class="separator"></div>
