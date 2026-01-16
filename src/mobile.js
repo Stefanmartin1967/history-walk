@@ -5,7 +5,8 @@ import { getPoiId, getPoiName, addPoiFeature } from './data.js';
 import { loadCircuitById, clearCircuit } from './circuit.js';
 import { createIcons, icons } from 'lucide';
 import { saveUserData } from './fileManager.js'; 
-import { deleteDatabase, saveAppState } from './database.js'; 
+import { deleteDatabase, saveAppState } from './database.js';
+import { getIconForFeature } from './map.js';
 
 // État local du mobile
 let currentView = 'circuits'; 
