@@ -4,6 +4,7 @@ import { getPoiId, addPoiFeature, displayGeoJSON } from './data.js';
 import { loadCircuitById } from './circuit.js';
 import { showToast, DOM } from './ui.js';
 import { saveAppState, savePoiData, saveCircuit, clearStore } from './database.js';
+import { processImportedGpx } from './gpx.js';
 
 // --- IMPORTATION GÉNÉRIQUE (Pour ouvrir une carte ou un backup) ---
 
@@ -177,21 +178,25 @@ async function restoreBackup(json) {
 
 // --- GESTION DES IMPORTS SPÉCIFIQUES (GPX & PHOTOS) ---
 
-export function handleGpxFileImport(event) {
+export async function handleGpxFileImport(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
-    // Import dynamique pour éviter les dépendances cycliques
-    import('./gpx.js').then(module => {
-        if (module.handleGpxImport) {
-            module.handleGpxImport(file);
-        } else {
-            console.error("Module GPX non trouvé ou fonction manquante");
-            showToast("Erreur module GPX", "error");
+
+    // Vérification que nous avons bien un circuit cible (HW-ID)
+    if (state.circuitIdToImportFor) {
+        try {
+            // CORRECTION : Appel direct à la fonction importée à l'étape 1
+            // et utilisation du bon nom de fonction 'processImportedGpx'
+            await processImportedGpx(file, state.circuitIdToImportFor);
+            showToast("Trace réelle importée avec succès.", "success");
+        } catch (err) {
+            console.error("Erreur import GPX:", err);
+            showToast("Erreur lors de l'import du GPX.", "error");
         }
-    }).catch(err => {
-        console.error("Erreur chargement module GPX", err);
-    });
+    } else {
+        console.warn("Aucun circuit cible défini pour l'import GPX.");
+    }
+    
     event.target.value = '';
 }
 

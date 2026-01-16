@@ -5,6 +5,7 @@ import { generateCircuitName } from './circuit.js';
 import { getAllPoiDataForMap, getAllCircuitsForMap, saveCircuit, batchSavePoiData, getAppState } from './database.js';
 import { showToast } from './ui.js';
 import { downloadFile } from './utils.js';
+import { updatePolylines } from './map.js';
 
 export function escapeXml(unsafe) {
     if (unsafe === null || unsafe === undefined) return '';
@@ -127,4 +128,58 @@ export async function saveAndExportCircuit() {
         console.error("Erreur lors de la sauvegarde du circuit :", error);
         showToast("Erreur lors de la sauvegarde du circuit.", 'error');
     }
+}
+
+export async function processImportedGpx(file, circuitId) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, "text/xml");
+                
+                // Extraction des points de trace (trkpt)
+                const trkpts = xmlDoc.getElementsByTagName("trkpt");
+                const coordinates = [];
+                
+                for (let i = 0; i < trkpts.length; i++) {
+                    const lat = parseFloat(trkpts[i].getAttribute("lat"));
+                    const lon = parseFloat(trkpts[i].getAttribute("lon"));
+                    // Leaflet utilise [lat, lon]
+                    coordinates.push([lat, lon]);
+                }
+
+                if (coordinates.length === 0) {
+                    throw new Error("Aucun point trouvé dans le fichier GPX.");
+                }
+
+                // Recherche du circuit dans l'état global
+                const circuitIndex = state.myCircuits.findIndex(c => c.id === circuitId);
+                
+                if (circuitIndex !== -1) {
+                    // Mise à jour du circuit avec le tracé réel
+                    state.myCircuits[circuitIndex].realTrack = coordinates;
+                    
+                    // Sauvegarde en base de données
+                    await saveCircuit(state.myCircuits[circuitIndex]);
+                    
+                    // Si ce circuit est celui affiché actuellement, on rafraîchit la carte
+                    if (state.activeCircuitId === circuitId) {
+                        updatePolylines(); 
+                    }
+                    
+                    resolve();
+                } else {
+                    throw new Error("Circuit cible introuvable.");
+                }
+            } catch (err) {
+                reject(err);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error("Erreur de lecture du fichier."));
+        reader.readAsText(file);
+    });
 }
