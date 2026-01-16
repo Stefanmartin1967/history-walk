@@ -28,6 +28,15 @@ import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, h
 import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode } from './desktopMode.js';
 
+// --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
+function setSaveButtonsState(enabled) {
+    const btnMobile = document.getElementById('btn-save-mobile');
+    const btnFull = document.getElementById('btn-save-full');
+    
+    if (btnMobile) btnMobile.disabled = !enabled;
+    if (btnFull) btnFull.disabled = !enabled;
+}
+
 // --- INITIALISATION ---
 
 async function loadDefaultMap() {
@@ -43,7 +52,8 @@ async function loadDefaultMap() {
 
         await displayGeoJSON(geojsonData, 'Djerba');
 
-        if(DOM.btnSaveData) DOM.btnSaveData.disabled = false;
+        // Activation des nouveaux boutons
+        setSaveButtonsState(true);
         if(DOM.btnRestoreData) DOM.btnRestoreData.disabled = false;
 
         if (!isMobileView()) {
@@ -56,7 +66,9 @@ async function loadDefaultMap() {
     } catch (error) {
         console.error("Impossible de charger la carte par défaut:", error);
         showToast("Impossible de charger la carte. Veuillez la sélectionner manuellement.", 'error');
-        if(DOM.btnSaveData) DOM.btnSaveData.disabled = true;
+        
+        // Désactivation des nouveaux boutons en cas d'erreur
+        setSaveButtonsState(false);
         if(DOM.btnRestoreData) DOM.btnRestoreData.disabled = true;
     } finally {
         if(DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'none';
@@ -88,7 +100,8 @@ async function initializeApp() {
             const lastGeoJSON = await getAppState('lastGeoJSON');
             
             if (lastMapId && lastGeoJSON) {
-                if(DOM.btnSaveData) DOM.btnSaveData.disabled = false;
+                // Activation des nouveaux boutons
+                setSaveButtonsState(true);
                 if(DOM.btnRestoreData) DOM.btnRestoreData.disabled = false;
                 await displayGeoJSON(lastGeoJSON, lastMapId);
                 
@@ -127,7 +140,8 @@ async function initDesktopMode() {
     }
 
     if (lastMapId && lastGeoJSON) {
-        DOM.btnSaveData.disabled = false;
+        // Activation des nouveaux boutons
+        setSaveButtonsState(true);
         DOM.btnRestoreData.disabled = false;
         await displayGeoJSON(lastGeoJSON, lastMapId);
     } else {
@@ -183,7 +197,21 @@ function setupEventListeners() {
         saveAppState('currentTheme', nextTheme);
     });
 
-    DOM.btnSaveData.addEventListener('click', saveUserData);
+    // --- NOUVEAUX ÉCOUTEURS POUR LES 2 BOUTONS DE SAUVEGARDE ---
+    const btnSaveMobile = document.getElementById('btn-save-mobile');
+    if (btnSaveMobile) {
+        btnSaveMobile.addEventListener('click', () => {
+            saveUserData(false); // Mode Lite (Mobile)
+        });
+    }
+
+    const btnSaveFull = document.getElementById('btn-save-full');
+    if (btnSaveFull) {
+        btnSaveFull.addEventListener('click', () => {
+            saveUserData(true); // Mode Full (PC)
+        });
+    }
+
     DOM.btnRestoreData.addEventListener('click', () => {
         if (DOM.btnRestoreData.disabled) return;
         DOM.restoreLoader.click()

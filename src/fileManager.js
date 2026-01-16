@@ -39,35 +39,33 @@ export function handleFileLoad(event) {
 
 // --- SAUVEGARDE (EXPORT) ---
 
-export async function saveUserData() {
+// --- SAUVEGARDE (EXPORT) ---
+
+// forceFullMode = false (Défaut) => Sauvegarde Mobile (Rapide, sans photos)
+// forceFullMode = true => Sauvegarde Master (PC, avec photos)
+export async function saveUserData(forceFullMode = false) {
     if (!state.currentMapId) return showToast("Aucune carte chargée.", "error");
 
-    // 1. Demander le type de sauvegarde à l'utilisateur
-    const includePhotos = confirm(
-        "Voulez-vous inclure les PHOTOS dans la sauvegarde ?\n\n" +
-        "• OK = COMPLET (Lourd, conserve les images)\n" +
-        "• Annuler = TEXTE SEUL (Léger, idéal pour transfert rapide vers PC)"
-    );
+    const includePhotos = forceFullMode;
 
     const exportData = {
         backupVersion: state.appVersion || "3.0",
         date: new Date().toISOString(),
         mapId: state.currentMapId,
         
-        // A. On sauvegarde l'état actuel complet des données (GeoJSON enrichi)
+        // 1. Base GeoJSON
         baseGeoJSON: {
             type: "FeatureCollection",
             features: state.loadedFeatures.map(f => {
-                // Clonage profond pour ne pas modifier l'original en mémoire
                 const featureClone = JSON.parse(JSON.stringify(f));
-                
-                // Si on a des données utilisateur (notes, modifs), on s'assure qu'elles sont bien dans le clone
                 const poiId = getPoiId(f);
+                
+                // Intégration des données utilisateur
                 if (state.userData[poiId]) {
                     featureClone.properties.userData = state.userData[poiId];
                 }
 
-                // FILTRE PHOTOS : Si "Texte Seul", on vide le tableau photos dans le clone
+                // FILTRE : Si mode Mobile (Lite), on vide les photos dans le GeoJSON
                 if (!includePhotos && featureClone.properties.userData && featureClone.properties.userData.photos) {
                     featureClone.properties.userData.photos = [];
                 }
@@ -76,13 +74,13 @@ export async function saveUserData() {
             })
         },
         
-        // B. On garde quand même userData séparé pour la sécurité et la rétro-compatibilité
+        // 2. UserData séparé
         userData: JSON.parse(JSON.stringify(state.userData)), 
         myCircuits: state.myCircuits,
         hiddenPoiIds: state.hiddenPoiIds
     };
 
-    // Si mode "Texte Seul", on nettoie aussi l'objet userData séparé
+    // FILTRE : Si mode Mobile (Lite), on vide les photos dans userData
     if (!includePhotos) {
         for (const key in exportData.userData) {
             if (exportData.userData[key].photos) {
@@ -91,9 +89,19 @@ export async function saveUserData() {
         }
     }
 
-    const mode = includePhotos ? 'FULL' : 'LITE';
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const fileName = `HistoryWalk_Backup_${mode}_${dateStr}.json`;
+    // Nommage du fichier
+    const mode = includePhotos ? 'FULL_MASTER' : 'LITE_Mobile';
+    
+    // Format Date : YYYY-MM-DD_HH-MM-SS
+    const now = new Date();
+    const dateStr = now.getFullYear() + "-" + 
+                   String(now.getMonth() + 1).padStart(2, '0') + "-" + 
+                   String(now.getDate()).padStart(2, '0') + "_" + 
+                   String(now.getHours()).padStart(2, '0') + "-" + 
+                   String(now.getMinutes()).padStart(2, '0') + "-" + 
+                   String(now.getSeconds()).padStart(2, '0');
+
+    const fileName = `HistoryWalk_Backup_${state.currentMapId}_${mode}_${dateStr}.json`;
     
     downloadJSON(exportData, fileName);
 }

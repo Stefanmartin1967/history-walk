@@ -52,28 +52,42 @@
         <i data-lucide="combine"></i><span>Fusion</span>
         </a>
         <div class="topbar-right">
-            <button class="btn" id="btn-my-circuits" title="Mes Circuits"><i data-lucide="route"></i><span>Mes Circuits</span></button>
-            <div class="separator"></div>
-            <button class="btn" id="btn-open-geojson" title="Ouvrir un fichier de lieux"><i data-lucide="folder-open"></i><span>Ouvrir...</span></button>
+            
+            <button class="btn" id="btn-open-geojson" title="Ouvrir une carte"><i data-lucide="folder-open"></i><span>Ouvrir</span></button>
             <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
-            <div class="separator"></div>
-            <button class="btn" id="btn-import-photos" title="Créer un lieu depuis des photos"><i data-lucide="camera"></i><span>Photos GPS</span></button>
+            
+            <button class="btn" id="btn-import-photos" title="Importation Photos GPS (PC)"><i data-lucide="camera"></i><span>Photos GPS</span></button>
             <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
+
+            <button class="btn" id="btn-save-mobile" title="Sauvegarde Mobile (Sans photos)" disabled><i data-lucide="save"></i><span>Mobile</span></button>
+            
+            <button class="btn" id="btn-save-full" title="Sauvegarde PC (Avec photos)" disabled><i data-lucide="save-all"></i><span>PC</span></button>
+
+            <button class="btn" id="btn-restore-data" title="Restaurer une sauvegarde" disabled><i data-lucide="folder-down"></i><span>Restaurer</span></button>
+            <input type="file" id="restore-loader" accept=".json" style="display: none;">
+
             <div class="separator"></div>
-            <button class="btn" id="btn-mode-selection" title="Mode Sélection"><i data-lucide="mouse-pointer-click"></i><span>Sélection</span></button>
-            <button class="btn" id="btn-filter-mosquees" title="Masquer les mosquées"><i data-lucide="landmark"></i><span>Mosquées</span></button>
-            <button class="btn" id="btn-filter-vus" title="Masquer les lieux visités"><i data-lucide="eye"></i><span>Visités</span></button>
-            <button class="btn" id="btn-filter-planifies" title="Masquer les lieux planifiés"><i data-lucide="calendar-check"></i><span>Planifiés</span></button>
+
+            <button class="btn" id="btn-mode-selection" title="Mode Sélection (Édition/Circuits)"><i data-lucide="mouse-pointer-click"></i><span>Sélection</span></button>
+            
+            <button class="btn" id="btn-filter-mosquees" title="Masquer/Afficher les mosquées"><i data-lucide="landmark"></i><span>Mosquées</span></button>
+            
+            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les lieux visités"><i data-lucide="eye"></i><span>Visités</span></button>
+            
+            <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i data-lucide="calendar-check"></i><span>Planifiés</span></button>
+            
             <div class="zones-container">
                 <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span id="zonesLabel">Zone</span></button>
                 <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
             </div>
+
+            <button class="btn" id="btn-my-circuits" title="Gérer mes circuits"><i data-lucide="route"></i><span>Circuits</span></button>
+
             <div class="separator"></div>
-            <button class="btn" id="btn-save-data" title="Sauvegarder mes données" disabled><i data-lucide="save"></i><span>Sauvegarder</span></button>
-            <button class="btn" id="btn-restore-data" title="Restaurer mes données" disabled><i data-lucide="folder-down"></i><span>Restaurer</span></button>
-            <button class="btn" id="btn-export-pdf" title="Exporter en PDF" disabled><i data-lucide="file-down"></i><span>PDF</span></button>
-            <div class="separator"></div>
-            <button class="btn" id="btn-theme-selector" title="Changer le thème"><i data-lucide="palette"></i></button>
+
+            <button class="btn" id="btn-export-pdf" title="Exporter en PDF (Bientôt)" disabled><i data-lucide="file-down"></i><span>PDF</span></button>
+            
+            <button class="btn" id="btn-theme-selector" title="Changer le thème"><i data-lucide="palette"></i><span>Thème</span></button>
         </div>
     </div>
 
