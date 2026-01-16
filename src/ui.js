@@ -47,7 +47,9 @@ export function initializeDomReferences() {
         'mobile-container', 'mobile-main-container', 'mobile-nav', 'fullscreen-editor', 'editor-title', 
         'editor-cancel-btn', 'editor-save-btn', 'editor-textarea', 'destination-loader',
         'photo-viewer', 'viewer-img', 'viewer-next', 'viewer-prev',
-        'backup-modal', 'btn-backup-full', 'btn-backup-lite', 'btn-backup-cancel'
+        'backup-modal', 'btn-backup-full', 'btn-backup-lite', 'btn-backup-cancel',
+        'btn-loop-circuit',
+        'btn-clear-circuit'
     ];
     ids.forEach(id => {
         const camelCaseId = id.replace(/-(\w)/g, (_, c) => c.toUpperCase());
