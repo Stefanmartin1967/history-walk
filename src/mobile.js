@@ -2,13 +2,12 @@
 import { state } from './state.js';
 import { DOM, showToast, openDetailsPanel } from './ui.js';
 import { getPoiId, getPoiName, addPoiFeature } from './data.js';
-import { loadCircuitById, clearCircuit } from './circuit.js';
+import { loadCircuitById, clearCircuit, setCircuitVisitedState } from './circuit.js'; 
 import { createIcons, icons } from 'lucide';
 import { saveUserData } from './fileManager.js'; 
 import { deleteDatabase, saveAppState } from './database.js';
 import { getIconForFeature } from './map.js';
 
-// État local du mobile
 let currentView = 'circuits'; 
 
 export function isMobileView() {
@@ -148,81 +147,170 @@ export function renderMobileCircuitsList() {
     });
 }
 
-export function renderMobilePoiList(features) {
-    // Si features n'est pas fourni, on utilise tout (ou rien)
-    const listToDisplay = features || [];
+function getCategoryIconName(category) {
+    if (!category) return 'map-pin';
+    const cat = category.toLowerCase();
     
+    if (cat.includes('mosquée')) return 'landmark';
+    if (cat.includes('synagogue')) return 'star';
+    if (cat.includes('église')) return 'church'; 
+    if (cat.includes('musée')) return 'library';
+    if (cat.includes('puits')) return 'droplet';
+    if (cat.includes('atelier')) return 'hammer';
+    if (cat.includes('phare')) return 'tower-control'; 
+    if (cat.includes('tour')) return 'castle';
+    if (cat.includes('fort')) return 'shield';
+    
+    return 'map-pin';
+}
+
+export function renderMobilePoiList(features) {
+    const listToDisplay = features || [];
     const container = document.getElementById('mobile-main-container');
     const isCircuit = state.activeCircuitId !== null;
     
-    // Bouton Inverser (Uniquement si on est dans un circuit)
+    let pageTitle = 'Lieux';
+    let isAllVisited = false;
+
+    if (isCircuit) {
+        const currentCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
+        pageTitle = currentCircuit ? currentCircuit.name : 'Circuit inconnu';
+        
+        // Calcul pour savoir si tout est visité
+        if(features.length > 0) {
+            isAllVisited = features.every(f => f.properties.userData && f.properties.userData.vu);
+        }
+    }
+
     const reverseBtnHtml = isCircuit 
         ? `<button id="mobile-reverse-btn" style="margin-left:auto; background:none; border:none; color:var(--brand); cursor:pointer;" title="Inverser le sens du circuit">
              <i data-lucide="arrow-up-down"></i>
            </button>` 
         : '';
 
-    let html = `
-        <div class="mobile-view-header" style="display:flex; align-items:center; justify-content:space-between; padding-right:15px;">
-            <div style="display:flex; align-items:center;">
-                ${isCircuit ? '<button id="mobile-back-btn" style="margin-right:10px;"><i data-lucide="arrow-left"></i></button>' : ''}
-                <h1 style="margin:0; font-size:18px;">${isCircuit ? state.currentCircuitName : 'Lieux'}</h1>
-            </div>
-            ${reverseBtnHtml}
-        </div>
-        <div class="mobile-list">
-    `;
+    // --- CONSTRUCTION LAYOUT FLEXBOX (Header Fixe + Liste Scrollable + Footer Fixe) ---
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.overflow = 'hidden'; // On coupe le scroll global
+    container.innerHTML = '';
 
+    // 1. Header (Fixe)
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'mobile-view-header';
+    headerDiv.style.flexShrink = '0';
+    headerDiv.style.display = 'flex';
+    headerDiv.style.alignItems = 'center';
+    headerDiv.style.justifyContent = 'space-between';
+    headerDiv.style.paddingRight = '15px';
+    headerDiv.innerHTML = `
+        <div style="display:flex; align-items:center;">
+            ${isCircuit ? '<button id="mobile-back-btn" style="margin-right:10px;"><i data-lucide="arrow-left"></i></button>' : ''}
+            <h1 style="margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">${pageTitle}</h1>
+        </div>
+        ${reverseBtnHtml}
+    `;
+    container.appendChild(headerDiv);
+
+    // 2. Liste (Scrollable)
+    const listDiv = document.createElement('div');
+    listDiv.className = 'mobile-list';
+    listDiv.style.flexGrow = '1';
+    listDiv.style.overflowY = 'auto';
+    listDiv.style.padding = '10px';
+    
+    let listHtml = '';
     listToDisplay.forEach(feature => {
         const name = getPoiName(feature);
         const poiId = getPoiId(feature);
-        const icon = feature.properties.Catégorie === 'Mosquée' ? 'landmark' : 'map-pin';
-        
-        // On vérifie si le point est visité pour le griser ou ajouter un check (optionnel mais sympa)
+        const cat = feature.properties.Catégorie || '';
+        const icon = getCategoryIconName(cat);
         const isVisited = feature.properties.userData?.vu;
         const checkIcon = isVisited ? '<i data-lucide="check" style="width:14px; margin-left:5px; color:var(--ok);"></i>' : '';
+        // Si visité, on grise un peu le texte
+        const opacityStyle = isVisited ? 'opacity:0.7;' : '';
 
-        html += `
-            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between;">
+        listHtml += `
+            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between; ${opacityStyle}">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <i data-lucide="${icon}"></i>
+                    <i data-lucide="${icon}" style="color:${isVisited ? 'var(--ok)' : 'var(--brand)'};"></i>
                     <span>${name}</span>
                 </div>
                 ${checkIcon}
             </button>
         `;
     });
+    listDiv.innerHTML = listHtml;
+    container.appendChild(listDiv);
 
-    html += `</div>`;
-    container.innerHTML = html;
-    
-    // 1. Gestion du bouton retour
+    // 3. Footer (Fixe - Optionnel si c'est un circuit)
+    if (isCircuit) {
+        const footerDiv = document.createElement('div');
+        footerDiv.style.flexShrink = '0';
+        // CORRECTION : AJOUT PADDING BOTTOM POUR EVITER LA BARRE DE MENU MOBILE
+        footerDiv.style.padding = '16px 16px 80px 16px'; 
+        footerDiv.style.borderTop = '1px solid var(--line)';
+        footerDiv.style.backgroundColor = 'var(--surface)';
+        footerDiv.style.zIndex = '10';
+        
+        // Bouton Toggle
+        const btnStateClass = isAllVisited ? 'background-color:var(--ok); color:white;' : 'background-color:var(--surface-muted); color:var(--ink); border:1px solid var(--line);';
+        const btnIcon = isAllVisited ? 'check-circle' : 'circle';
+        const btnText = isAllVisited ? 'Circuit Terminé !' : 'Marquer comme Fait';
+        
+        footerDiv.innerHTML = `
+            <button id="btn-toggle-visited" style="width:100%; padding:14px; border-radius:12px; font-weight:bold; display:flex; justify-content:center; align-items:center; gap:8px; cursor:pointer; font-size:16px; transition:all 0.2s; ${btnStateClass}">
+                <i data-lucide="${btnIcon}"></i>
+                <span>${btnText}</span>
+            </button>
+        `;
+        container.appendChild(footerDiv);
+        
+        // Event Footer
+        setTimeout(() => {
+            const btnToggle = document.getElementById('btn-toggle-visited');
+            if(btnToggle) {
+                btnToggle.addEventListener('click', async () => {
+                    const newState = !isAllVisited; // Si tout visité -> on décoche tout. Sinon on coche tout.
+                    if(newState) {
+                        // On valide tout
+                         if(confirm("Bravo ! Marquer tous les lieux de ce circuit comme visités ?")) {
+                             await setCircuitVisitedState(state.activeCircuitId, true);
+                         }
+                    } else {
+                        // On dé-valide tout
+                         if(confirm("Voulez-vous vraiment décocher tous les lieux (remettre à 'Non visité') ?")) {
+                             await setCircuitVisitedState(state.activeCircuitId, false);
+                         }
+                    }
+                });
+            }
+        }, 0);
+    }
+
+    // --- EVENTS HANDLERS ---
+
     const backBtn = document.getElementById('mobile-back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
+            // Reset du style container pour les autres vues
+            container.style.display = '';
+            container.style.flexDirection = '';
+            container.style.overflow = '';
             clearCircuit(false); 
             renderMobileCircuitsList(); 
         });
     }
 
-    // 2. Gestion du bouton INVERSER (Nouveau !)
     const reverseBtn = document.getElementById('mobile-reverse-btn');
     if (reverseBtn) {
         reverseBtn.addEventListener('click', () => {
             if(!state.currentCircuit || state.currentCircuit.length < 2) return;
-            
-            // On inverse le tableau en mémoire
             state.currentCircuit.reverse();
-            
-            // Petit Toast pour confirmer
             showToast("Circuit inversé ⇅", "info");
-            
-            // On rafraîchit la liste immédiatement
             renderMobilePoiList(state.currentCircuit);
         });
     }
 
-    // 3. Clic sur un lieu -> Ouvre détails
     container.querySelectorAll('.poi-item-mobile').forEach(btn => {
         btn.addEventListener('click', () => {
             const poiId = btn.dataset.id;
@@ -236,7 +324,12 @@ export function renderMobilePoiList(features) {
 }
 
 export function renderMobileSearch() {
+    // Reset du style au cas où on vient de la vue circuit
     const container = document.getElementById('mobile-main-container');
+    container.style.display = '';
+    container.style.flexDirection = '';
+    container.style.overflow = '';
+
     container.innerHTML = `
         <div class="mobile-view-header">
             <h1>Rechercher</h1>
@@ -264,18 +357,17 @@ export function renderMobileSearch() {
         const matches = state.loadedFeatures.filter(f => {
             const name = getPoiName(f).toLowerCase();
             const id = getPoiId(f);
-            
-            // FILTRE DES SUPPRIMÉS
             if (state.hiddenPoiIds && state.hiddenPoiIds.includes(id)) return false;
-
             return name.includes(term);
         });
 
         let html = '';
         matches.forEach(f => {
+            const cat = f.properties.Catégorie || '';
+            const icon = getCategoryIconName(cat);
             html += `
                 <button class="mobile-list-item result-item" data-id="${getPoiId(f)}">
-                    <i data-lucide="map-pin"></i>
+                    <i data-lucide="${icon}"></i>
                     <span>${getPoiName(f)}</span>
                 </button>
             `;
@@ -297,36 +389,33 @@ export function renderMobileSearch() {
 
 export function renderMobileMenu() {
     const container = document.getElementById('mobile-main-container');
+    container.style.display = '';
+    container.style.flexDirection = '';
+    container.style.overflow = '';
+    
     container.innerHTML = `
         <div class="mobile-view-header">
             <h1>Menu</h1>
         </div>
         <div class="mobile-list actions-list" style="padding: 16px;">
-            
             <button class="mobile-list-item" id="mob-action-restore">
                 <i data-lucide="folder-down"></i>
                 <span>Restaurer les données</span>
             </button>
-
             <button class="mobile-list-item" id="mob-action-save">
                 <i data-lucide="save"></i>
                 <span>Sauvegarder</span>
             </button>
-            
             <div style="height:1px; background:var(--line); margin:10px 0;"></div>
-            
              <button class="mobile-list-item" id="mob-action-geojson">
                 <i data-lucide="map"></i>
                 <span>Charger Destination (GeoJSON)</span>
             </button>
-
             <button class="mobile-list-item" id="mob-action-reset" style="color:var(--danger);">
                 <i data-lucide="trash-2"></i>
                 <span>Vider les données locales</span>
             </button>
-
             <div style="height:1px; background:var(--line); margin:10px 0;"></div>
-
             <button class="mobile-list-item" id="mob-action-theme">
                 <i data-lucide="palette"></i>
                 <span>Changer Thème</span>
@@ -337,25 +426,15 @@ export function renderMobileMenu() {
         </div>
     `;
 
-    document.getElementById('mob-action-restore').addEventListener('click', () => {
-        DOM.restoreLoader.click(); 
-    });
-
-    document.getElementById('mob-action-save').addEventListener('click', () => {
-        saveUserData(); 
-    });
-    
-    document.getElementById('mob-action-geojson').addEventListener('click', () => {
-        DOM.geojsonLoader.click(); 
-    });
-
+    document.getElementById('mob-action-restore').addEventListener('click', () => DOM.restoreLoader.click());
+    document.getElementById('mob-action-save').addEventListener('click', () => saveUserData());
+    document.getElementById('mob-action-geojson').addEventListener('click', () => DOM.geojsonLoader.click());
     document.getElementById('mob-action-reset').addEventListener('click', async () => {
         if(confirm("ATTENTION : Cela va effacer toutes les données locales (caches, sauvegardes automatiques). Continuez ?")) {
             await deleteDatabase();
             location.reload();
         }
     });
-
     document.getElementById('mob-action-theme').addEventListener('click', () => {
         document.getElementById('btn-theme-selector').click(); 
         showToast("Thème changé", "success");
@@ -364,7 +443,6 @@ export function renderMobileMenu() {
 
 export function updatePoiPosition(poiId) {
     if (!navigator.geolocation) return showToast("GPS non supporté", "error");
-    
     navigator.geolocation.getCurrentPosition(
         (pos) => {
             const { latitude, longitude } = pos.coords;

@@ -5,9 +5,47 @@ import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { updatePolylines, getRealDistance, getOrthodromicDistance, map } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';
 import { getAppState, saveAppState, saveCircuit } from './database.js';
-// NOUVEAU : Import pour gérer l'affichage mobile
+// import { saveUserData } from './fileManager.js'; // <--- RETRAIT (C'était la cause du bug de fenêtre)
 import { isMobileView, renderMobilePoiList } from './mobile.js';
 
+// --- FONCTION CORRIGÉE ---
+export async function setCircuitVisitedState(circuitId, isVisited) {
+    const circuit = state.myCircuits.find(c => c.id === circuitId);
+    if (!circuit) return;
+
+    let changeCount = 0;
+    
+    // On parcourt tous les POI du circuit
+    circuit.poiIds.forEach(poiId => {
+        const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+        if (feature) {
+            if (!feature.properties.userData) feature.properties.userData = {};
+            // On applique le statut demandé
+            feature.properties.userData.vu = isVisited;
+            changeCount++;
+        }
+    });
+
+    if (changeCount > 0) {
+        // CORRECTION ICI : On sauvegarde en interne (IndexedDB) au lieu de télécharger un fichier
+        await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
+        
+        // Rafraîchissement selon la vue
+        if (isMobileView()) {
+            // Si on est dans le circuit concerné, on rafraîchit la liste
+            if (state.activeCircuitId === circuitId) {
+                renderMobilePoiList(state.currentCircuit);
+            }
+        } else {
+            applyFilters(); // PC : Met à jour les marqueurs (gris/couleur)
+        }
+        
+        const statusTxt = isVisited ? "marqué comme Fait" : "marqué comme Non fait";
+        showToast(`Circuit ${statusTxt} (${changeCount} lieux maj.)`, "success");
+    }
+}
+
+// ... LE RESTE DU FICHIER RESTE IDENTIQUE ...
 export async function saveCircuitDraft() {
     if (!state.currentMapId) return;
     try {
@@ -39,7 +77,6 @@ export async function loadCircuitDraft() {
             
             if(DOM.circuitDescription) DOM.circuitDescription.value = savedData.description || '';
             
-            // Sécurité si les champs n'existent pas encore dans le DOM
             const tAllerTemps = document.getElementById('transport-aller-temps');
             if(tAllerTemps && savedData.transport) {
                 tAllerTemps.value = savedData.transport.allerTemps || '';
@@ -67,15 +104,12 @@ export function toggleSelectionMode() {
     if(DOM.btnModeSelection) DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
     
     if (state.isSelectionModeActive) {
-        // MODIF MOBILE : On ne ferme la popup que si la carte existe
         if (map) map.closePopup();
-        
         DOM.rightSidebar.style.display = 'flex';
         switchSidebarTab('circuit');
         renderCircuitPanel();
     } else {
         DOM.rightSidebar.style.display = 'none';
-        // MODIF MOBILE : On ne touche aux lignes que si elles existent
         if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
         if (state.realTrackPolyline) state.realTrackPolyline.remove();
     }
@@ -130,7 +164,6 @@ export function renderCircuitPanel() {
     }
     updateCircuitMetadata();
     
-    // MODIF MOBILE : On ne dessine les lignes que si la carte est là
     if (map) updatePolylines();
     
     if(window.lucide) lucide.createIcons();
@@ -229,7 +262,6 @@ export async function clearCircuit(withConfirmation = true) {
         state.currentCircuitIndex = null;
         if(DOM.circuitDescription) DOM.circuitDescription.value = '';
         
-        // Sécurité éléments DOM
         const tAller = document.getElementById('transport-aller-temps');
         if(tAller) {
             tAller.value = '';
@@ -268,7 +300,6 @@ export async function loadCircuitById(id) {
     const circuitToLoad = state.myCircuits.find(c => c.id === id);
     if (!circuitToLoad) return;
     
-    // On nettoie sans confirmation
     await clearCircuit(false);
     
     state.activeCircuitId = id;
@@ -288,21 +319,16 @@ export async function loadCircuitById(id) {
     
     state.currentCircuit = circuitToLoad.poiIds.map(poiId => state.loadedFeatures.find(f => getPoiId(f) === poiId)).filter(Boolean);
 
-    // MODIF MOBILE : Gestion différente de l'affichage
     if (isMobileView()) {
-        // Sur mobile : on affiche la liste des points du circuit
         renderMobilePoiList(state.currentCircuit);
     } else {
-        // Sur PC : Comportement classique avec carte
         if (!state.isSelectionModeActive) {
             toggleSelectionMode();
         } else {
             renderCircuitPanel();
         }
-        
         applyFilters();
 
-        // Zoom auto seulement si la carte existe
         if (map && state.currentCircuit.length > 0) {
             const group = L.featureGroup(state.currentCircuit.map(f => {
                 const coords = f.geometry.coordinates;
@@ -311,7 +337,6 @@ export async function loadCircuitById(id) {
             map.flyToBounds(group.getBounds().pad(0.1)); 
         }
     }
-    
     showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
 }
 

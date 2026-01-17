@@ -1,8 +1,8 @@
 // ui.js
-import { state, POI_CATEGORIES } from './state.js'; // <--- C'EST ICI QUE C'ÉTAIT MANQUANT
+import { state, POI_CATEGORIES } from './state.js';
 import { getPoiId, getPoiName, updatePoiData, getDomainFromUrl, applyFilters } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
-import { loadCircuitById, clearCircuit, navigatePoiDetails } from './circuit.js';
+import { loadCircuitById, clearCircuit, navigatePoiDetails, setCircuitVisitedState } from './circuit.js';
 import { escapeXml, recalculatePlannedCountersForMap } from './gpx.js';
 import { map } from './map.js';
 import { deleteCircuitById } from './database.js';
@@ -11,7 +11,6 @@ import { createIcons, icons } from 'lucide';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
-
 let currentPhotoList = [];
 let currentPhotoIndex = 0;
 
@@ -363,7 +362,6 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
     const inCircuit = circuitIndex !== null;
     const currentCat = allProps['Catégorie'] || '';
 
-    // Utilisation de la liste centralisée
     const categoryOptions = POI_CATEGORIES.map(c => 
         `<option value="${c}" ${c === currentCat ? 'selected' : ''}>${c}</option>`
     ).join('');
@@ -757,33 +755,79 @@ export function closeCircuitsModal() {
 function renderCircuitsList() {
     DOM.circuitsListContainer.innerHTML = (state.myCircuits.length === 0)
         ? '<p class="empty-list-info">Aucun circuit sauvegardé pour cette carte.</p>'
-        : state.myCircuits.map(c => `
+        : state.myCircuits.map(c => {
+            // CORRECTION BUG "FAIT" PC : On ne vérifie que les lieux qui EXISTENT encore dans la base
+            // Les ID "fantômes" (supprimés de la source de données mais restés dans le circuit) sont ignorés
+            const existingFeatures = c.poiIds
+                .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
+                .filter(f => f); // On retire les 'undefined' (lieux introuvables)
+
+            // Si tous les lieux RESTANTS sont vus, le circuit est considéré comme fait
+            const allVisited = existingFeatures.length > 0 && existingFeatures.every(f => 
+                f.properties.userData && f.properties.userData.vu
+            );
+            
+            const checkState = allVisited ? 'checked' : '';
+            
+            return `
             <div class="circuit-item" data-id="${c.id}">
-                <span class="circuit-item-name">${escapeXml(c.name)}</span>
+                <div style="flex:1;">
+                    <span class="circuit-item-name">${escapeXml(c.name)}</span>
+                </div>
+                
                 <div class="circuit-item-actions">
+                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer; margin-right:10px; font-size:14px; user-select:none;">
+                        <input type="checkbox" class="circuit-visited-checkbox" data-id="${c.id}" ${checkState} style="width:16px; height:16px; cursor:pointer;">
+                        <span>Fait</span>
+                    </label>
                     <button class="btn-import" data-action="import" title="Importer un tracé réel">${ICONS.upload}</button>
                     <button class="btn-load" data-action="load" title="Charger le circuit">${ICONS.play}</button>
                     <button class="btn-delete" data-action="delete" title="Supprimer le circuit">${ICONS.trash}</button>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     createIcons({ icons });
 }
 
 export async function handleCircuitsListClick(e) {
+    // 1. Gestion des boutons
     const button = e.target.closest('button');
-    if (!button) return;
-    const circuitItem = button.closest('.circuit-item');
-    const circuitId = circuitItem.dataset.id;
-    const action = button.dataset.action;
+    if (button) {
+        const circuitItem = button.closest('.circuit-item');
+        const circuitId = circuitItem.dataset.id;
+        const action = button.dataset.action;
 
-    if (action === 'load') {
-        await loadCircuitById(circuitId);
-        closeCircuitsModal();
-    } else if (action === 'delete') {
-        await deleteCircuit(circuitId);
-    } else if (action === 'import') {
-        state.circuitIdToImportFor = circuitId;
-        DOM.gpxImporter.click();
+        if (action === 'load') {
+            await loadCircuitById(circuitId);
+            closeCircuitsModal();
+        } else if (action === 'delete') {
+            await deleteCircuit(circuitId);
+        } else if (action === 'import') {
+            state.circuitIdToImportFor = circuitId;
+            DOM.gpxImporter.click();
+        }
+        return;
+    }
+
+    // 2. Gestion de la Checkbox "Fait"
+    const checkbox = e.target.closest('.circuit-visited-checkbox');
+    if (checkbox) {
+        const circuitId = checkbox.dataset.id;
+        const isChecked = checkbox.checked;
+        
+        // Petit délai pour laisser l'UI se mettre à jour
+        setTimeout(async () => {
+             const confirmMsg = isChecked 
+                ? "Marquer tous les lieux de ce circuit comme visités ?" 
+                : "Décocher tous les lieux (remettre à 'Non visité') ?";
+             
+             if(confirm(confirmMsg)) {
+                 await setCircuitVisitedState(circuitId, isChecked);
+                 // On ne rafraîchit pas toute la liste pour ne pas perdre le scroll, juste visuel ok
+             } else {
+                 checkbox.checked = !isChecked; // On annule
+             }
+        }, 50);
     }
 }
 
@@ -825,7 +869,6 @@ export function showToast(message, type = 'info', duration = 4000) {
     }, duration - 500);
 }
 
-// --- FONCTION POUR REMPLIR LA LISTE "NOUVEAU LIEU" (Modale) ---
 export function populateAddPoiModalCategories() {
     const select = document.getElementById('new-poi-category');
     if (!select) return;
@@ -834,6 +877,5 @@ export function populateAddPoiModalCategories() {
         `<option value="${c}">${c}</option>`
     ).join('');
     
-    // Par défaut sur "A définir"
     select.value = "A définir";
 }
