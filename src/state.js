@@ -1,28 +1,15 @@
 // state.js
-export const APP_VERSION = '3.0.0-mobile'; // Version: Mobile Adaptation
+export const APP_VERSION = '3.1.0-mobile'; // Petit bump de version
 export const MAX_CIRCUIT_POINTS = 15;
 
-// --- NOUVEAU : LA LISTE MAÎTRESSE DES CATÉGORIES ---
-// Centralisée ici pour être utilisée par le Mobile, le PC et la création
 export const POI_CATEGORIES = [
-    "A définir",
-    "Autre",
-    "Café",
-    "Commerce",
-    "Culture et tradition",
-    "Curiosité",
-    "Hôtel",
-    "Mosquée",
-    "Parking",
-    "Puits",
-    "Restaurant",
-    "Site historique",
-    "Site religieux",
-    "Taxi"
-].sort(); // Tri alphabétique automatique
+    "A définir", "Autre", "Café", "Commerce", "Culture et tradition",
+    "Curiosité", "Hôtel", "Mosquée", "Parking", "Puits",
+    "Restaurant", "Site historique", "Site religieux", "Taxi"
+].sort();
 
 export const state = {
-    isMobile: false, // Sera défini au démarrage
+    isMobile: false,
     currentMapId: null,
     userData: {},
     myCircuits: [],
@@ -32,12 +19,12 @@ export const state = {
     currentCircuitIndex: null,
     isSelectionModeActive: false,
     currentCircuit: [],
-    // Liste des IDs masqués/supprimés localement
     hiddenPoiIds: [],
     activeCircuitId: null,
     circuitIdToImportFor: null,
     orthodromicPolyline: null,
     realTrackPolyline: null,
+    filterCompleted: false, // <--- NOUVEAU : État du filtre mobile
     activeFilters: {
         mosquees: false,
         vus: false,

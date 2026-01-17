@@ -17,13 +17,60 @@ export function isMobileView() {
 export function initMobileMode() {
     document.body.classList.add('mobile-mode');
     
+    // Gestion des boutons de navigation
     const navButtons = document.querySelectorAll('.mobile-nav-btn[data-view]');
     navButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
+            e.preventDefault();
             const view = btn.dataset.view;
             switchMobileView(view);
         });
     });
+
+    // --- GESTION DU BOUTON FILTRE (Oeil) ---
+    const filterBtn = document.getElementById('btn-mobile-filter');
+    
+    // On clone le bouton pour supprimer les anciens écouteurs et éviter les bugs
+    if (filterBtn) {
+        const newFilterBtn = filterBtn.cloneNode(true);
+        filterBtn.parentNode.replaceChild(newFilterBtn, filterBtn);
+        
+        newFilterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // 1. On inverse l'état
+            state.filterCompleted = !state.filterCompleted;
+            
+            // 2. Définition des valeurs
+            const iconName = state.filterCompleted ? 'eye-off' : 'eye';
+            const labelText = state.filterCompleted ? 'A faire' : 'Tout';
+            const colorStyle = state.filterCompleted ? 'color:var(--brand);' : '';
+
+            // 3. Reconstruction du bouton
+            newFilterBtn.style = colorStyle;
+            newFilterBtn.innerHTML = `
+                <i data-lucide="${iconName}"></i>
+                <span>${labelText}</span>
+            `;
+
+            // 4. Message Toast
+            if (state.filterCompleted) {
+                showToast("Circuits terminés masqués", "info");
+            } else {
+                showToast("Tous les circuits affichés", "info");
+            }
+            
+            createIcons({ icons });
+
+            // 5. Rafraîchissement
+            if (currentView === 'circuits') {
+                renderMobileCircuitsList();
+            } else {
+                switchMobileView('circuits');
+            }
+        });
+    }
 
     switchMobileView('circuits');
 }
@@ -31,7 +78,7 @@ export function initMobileMode() {
 export function switchMobileView(viewName) {
     currentView = viewName;
     
-    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+    document.querySelectorAll('.mobile-nav-btn[data-view]').forEach(btn => {
         if (btn.dataset.view === viewName) {
             btn.classList.add('active');
         } else {
@@ -110,9 +157,27 @@ async function handleAddPoiClick() {
 export function renderMobileCircuitsList() {
     const container = document.getElementById('mobile-main-container');
     
+    let circuitsToDisplay = state.myCircuits;
+
+    if (state.filterCompleted) {
+        circuitsToDisplay = state.myCircuits.filter(c => {
+            const existingFeatures = c.poiIds
+                .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
+                .filter(f => f); 
+
+            if (existingFeatures.length === 0) return true; 
+            
+            const allVisited = existingFeatures.every(f => 
+                f.properties.userData && f.properties.userData.vu
+            );
+            
+            return !allVisited; 
+        });
+    }
+
     let html = `
         <div class="mobile-view-header">
-            <h1>Mes Circuits</h1>
+            <h1>Mes Circuits ${state.filterCompleted ? '(A faire)' : ''}</h1>
         </div>
         <div class="panel-content" style="padding: 10px;">
     `;
@@ -122,14 +187,38 @@ export function renderMobileCircuitsList() {
             Aucun circuit enregistré.<br>
             Utilisez le menu <b>Menu > Restaurer</b> pour charger une sauvegarde.
         </p>`;
+    } else if (circuitsToDisplay.length === 0) {
+        html += `<div style="text-align:center; color:var(--ink-soft); margin-top:40px; display:flex; flex-direction:column; align-items:center;">
+            <i data-lucide="check-circle" style="width:48px; height:48px; color:var(--ok); margin-bottom:10px;"></i>
+            <p>Bravo ! Tout est terminé.</p>
+            <button id="btn-reset-filter-inline" style="margin-top:10px; padding:8px 16px; background:var(--surface-muted); border:1px solid var(--line); border-radius:8px;">
+                Tout afficher
+            </button>
+        </div>`;
     } else {
         html += `<div class="mobile-list">`;
-        state.myCircuits.forEach(circuit => {
+        circuitsToDisplay.forEach(circuit => {
+            const validPois = circuit.poiIds.map(id => state.loadedFeatures.find(f => getPoiId(f) === id)).filter(f => f);
+            const total = validPois.length;
+            const done = validPois.filter(f => f.properties.userData?.vu).length;
+            const isDone = (total > 0 && total === done);
+            
+            const statusIcon = isDone 
+                ? `<i data-lucide="check-circle" style="color:var(--ok); width:16px;"></i>`
+                : `<span style="font-size:11px; color:var(--ink-soft); font-weight:500;">${done}/${total}</span>`;
+
+            // CORRECTION DESIGN : Utilisation de Flexbox pour coller le compteur à droite
             html += `
-                <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}">
-                    <i data-lucide="route" style="color:var(--brand);"></i>
-                    <span>${circuit.name}</span>
-                    <i data-lucide="chevron-right"></i>
+                <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" style="justify-content: space-between;">
+                    <div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;">
+                        <i data-lucide="route" style="color:var(--brand); margin-right:10px; flex-shrink:0;"></i>
+                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${circuit.name}</span>
+                    </div>
+                    
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                        ${statusIcon}
+                        <i data-lucide="chevron-right" style="opacity:0.5;"></i>
+                    </div>
                 </button>
             `;
         });
@@ -138,6 +227,13 @@ export function renderMobileCircuitsList() {
     
     html += `</div>`;
     container.innerHTML = html;
+
+    const resetBtn = document.getElementById('btn-reset-filter-inline');
+    if(resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            document.getElementById('btn-mobile-filter').click(); 
+        });
+    }
 
     container.querySelectorAll('.circuit-item-mobile').forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -176,7 +272,6 @@ export function renderMobilePoiList(features) {
         const currentCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
         pageTitle = currentCircuit ? currentCircuit.name : 'Circuit inconnu';
         
-        // Calcul pour savoir si tout est visité
         if(features.length > 0) {
             isAllVisited = features.every(f => f.properties.userData && f.properties.userData.vu);
         }
@@ -188,13 +283,11 @@ export function renderMobilePoiList(features) {
            </button>` 
         : '';
 
-    // --- CONSTRUCTION LAYOUT FLEXBOX (Header Fixe + Liste Scrollable + Footer Fixe) ---
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
-    container.style.overflow = 'hidden'; // On coupe le scroll global
+    container.style.overflow = 'hidden'; 
     container.innerHTML = '';
 
-    // 1. Header (Fixe)
     const headerDiv = document.createElement('div');
     headerDiv.className = 'mobile-view-header';
     headerDiv.style.flexShrink = '0';
@@ -211,7 +304,6 @@ export function renderMobilePoiList(features) {
     `;
     container.appendChild(headerDiv);
 
-    // 2. Liste (Scrollable)
     const listDiv = document.createElement('div');
     listDiv.className = 'mobile-list';
     listDiv.style.flexGrow = '1';
@@ -226,7 +318,6 @@ export function renderMobilePoiList(features) {
         const icon = getCategoryIconName(cat);
         const isVisited = feature.properties.userData?.vu;
         const checkIcon = isVisited ? '<i data-lucide="check" style="width:14px; margin-left:5px; color:var(--ok);"></i>' : '';
-        // Si visité, on grise un peu le texte
         const opacityStyle = isVisited ? 'opacity:0.7;' : '';
 
         listHtml += `
@@ -242,17 +333,14 @@ export function renderMobilePoiList(features) {
     listDiv.innerHTML = listHtml;
     container.appendChild(listDiv);
 
-    // 3. Footer (Fixe - Optionnel si c'est un circuit)
     if (isCircuit) {
         const footerDiv = document.createElement('div');
         footerDiv.style.flexShrink = '0';
-        // CORRECTION : AJOUT PADDING BOTTOM POUR EVITER LA BARRE DE MENU MOBILE
         footerDiv.style.padding = '16px 16px 80px 16px'; 
         footerDiv.style.borderTop = '1px solid var(--line)';
         footerDiv.style.backgroundColor = 'var(--surface)';
         footerDiv.style.zIndex = '10';
         
-        // Bouton Toggle
         const btnStateClass = isAllVisited ? 'background-color:var(--ok); color:white;' : 'background-color:var(--surface-muted); color:var(--ink); border:1px solid var(--line);';
         const btnIcon = isAllVisited ? 'check-circle' : 'circle';
         const btnText = isAllVisited ? 'Circuit Terminé !' : 'Marquer comme Fait';
@@ -265,19 +353,16 @@ export function renderMobilePoiList(features) {
         `;
         container.appendChild(footerDiv);
         
-        // Event Footer
         setTimeout(() => {
             const btnToggle = document.getElementById('btn-toggle-visited');
             if(btnToggle) {
                 btnToggle.addEventListener('click', async () => {
-                    const newState = !isAllVisited; // Si tout visité -> on décoche tout. Sinon on coche tout.
+                    const newState = !isAllVisited; 
                     if(newState) {
-                        // On valide tout
                          if(confirm("Bravo ! Marquer tous les lieux de ce circuit comme visités ?")) {
                              await setCircuitVisitedState(state.activeCircuitId, true);
                          }
                     } else {
-                        // On dé-valide tout
                          if(confirm("Voulez-vous vraiment décocher tous les lieux (remettre à 'Non visité') ?")) {
                              await setCircuitVisitedState(state.activeCircuitId, false);
                          }
@@ -287,12 +372,9 @@ export function renderMobilePoiList(features) {
         }, 0);
     }
 
-    // --- EVENTS HANDLERS ---
-
     const backBtn = document.getElementById('mobile-back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            // Reset du style container pour les autres vues
             container.style.display = '';
             container.style.flexDirection = '';
             container.style.overflow = '';
@@ -324,7 +406,6 @@ export function renderMobilePoiList(features) {
 }
 
 export function renderMobileSearch() {
-    // Reset du style au cas où on vient de la vue circuit
     const container = document.getElementById('mobile-main-container');
     container.style.display = '';
     container.style.flexDirection = '';
@@ -422,7 +503,7 @@ export function renderMobileMenu() {
             </button>
         </div>
         <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
-            History Walk Mobile v${state.appVersion || '2.0'}
+            History Walk Mobile v${state.appVersion || '3.1'}
         </div>
     `;
 
