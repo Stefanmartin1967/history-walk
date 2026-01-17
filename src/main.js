@@ -39,7 +39,7 @@ function setSaveButtonsState(enabled) {
 // --- INITIALISATION ---
 
 async function loadDefaultMap() {
-    const defaultMapUrl = 'Djerba.geojson';
+    const defaultMapUrl = import.meta.env.BASE_URL + 'djerba.geojson';
     if(DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'flex';
 
     try {
