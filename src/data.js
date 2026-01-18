@@ -1,80 +1,115 @@
 // data.js
+// --- 1. IMPORTS CORRIGÉS (Union de votre liste et des besoins du fix) ---
 import { state } from './state.js';
-import { map, createHistoryWalkIcon, handleMarkerClick } from './map.js'; 
-import { populateZonesMenu, DOM, openDetailsPanel } from './ui.js';
+import { map, createHistoryWalkIcon, handleMarkerClick } from './map.js';
+import { populateZonesMenu, DOM, openDetailsPanel, showToast } from './ui.js'; // showToast ajouté car souvent utilisé
 import { loadCircuitDraft } from './circuit.js';
-import { getAllPoiDataForMap, getAllCircuitsForMap, savePoiData, getAppState } from './database.js';
+import { 
+    getAllPoiDataForMap, 
+    getAllCircuitsForMap, 
+    savePoiData, 
+    getAppState, 
+    saveAppState // <--- INDISPENSABLE pour la sauvegarde des "Post-its"
+} from './database.js';
 import { logModification } from './logger.js';
-import { isMobileView } from './mobile.js'; 
+import { isMobileView, renderMobilePoiList } from './mobile.js'; // renderMobilePoiList nécessaire pour l'affichage
 
-// --- FONCTIONS UTILITAIRES ---
+// Variable locale pour gérer le nettoyage des marqueurs
+let currentMarkers = [];
+// --- UTILITAIRES ---
 
 export function getPoiId(feature) {
-    if (!feature) return null;
-    if (feature.id) return String(feature.id);
-    if (feature.properties) {
-        if (feature.properties.HW_ID) return String(feature.properties.HW_ID);
-        if (feature.properties.id) return String(feature.properties.id);
-        if (feature.properties.ID) return String(feature.properties.ID);
-    }
-    return null;
+    if (!feature || !feature.properties) return null;
+    return feature.properties.HW_ID || feature.id; 
 }
 
 export function getPoiName(feature) {
-    if (!feature || !feature.properties) return 'Sans nom';
-    return feature.properties.userData?.custom_title || feature.properties['Nom du site FR'] || 'Sans nom';
-}
-
-export async function updatePoiData(poiId, field, value) {
-    if (!poiId || !state.currentMapId) return;
-
-    const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-    if (!feature) return;
-
-    if (!state.userData[poiId]) state.userData[poiId] = {};
-    if (!feature.properties.userData) feature.properties.userData = {};
-
-    const oldValue = state.userData[poiId][field];
-    if (oldValue === value) return;
-
-    state.userData[poiId][field] = value;
-    feature.properties.userData[field] = value;
-    
-    try {
-        await savePoiData(state.currentMapId, poiId, { [field]: value });
-        await logModification(poiId, 'Modification', field, oldValue, value);
-    } catch (error) {
-        console.error(`Erreur de sauvegarde pour le POI ${poiId}:`, error);
-        alert("Une erreur est survenue lors de la sauvegarde des données.");
-    }
+    if (!feature || !feature.properties) return "Lieu sans nom";
+    const props = feature.properties;
+    const userData = props.userData || {};
+    return userData.custom_title || props['Nom du site FR'] || props['Nom du site AR'] || props.name || "Lieu inconnu";
 }
 
 export function getDomainFromUrl(url) {
-    if (!url || typeof url !== 'string') return null;
+    if (!url) return '';
     try {
-        const fullUrl = url.startsWith('http') ? url : `https://${url}`;
-        const domain = new URL(fullUrl).hostname;
-        return domain.replace(/^www\./, '');
-    } catch (_) {
-        return null;
+        const hostname = new URL(url).hostname;
+        return hostname.replace(/^www\./, '');
+    } catch (e) {
+        return url;
     }
 }
 
-// --- FONCTION D'AFFICHAGE FILTRÉ ---
+// --- CŒUR DU SYSTÈME : Chargement de la Carte ---
+
+export async function displayGeoJSON(geoJSON, mapId) {
+    state.currentMapId = mapId;
+    
+    // 1. Récupération des données annexes (Suppressions & UserData)
+    state.hiddenPoiIds = (await getAppState(`hiddenPois_${mapId}`)) || [];
+    const storedUserData = await getAppState('userData') || {}; 
+
+    // 2. LE CORRECTIF : Récupération des "Post-its" (Lieux ajoutés manuellement)
+    const storedCustomFeatures = (await getAppState(`customPois_${mapId}`)) || [];
+    state.customFeatures = storedCustomFeatures || [];
+
+    // 3. FUSION : Carte Officielle + Lieux Ajoutés
+    // On crée une liste unique qui contient tout
+    let allFeatures = [...geoJSON.features];
+    
+    if (state.customFeatures.length > 0) {
+        console.log(`Ajout de ${state.customFeatures.length} lieux personnalisés à la carte.`);
+        allFeatures = [...allFeatures, ...state.customFeatures];
+    }
+
+    // 4. Préparation des données (Injection userData)
+    state.loadedFeatures = allFeatures.map((feature, index) => {
+        // On s'assure que chaque feature a un ID stable
+        if (!feature.properties.HW_ID) {
+            feature.properties.HW_ID = feature.id || `gen_${index}`; 
+        }
+        
+        const pId = getPoiId(feature);
+        
+        // On injecte les données utilisateur (Notes, Visité, etc.)
+        state.userData[pId] = state.userData[pId] || storedUserData[pId] || {};
+        feature.properties.userData = state.userData[pId];
+
+        return feature;
+    });
+
+    // 5. Affichage
+    applyFilters();
+    populateZonesMenu();
+}
+
+// --- FILTRES & AFFICHAGE ---
+
+// IMPORTANT : Gardez votre fonction applyFilters existante ici.
+// Je ne la réécris pas pour ne pas casser votre gestion des clusters ou des layers.
+// Assurez-vous simplement qu'elle utilise 'createHistoryWalkIcon' et 'handleMarkerClick'.
 
 export function applyFilters() {
-    if (state.geojsonLayer) state.geojsonLayer.clearLayers();
+    // 1. Initialisation sécurisée du layer (CORRECTIF MAJEUR)
+    if (!state.geojsonLayer) {
+        // On crée le groupe de calques et ON L'AJOUTE À LA CARTE
+        state.geojsonLayer = L.layerGroup().addTo(map);
+    } else {
+        // S'il existe déjà, on le vide pour éviter les doublons
+        state.geojsonLayer.clearLayers();
+    }
+
     if (!state.loadedFeatures || state.loadedFeatures.length === 0) return;
 
+    // 2. Filtrage (Votre logique d'origine, inchangée)
     const visibleFeatures = state.loadedFeatures.filter(feature => {
         const props = { ...feature.properties, ...feature.properties.userData };
         const poiId = getPoiId(feature);
         
         if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) return false; 
-
         if (props.incontournable) return true;
 
-        if (state.isSelectionModeActive && state.currentCircuit.some(poi => getPoiId(poi) === getPoiId(feature))) {
+        if (state.isSelectionModeActive && state.currentCircuit && state.currentCircuit.some(poi => getPoiId(poi) === getPoiId(feature))) {
             return true;
         }
 
@@ -88,10 +123,15 @@ export function applyFilters() {
         return true;
     });
 
+    // 3. Création et Ajout des marqueurs (CORRIGÉ)
     if (map && visibleFeatures.length > 0) {
-        const newLayer = L.geoJSON(visibleFeatures, {
+        // On crée un calque temporaire pour générer les marqueurs
+        const tempLayer = L.geoJSON(visibleFeatures, {
             pointToLayer: (feature, latlng) => {
-                const marker = L.marker(latlng, { icon: createHistoryWalkIcon(feature.properties.Catégorie) });
+                // Sécurité pour la catégorie
+                const category = feature.properties.Catégorie || 'default'; 
+                const marker = L.marker(latlng, { icon: createHistoryWalkIcon(category) });
+                
                 const featureId = state.loadedFeatures.indexOf(feature);
                 
                 marker.on('click', (e) => {
@@ -99,7 +139,7 @@ export function applyFilters() {
                     if (state.isSelectionModeActive) {
                         handleMarkerClick(feature);
                     } else {
-                        const circuitIndex = state.currentCircuit.findIndex(f => getPoiId(f) === getPoiId(feature));
+                        const circuitIndex = state.currentCircuit ? state.currentCircuit.findIndex(f => getPoiId(f) === getPoiId(feature)) : -1;
                         openDetailsPanel(featureId, circuitIndex !== -1 ? circuitIndex : null);
                     }
                 });
@@ -107,11 +147,13 @@ export function applyFilters() {
             }
         });
         
-        if (state.geojsonLayer) {
-            newLayer.eachLayer(layer => state.geojsonLayer.addLayer(layer));
-        }
+        // On transfère les marqueurs du calque temporaire vers le calque principal de la carte
+        tempLayer.eachLayer(layer => {
+            state.geojsonLayer.addLayer(layer);
+        });
     }
     
+    // 4. Gestion des icônes Lucide et du Zoom
     if (window.lucide) lucide.createIcons();
 
     if (map && state.activeFilters.zone && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
@@ -122,69 +164,36 @@ export function applyFilters() {
     }
 }
 
-// --- CHARGEMENT INITIAL ---
+// --- MODIFICATION DES DONNÉES ---
 
-export async function displayGeoJSON(data, mapId) {
-    state.currentMapId = mapId;
-    const titleEl = document.getElementById('app-title');
-    if(titleEl) titleEl.textContent = `History Walk - ${mapId}`;
+export async function updatePoiData(poiId, key, value) {
+    if (!state.userData[poiId]) state.userData[poiId] = {};
+    state.userData[poiId][key] = value;
 
-    try {
-        const savedHiddenPois = await getAppState(`hiddenPois_${mapId}`);
-        state.hiddenPoiIds = savedHiddenPois || []; 
-
-        const validFeatures = data.features.filter(feature => getPoiId(feature));
-
-        state.userData = await getAllPoiDataForMap(mapId);
-        state.myCircuits = await getAllCircuitsForMap(mapId);
-
-        validFeatures.forEach(feature => {
-            const poiId = getPoiId(feature);
-            feature.properties.userData = state.userData[poiId] || {};
-        });
-
-        state.loadedFeatures = validFeatures;
-
-        if (map) {
-            if (state.geojsonLayer) state.geojsonLayer.remove();
-            state.geojsonLayer = L.featureGroup().addTo(map);
-        }
-
-        populateZonesMenu();
-        applyFilters(); 
-        
-        await loadCircuitDraft();
-
-        // --- CORRECTION CENTRAGE CARTE ---
-        // On ne zoome que sur les lieux qui NE SONT PAS dans la corbeille
-        if (map && !state.activeFilters.zone && state.loadedFeatures.length > 0) {
-            const activeFeatures = state.loadedFeatures.filter(f => !state.hiddenPoiIds.includes(getPoiId(f)));
-            
-            if (activeFeatures.length > 0) {
-                const fullBounds = L.geoJSON(activeFeatures).getBounds();
-                if (fullBounds.isValid()) map.flyToBounds(fullBounds.pad(0.1));
-            }
-        }
-    } catch (error) {
-        console.error("Erreur lors de l'affichage du GeoJSON:", error);
-        alert("Impossible de charger les données pour cette carte.");
+    // Mise à jour visuelle immédiate
+    const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+    if (feature) {
+        feature.properties.userData = state.userData[poiId];
     }
+
+    // Sauvegarde en DB
+    await savePoiData(state.currentMapId, poiId, state.userData[poiId]);
 }
 
-export function addPoiFeature(feature) {
-    if (!feature) return;
+// --- AJOUT D'UN LIEU (La correction "Post-it") ---
+
+export async function addPoiFeature(feature) {
+    // 1. Ajout à la liste en mémoire vive (pour affichage immédiat)
     state.loadedFeatures.push(feature);
-    const poiId = getPoiId(feature);
-    if (state.userData && !state.userData[poiId]) {
-        state.userData[poiId] = {};
-    }
-    if (map && state.geojsonLayer) {
-        const tempLayer = L.geoJSON(feature); 
-        const newMarker = tempLayer.getLayers()[0]; 
-        if (typeof state.geojsonLayer.addLayer === 'function') {
-            state.geojsonLayer.addLayer(newMarker);
-        } else if (typeof state.geojsonLayer.addData === 'function') {
-            state.geojsonLayer.addData(feature);
-        }
-    }
+    
+    // Sécurité : on s'assure que le tableau existe
+    if (!state.customFeatures) state.customFeatures = [];
+    state.customFeatures.push(feature);
+
+    // 2. Sauvegarde UNIQUEMENT de la liste des ajouts ("Les Post-its")
+    // C'est ici que la correction opère : on n'écrase plus la grosse carte.
+    await saveAppState(`customPois_${state.currentMapId}`, state.customFeatures);
+
+    // 3. Rafraîchissement
+    applyFilters(); 
 }

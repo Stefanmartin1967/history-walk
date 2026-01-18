@@ -19,6 +19,7 @@ export const state = {
     currentCircuitIndex: null,
     isSelectionModeActive: false,
     currentCircuit: [],
+    customFeatures: [],
     hiddenPoiIds: [],
     activeCircuitId: null,
     circuitIdToImportFor: null,
