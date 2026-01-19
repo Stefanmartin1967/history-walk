@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  // Mettre ici le nom EXACT de ton dépôt GitHub entre slashes
-  // Exemple: base: '/history-walk/',
+  // La ligne cruciale pour GitHub Pages
   base: '/history-walk/', 
+  
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
