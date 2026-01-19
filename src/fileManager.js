@@ -58,15 +58,20 @@ export async function saveUserData(forceFullMode = false) {
         baseGeoJSON: {
             type: "FeatureCollection",
             features: state.loadedFeatures.map(f => {
+                // On clone le lieu (la géométrie)
                 const featureClone = JSON.parse(JSON.stringify(f));
                 const poiId = getPoiId(f);
                 
                 // Intégration des données utilisateur
                 if (state.userData[poiId]) {
-                    featureClone.properties.userData = state.userData[poiId];
+                    // --- CORRECTION ICI --- 
+                    // On fait une COPIE PROFONDE (Deep Copy) des données utilisateur
+                    // Avant, on passait une référence, et modifier featureClone modifiait le state !
+                    featureClone.properties.userData = JSON.parse(JSON.stringify(state.userData[poiId]));
                 }
 
                 // FILTRE : Si mode Mobile (Lite), on vide les photos dans le GeoJSON
+                // Maintenant qu'on travaille sur une copie, on peut supprimer sans risque pour la mémoire
                 if (!includePhotos && featureClone.properties.userData && featureClone.properties.userData.photos) {
                     featureClone.properties.userData.photos = [];
                 }
@@ -76,12 +81,14 @@ export async function saveUserData(forceFullMode = false) {
         },
         
         // 2. UserData séparé
+        // Ici c'était déjà correct (JSON.parse/stringify crée une copie), mais on garde la logique
         userData: JSON.parse(JSON.stringify(state.userData)), 
         myCircuits: state.myCircuits,
         hiddenPoiIds: state.hiddenPoiIds
     };
 
     // FILTRE : Si mode Mobile (Lite), on vide les photos dans userData
+    // On travaille sur exportData (la copie), donc pas de risque pour le state
     if (!includePhotos) {
         for (const key in exportData.userData) {
             if (exportData.userData[key].photos) {
