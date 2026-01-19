@@ -1,5 +1,5 @@
-// main.js
-import { initDB, getAppState, saveAppState } from './database.js';
+// main.js - Version corrigée : Chargement DB avant Affichage Carte
+import { initDB, getAppState, saveAppState, getAllPoiDataForMap } from './database.js';
 import { APP_VERSION, state } from './state.js';
 import { initMap, map } from './map.js';
 import {
@@ -47,6 +47,23 @@ async function loadDefaultMap() {
         if (!response.ok) throw new Error(`Erreur réseau: ${response.statusText}`);
         
         const geojsonData = await response.json();
+        
+        // 1. D'ABORD : On définit l'identité de la carte
+        state.currentMapId = 'Djerba'; 
+        await saveAppState('lastMapId', 'Djerba'); 
+
+        // 2. ENSUITE : On va chercher les photos/données dans le coffre-fort
+        try {
+            const loadedData = await getAllPoiDataForMap('Djerba');
+            if (loadedData) {
+                state.userData = loadedData;
+                console.log("Données utilisateur (Photos/Notes) chargées en mémoire.");
+            }
+        } catch (dbErr) {
+            console.warn("Aucune donnée utilisateur antérieure ou erreur DB:", dbErr);
+        }
+
+        // 3. ENFIN : On affiche la carte (qui pourra voir les photos chargées juste avant)
         await displayGeoJSON(geojsonData, 'Djerba');
 
         setSaveButtonsState(true);
@@ -78,9 +95,7 @@ async function initializeApp() {
         populateAddPoiModalCategories();
     }
 
-    // --- 1. DÉTECTION DU MODE AU DÉMARRAGE ---
-    // On initialise l'interface (les boutons) AVANT la base de données
-    // pour que l'app soit réactive immédiatement.
+    // --- 1. DÉTECTION DU MODE ---
     if (isMobileView()) {
         console.log("Démarrage en mode MOBILE");
         initMobileMode();
@@ -89,15 +104,12 @@ async function initializeApp() {
         initDesktopMode();
     }
 
-    // --- 2. GESTION DU REDIMENSIONNEMENT (Pour les tests PC) ---
-    // Si on change de taille d'écran, on propose de recharger pour éviter les bugs
+    // --- 2. GESTION DU REDIMENSIONNEMENT ---
     let initialModeIsMobile = isMobileView();
     window.addEventListener('resize', () => {
         const currentModeIsMobile = isMobileView();
         if (currentModeIsMobile !== initialModeIsMobile) {
-            // On ne recharge pas automatiquement pour ne pas perdre de données,
-            // mais on pourrait afficher un avertissement dans la console.
-            console.warn("Changement de mode détecté. Veuillez rafraîchir la page pour charger l'interface correcte.");
+            console.warn("Changement de mode détecté.");
         }
     });
 
@@ -116,9 +128,24 @@ async function initializeApp() {
         if (lastMapId && lastGeoJSON) {
             setSaveButtonsState(true);
             if(DOM.btnRestoreData) DOM.btnRestoreData.disabled = false;
+            
+            // 1. On rétablit l'identité
+            state.currentMapId = lastMapId;
+
+            // 2. On charge les données utilisateur AVANT d'afficher
+            try {
+                const loadedData = await getAllPoiDataForMap(lastMapId);
+                if (loadedData) {
+                    state.userData = loadedData;
+                    console.log(`Données utilisateur récupérées pour ${lastMapId}.`);
+                }
+            } catch (dbErr) {
+                console.warn("Erreur chargement données utilisateur:", dbErr);
+            }
+
+            // 3. On affiche la carte
             await displayGeoJSON(lastGeoJSON, lastMapId);
             
-            // Si on est en mobile, on force l'affichage de la liste après le chargement des données
             if (isMobileView()) {
                 switchMobileView('circuits');
             }
@@ -153,13 +180,9 @@ async function initDesktopMode() {
 }
 
 function setupEventListeners() {
-    // Écouteurs globaux (Communs ou Desktop principalement)
     if(DOM.btnOpenGeojson) DOM.btnOpenGeojson.addEventListener('click', () => DOM.geojsonLoader.click());
     if(DOM.btnModeSelection) DOM.btnModeSelection.addEventListener('click', toggleSelectionMode);
     if(DOM.btnMyCircuits) DOM.btnMyCircuits.addEventListener('click', openCircuitsModal);
-    
-    // ... (Le reste de vos écouteurs existants reste inchangé) ...
-    // J'ai mis des "if(DOM.xyz)" par sécurité
     
     document.getElementById('btn-filter-mosquees')?.addEventListener('click', (e) => {
         const isActive = e.currentTarget.classList.toggle('active');
@@ -243,9 +266,7 @@ function setupEventListeners() {
 
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-// ... (Le reste du fichier avec window.requestSoftDelete reste identique) ...
 window.requestSoftDelete = async function(idOrIndex) {
-    // (Votre code existant pour requestSoftDelete)
     let feature;
     if (typeof idOrIndex === 'number' && state.loadedFeatures[idOrIndex]) {
         feature = state.loadedFeatures[idOrIndex];

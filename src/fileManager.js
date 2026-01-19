@@ -201,12 +201,19 @@ export async function handleGpxFileImport(event) {
 }
 
 export function handlePhotoImport(event) {
-    const files = event.target.files;
+    // 1. COPIE DE SÉCURITÉ : On transforme la FileList vivante en un vrai tableau statique
+    // C'est ça qui manquait : Array.from(...) capture les fichiers avant qu'ils ne disparaissent
+    const files = Array.from(event.target.files);
+
     if (!files || files.length === 0) return;
-    
-    // On essaie d'importer depuis desktopMode si la fonction existe
+
+    // 2. Maintenant on peut vider l'input sans risque, car on a notre copie 'files'
+    event.target.value = '';
+
+    // 3. On appelle le module asynchrone en lui passant la COPIE
     import('./desktopMode.js').then(module => {
         if (module.handleDesktopPhotoImport) {
+            console.log("Envoi des fichiers au module Desktop...", files.length);
             module.handleDesktopPhotoImport(files);
         } else {
             showToast("Import photos non disponible ici", "warning");
@@ -214,7 +221,6 @@ export function handlePhotoImport(event) {
     }).catch(err => {
         console.error("Erreur chargement module Photos", err);
     });
-    event.target.value = '';
 }
 
 export function handleRestoreFile(event) {
