@@ -1,5 +1,5 @@
 // main.js - Version corrigée : Chargement DB avant Affichage Carte
-import { initDB, getAppState, saveAppState, getAllPoiDataForMap } from './database.js';
+import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsForMap } from './database.js';
 import { APP_VERSION, state } from './state.js';
 import { initMap, map } from './map.js';
 import {
@@ -141,6 +141,13 @@ async function initializeApp() {
                 }
             } catch (dbErr) {
                 console.warn("Erreur chargement données utilisateur:", dbErr);
+            }
+
+            try {
+                state.myCircuits = await getAllCircuitsForMap(lastMapId);
+                console.log(`>>> Démarrage : ${state.myCircuits.length} circuits restaurés.`);
+            } catch (err) {
+                console.warn("Pas de circuits trouvés ou erreur:", err);
             }
 
             // 3. On affiche la carte
