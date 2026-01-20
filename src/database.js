@@ -1,6 +1,6 @@
 // database.js
 const DB_NAME = 'HistoryWalkDB';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 let db;
 
 export function initDB() {
