@@ -139,19 +139,21 @@ async function initializeApp() {
                     state.userData = loadedData;
                     console.log(`Données utilisateur récupérées pour ${lastMapId}.`);
                 }
-            } catch (dbErr) {
+           } catch (dbErr) {
                 console.warn("Erreur chargement données utilisateur:", dbErr);
             }
 
+            // 3. On affiche la carte D'ABORD (Priorité visuelle)
+            await displayGeoJSON(lastGeoJSON, lastMapId);
+            
+            // 4. ENSUITE, on charge les circuits (Si ça échoue, la carte est quand même là)
             try {
                 state.myCircuits = await getAllCircuitsForMap(lastMapId);
-                console.log(`>>> Démarrage : ${state.myCircuits.length} circuits restaurés.`);
+                console.log(`>>> Démarrage : ${state.myCircuits ? state.myCircuits.length : 0} circuits restaurés.`);
             } catch (err) {
-                console.warn("Pas de circuits trouvés ou erreur:", err);
+                console.warn("Pas de circuits trouvés ou erreur mineure:", err);
+                state.myCircuits = []; // Sécurité : on s'assure que ce n'est pas vide
             }
-
-            // 3. On affiche la carte
-            await displayGeoJSON(lastGeoJSON, lastMapId);
             
             if (isMobileView()) {
                 switchMobileView('circuits');
