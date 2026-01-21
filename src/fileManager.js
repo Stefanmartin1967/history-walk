@@ -1,8 +1,7 @@
 // fileManager.js
 import { state } from './state.js';
-import { getPoiId, addPoiFeature, displayGeoJSON } from './data.js';
-import { loadCircuitById } from './circuit.js';
-import { showToast, DOM } from './ui.js';
+import { getPoiId, displayGeoJSON } from './data.js';
+import { showToast, DOM, closeDetailsPanel } from './ui.js';
 import { saveAppState, savePoiData, saveCircuit, clearStore } from './database.js';
 import { processImportedGpx } from './gpx.js';
 
@@ -40,8 +39,6 @@ export function handleFileLoad(event) {
 
 // --- SAUVEGARDE (EXPORT) ---
 
-// --- SAUVEGARDE (EXPORT) ---
-
 // forceFullMode = false (Défaut) => Sauvegarde Mobile (Rapide, sans photos)
 // forceFullMode = true => Sauvegarde Master (PC, avec photos)
 export async function saveUserData(forceFullMode = false) {
@@ -64,14 +61,12 @@ export async function saveUserData(forceFullMode = false) {
                 
                 // Intégration des données utilisateur
                 if (state.userData[poiId]) {
-                    // --- CORRECTION ICI --- 
-                    // On fait une COPIE PROFONDE (Deep Copy) des données utilisateur
-                    // Avant, on passait une référence, et modifier featureClone modifiait le state !
+                    // COPIE PROFONDE (Deep Copy) des données utilisateur
+                    // Crucial pour ne pas modifier le state actuel lors du filtrage ci-dessous
                     featureClone.properties.userData = JSON.parse(JSON.stringify(state.userData[poiId]));
                 }
 
-                // FILTRE : Si mode Mobile (Lite), on vide les photos dans le GeoJSON
-                // Maintenant qu'on travaille sur une copie, on peut supprimer sans risque pour la mémoire
+                // FILTRE : Si mode Mobile (Lite), on vide les photos dans le GeoJSON exporté
                 if (!includePhotos && featureClone.properties.userData && featureClone.properties.userData.photos) {
                     featureClone.properties.userData.photos = [];
                 }
@@ -81,14 +76,12 @@ export async function saveUserData(forceFullMode = false) {
         },
         
         // 2. UserData séparé
-        // Ici c'était déjà correct (JSON.parse/stringify crée une copie), mais on garde la logique
         userData: JSON.parse(JSON.stringify(state.userData)), 
         myCircuits: state.myCircuits,
         hiddenPoiIds: state.hiddenPoiIds
     };
 
-    // FILTRE : Si mode Mobile (Lite), on vide les photos dans userData
-    // On travaille sur exportData (la copie), donc pas de risque pour le state
+    // FILTRE : Si mode Mobile (Lite), on vide les photos dans userData exporté
     if (!includePhotos) {
         for (const key in exportData.userData) {
             if (exportData.userData[key].photos) {
@@ -100,14 +93,14 @@ export async function saveUserData(forceFullMode = false) {
     // Nommage du fichier
     const mode = includePhotos ? 'FULL_MASTER' : 'LITE_Mobile';
     
-    // Format Date : YYYY-MM-DD_HH-MM-SS
+    // Format Date propre : YYYY-MM-DD_HH-MM-SS
     const now = new Date();
-    const dateStr = now.getFullYear() + "-" + 
-                   String(now.getMonth() + 1).padStart(2, '0') + "-" + 
-                   String(now.getDate()).padStart(2, '0') + "_" + 
-                   String(now.getHours()).padStart(2, '0') + "-" + 
-                   String(now.getMinutes()).padStart(2, '0') + "-" + 
-                   String(now.getSeconds()).padStart(2, '0');
+    // Ajustement timezone local pour le nom de fichier
+    const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    const dateStr = localDate.toISOString()
+        .replace(/T/, '_')
+        .replace(/\..+/, '')
+        .replace(/:/g, '-');
 
     const fileName = `HistoryWalk_Backup_${state.currentMapId}_${mode}_${dateStr}.json`;
     
@@ -150,6 +143,12 @@ async function restoreBackup(json) {
         // 3. Restaurer les circuits
         if (json.myCircuits && Array.isArray(json.myCircuits)) {
             state.myCircuits = json.myCircuits;
+            
+            // --- SECURITÉ : Nettoyage de l'état actif ---
+            state.activeCircuitId = null; 
+            state.currentCircuit = []; // On vide le brouillon pour éviter les conflits d'ID
+            // ----------------------------------------------
+
             // On écrase les circuits existants dans la DB pour éviter les doublons
             await clearStore('circuits'); 
             for (const circuit of state.myCircuits) {
@@ -163,15 +162,20 @@ async function restoreBackup(json) {
             await saveAppState(`hiddenPois_${state.currentMapId}`, state.hiddenPoiIds);
         }
 
-        // 5. Rafraîchir l'affichage global
+        // 5. Rafraîchir l'affichage global et nettoyer l'UI
         
-        // On réapplique les filtres pour masquer immédiatement les lieux supprimés
+        // Fermeture du panneau de détail s'il est ouvert (évite d'afficher des données périmées)
+        if (closeDetailsPanel) closeDetailsPanel();
+
+        // On réapplique les filtres (gestion des couleurs/masquage)
+        // Utilisation d'import dynamique pour éviter les dépendances circulaires
         const { applyFilters } = await import('./data.js'); 
-        applyFilters();
+        if (applyFilters) applyFilters();
         
-        // Si on est sur mobile, on force le rafraîchissement de la vue "Circuits"
+        // Gestion Mobile
         const { isMobileView, switchMobileView } = await import('./mobile.js');
-        if (isMobileView()) {
+        if (isMobileView && isMobileView()) {
+            // Force le retour à la liste des circuits pour rafraîchir la vue
             switchMobileView('circuits');
         }
 
@@ -189,11 +193,9 @@ export async function handleGpxFileImport(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Vérification que nous avons bien un circuit cible (HW-ID)
+    // Vérification que nous avons bien un circuit cible
     if (state.circuitIdToImportFor) {
         try {
-            // CORRECTION : Appel direct à la fonction importée à l'étape 1
-            // et utilisation du bon nom de fonction 'processImportedGpx'
             await processImportedGpx(file, state.circuitIdToImportFor);
             showToast("Trace réelle importée avec succès.", "success");
         } catch (err) {
@@ -202,22 +204,22 @@ export async function handleGpxFileImport(event) {
         }
     } else {
         console.warn("Aucun circuit cible défini pour l'import GPX.");
+        showToast("Veuillez sélectionner un circuit avant d'importer un GPX.", "warning");
     }
     
     event.target.value = '';
 }
 
 export function handlePhotoImport(event) {
-    // 1. COPIE DE SÉCURITÉ : On transforme la FileList vivante en un vrai tableau statique
-    // C'est ça qui manquait : Array.from(...) capture les fichiers avant qu'ils ne disparaissent
+    // COPIE DE SÉCURITÉ : On transforme la FileList en tableau statique
     const files = Array.from(event.target.files);
 
     if (!files || files.length === 0) return;
 
-    // 2. Maintenant on peut vider l'input sans risque, car on a notre copie 'files'
+    // On peut vider l'input maintenant
     event.target.value = '';
 
-    // 3. On appelle le module asynchrone en lui passant la COPIE
+    // Import dynamique du module Desktop
     import('./desktopMode.js').then(module => {
         if (module.handleDesktopPhotoImport) {
             console.log("Envoi des fichiers au module Desktop...", files.length);
@@ -227,6 +229,7 @@ export function handlePhotoImport(event) {
         }
     }).catch(err => {
         console.error("Erreur chargement module Photos", err);
+        showToast("Erreur chargement module Photos", "error");
     });
 }
 

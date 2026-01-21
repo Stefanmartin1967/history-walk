@@ -49,14 +49,21 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
 export async function saveCircuitDraft() {
     if (!state.currentMapId) return;
     try {
+        // Petit helper local pour lire une valeur sans crasher si l'élément manque
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            return el ? el.value : '';
+        };
+
         const circuitData = {
             poiIds: state.currentCircuit.map(getPoiId).filter(Boolean),
-            description: DOM.circuitDescription.value,
+            // On vérifie aussi DOM.circuitDescription au cas où
+            description: DOM.circuitDescription ? DOM.circuitDescription.value : '',
             transport: {
-                allerTemps: document.getElementById('transport-aller-temps').value,
-                allerCout: document.getElementById('transport-aller-cout').value,
-                retourTemps: document.getElementById('transport-retour-temps').value,
-                retourCout: document.getElementById('transport-retour-cout').value
+                allerTemps: getVal('transport-aller-temps'),
+                allerCout: getVal('transport-aller-cout'),
+                retourTemps: getVal('transport-retour-temps'),
+                retourCout: getVal('transport-retour-cout')
             }
         };
         await saveAppState(`circuitDraft_${state.currentMapId}`, circuitData);

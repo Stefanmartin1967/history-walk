@@ -1,4 +1,4 @@
-// main.js - Version corrigée : Chargement DB avant Affichage Carte
+// main.js - Version corrigée et optimisée
 import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsForMap } from './database.js';
 import { APP_VERSION, state } from './state.js';
 import { initMap, map } from './map.js';
@@ -104,12 +104,14 @@ async function initializeApp() {
         initDesktopMode();
     }
 
-    // --- 2. GESTION DU REDIMENSIONNEMENT ---
+    // --- 2. GESTION DU REDIMENSIONNEMENT (CORRIGÉ) ---
+    // Si on change radicalement de mode (PC <-> Mobile), on recharge pour éviter les bugs d'interface
     let initialModeIsMobile = isMobileView();
     window.addEventListener('resize', () => {
         const currentModeIsMobile = isMobileView();
         if (currentModeIsMobile !== initialModeIsMobile) {
-            console.warn("Changement de mode détecté.");
+            console.log("Changement de mode détecté : Rechargement de la page...");
+            window.location.reload();
         }
     });
 
@@ -273,8 +275,10 @@ function setupEventListeners() {
     if(DOM.gpxImporter) DOM.gpxImporter.addEventListener('change', handleGpxFileImport);
 }
 
+// Point d'entrée principal
 document.addEventListener('DOMContentLoaded', initializeApp);
 
+// Fonction globale pour la suppression (accessible depuis les popups Leaflet)
 window.requestSoftDelete = async function(idOrIndex) {
     let feature;
     if (typeof idOrIndex === 'number' && state.loadedFeatures[idOrIndex]) {
@@ -310,10 +314,16 @@ window.requestSoftDelete = async function(idOrIndex) {
     }
 };
 
+// --- SERVICE WORKER (CORRIGÉ) ---
+// On active le support PWA correctement
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-            registration.unregister();
-        }
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('SW enregistré:', registration.scope);
+            })
+            .catch(err => {
+                console.log('Info: Pas de SW trouvé ou erreur (normal en dev):', err);
+            });
     });
 }

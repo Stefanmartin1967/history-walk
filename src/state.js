@@ -1,5 +1,5 @@
 // state.js
-export const APP_VERSION = '3.1.1-mobile'; // Petit bump de version
+export const APP_VERSION = '3.1.1'; // Petit bump de version
 export const MAX_CIRCUIT_POINTS = 15;
 
 export const POI_CATEGORIES = [

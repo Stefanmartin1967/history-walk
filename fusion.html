@@ -10,7 +10,6 @@
         h1 { color: var(--bg); margin-bottom: 10px; }
         .subtitle { color: var(--ink-light); margin-bottom: 30px; }
         
-        /* Zone de chargement */
         .card { background: var(--surface); padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); width: 100%; max-width: 800px; margin-bottom: 20px; }
         .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .upload-box { border: 2px dashed var(--border); border-radius: 12px; padding: 20px; text-align: center; transition: all 0.2s; background: var(--surface-alt); }
@@ -46,10 +45,10 @@
         .old-val { text-decoration: line-through; color: #94A3B8; font-size: 12px; }
         .arrow { color: var(--brand); font-weight: bold; }
         .new-val { color: var(--ink); font-weight: 500; }
-        .gps-link { color: var(--brand); text-decoration: none; font-size: 12px; margin-left: auto; }
-        .new-poi-input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-top: 5px; font-family: inherit; }
+        .new-poi-input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; box-sizing: border-box; }
         
-        .empty-state { text-align: center; color: var(--ink-light); padding: 20px; font-style: italic; }
+        /* Support RTL pour l'arabe */
+        input[dir="rtl"] { direction: rtl; }
     </style>
 </head>
 <body>

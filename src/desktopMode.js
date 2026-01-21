@@ -181,11 +181,17 @@ export async function handleDesktopPhotoImport(filesList) {
 }
 
 export function createDraftMarker(lat, lng, mapInstance) {
+    // Nettoyage préventif : on s'assure qu'il n'y a pas deux draft markers en même temps
+    if (desktopDraftMarker) {
+        mapInstance.removeLayer(desktopDraftMarker);
+    }
+
     desktopDraftMarker = L.marker([lat, lng], {
         draggable: true,
         title: "Déplacez-moi pour ajuster"
     }).addTo(mapInstance);
 
+    // Création du DOM de la popup
     const popupContent = document.createElement('div');
     popupContent.style.textAlign = 'center';
     popupContent.innerHTML = `
@@ -196,21 +202,25 @@ export function createDraftMarker(lat, lng, mapInstance) {
         </button>
     `;
 
+    // --- CORRECTION ---
+    // On récupère le bouton DANS le conteneur créé, et on met l'event listener dessus.
+    // Plus besoin de passer par document.body.
+    const validateBtn = popupContent.querySelector('#btn-validate-desktop-poi');
+    
+    validateBtn.addEventListener('click', () => {
+        const finalLatLng = desktopDraftMarker.getLatLng();
+        openDesktopAddModal(finalLatLng.lat, finalLatLng.lng);
+        
+        // Nettoyage propre
+        if (mapInstance && desktopDraftMarker) {
+            mapInstance.removeLayer(desktopDraftMarker);
+        }
+        desktopDraftMarker = null;
+        // Pas besoin de removeEventListener ici car le bouton (et le marker) sont détruits
+    });
+
     desktopDraftMarker.bindPopup(popupContent, { minWidth: 200 }).openPopup();
 
-    const validateHandler = (e) => {
-        if (e.target && e.target.id === 'btn-validate-desktop-poi') {
-            const finalLatLng = desktopDraftMarker.getLatLng();
-            openDesktopAddModal(finalLatLng.lat, finalLatLng.lng);
-            
-            if (mapInstance && desktopDraftMarker) {
-                mapInstance.removeLayer(desktopDraftMarker);
-            }
-            desktopDraftMarker = null;
-            document.body.removeEventListener('click', validateHandler);
-        }
-    };
-    document.body.addEventListener('click', validateHandler);
     desktopDraftMarker.on('dragend', () => desktopDraftMarker.openPopup());
 }
 

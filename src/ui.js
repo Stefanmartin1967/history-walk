@@ -1,6 +1,6 @@
 // ui.js
 import { state, POI_CATEGORIES } from './state.js';
-import { getPoiId, getPoiName, updatePoiData, getDomainFromUrl, applyFilters } from './data.js';
+import { getPoiId, getPoiName, updatePoiData, applyFilters } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { loadCircuitById, clearCircuit, navigatePoiDetails, setCircuitVisitedState } from './circuit.js';
 import { escapeXml, recalculatePlannedCountersForMap } from './gpx.js';
@@ -14,6 +14,7 @@ let currentEditor = { fieldId: null, poiId: null, callback: null };
 let currentPhotoList = [];
 let currentPhotoIndex = 0;
 
+// --- DÉFINITION DES ICÔNES SVG (Optimisation) ---
 const ICONS = {
     mosque: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H4v-7a8 8 0 0 1 16 0z"/><path d="M12 5V2"/><circle cx="12" cy="8" r="2"/></svg>`,    
     pen: `<i data-lucide="pencil" style="width:18px;height:18px;"></i>`,
@@ -36,6 +37,8 @@ const ICONS = {
     googleMaps: `<i data-lucide="map-pin" style="width:18px;height:18px;"></i>`
 };
 
+// --- INITIALISATION DOM ---
+
 export function initializeDomReferences() {
     const ids = [
         'geojson-loader', 'search-input', 'search-results', 'btn-mode-selection', 'right-sidebar', 'sidebar-tabs', 
@@ -50,14 +53,20 @@ export function initializeDomReferences() {
         'btn-loop-circuit',
         'btn-clear-circuit'
     ];
+    
+    // Récupération sécurisée des éléments
     ids.forEach(id => {
         const camelCaseId = id.replace(/-(\w)/g, (_, c) => c.toUpperCase());
-        DOM[camelCaseId] = document.getElementById(id);
+        const el = document.getElementById(id);
+        if (el) DOM[camelCaseId] = el;
     });
+
     DOM.tabButtons = document.querySelectorAll('.tab-button');
     DOM.sidebarPanels = document.querySelectorAll('.sidebar-panel');
     
+    // Écouteurs globaux (définis une seule fois au démarrage)
     if (DOM.editorCancelBtn) DOM.editorCancelBtn.addEventListener('click', () => DOM.fullscreenEditor.style.display = 'none');
+    
     if (DOM.editorSaveBtn) DOM.editorSaveBtn.addEventListener('click', () => {
         if (currentEditor.callback) currentEditor.callback(DOM.editorTextarea.value);
         DOM.fullscreenEditor.style.display = 'none';
@@ -68,6 +77,9 @@ export function initializeDomReferences() {
         closeViewer.addEventListener('click', () => {
             DOM.photoViewer.style.display = 'none';
         });
+    }
+    
+    if (DOM.photoViewer) {
         DOM.photoViewer.addEventListener('click', (e) => {
             if(e.target === DOM.photoViewer) DOM.photoViewer.style.display = 'none';
         });
@@ -85,125 +97,14 @@ export function initializeDomReferences() {
     });
 }
 
+// --- GESTION PHOTOS ---
+
 function changePhoto(direction) {
-    if (currentPhotoList.length <= 1) return;
+    if (!currentPhotoList || currentPhotoList.length <= 1) return;
     currentPhotoIndex += direction;
     if (currentPhotoIndex >= currentPhotoList.length) currentPhotoIndex = 0;
     if (currentPhotoIndex < 0) currentPhotoIndex = currentPhotoList.length - 1;
-    DOM.viewerImg.src = currentPhotoList[currentPhotoIndex];
-}
-
-function openFullscreenEditor(title, content, fieldId, poiId, onSave) {
-    DOM.editorTitle.textContent = `Éditer: ${title}`;
-    DOM.editorTextarea.value = content;
-    currentEditor = { fieldId, poiId, callback: onSave };
-    DOM.fullscreenEditor.style.display = 'flex';
-    DOM.editorTextarea.focus();
-}
-
-export function setupEditableField(fieldId, poiId) {
-    const container = document.querySelector(`.editable-field[data-field-id="${fieldId}"]`);
-    if (!container) return;
-    
-    const displayEl = container.querySelector('.editable-text, .editable-content');
-    const inputEl = container.querySelector('.editable-input');
-    const editBtn = container.querySelector('.edit-btn');
-    const saveBtn = container.querySelector('.save-btn');
-    const cancelBtn = container.querySelector('.cancel-btn');
-    const speakBtn = container.querySelector('.speak-btn');
-    
-    const categorySelect = document.getElementById('panel-category-select');
-    
-    const saveValue = async (newValue) => {
-        const key = (fieldId === 'title') ? 'custom_title' : (fieldId === 'short_desc' ? 'Description_courte' : fieldId);
-        await updatePoiData(poiId, key, newValue.trim());
-        
-        if (fieldId === 'title' && categorySelect) {
-             const newCat = categorySelect.value;
-             await updatePoiData(poiId, 'Catégorie', newCat);
-        }
-        
-        openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
-    };
-    
-    if (editBtn) {
-        editBtn.addEventListener('click', () => {
-            const currentFeature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-            const poiData = currentFeature.properties.userData || {};
-            
-            let content = '';
-            if (fieldId === 'title') content = poiData.custom_title || currentFeature.properties['Nom du site FR'] || '';
-            else if (fieldId === 'short_desc') content = poiData.Description_courte || currentFeature.properties.Desc_wpt || '';
-            else content = poiData[fieldId] || currentFeature.properties[fieldId] || currentFeature.properties[fieldId.charAt(0).toUpperCase() + fieldId.slice(1)] || '';
-            
-            if (isMobileView() && (fieldId === 'description' || fieldId === 'notes')) {
-                openFullscreenEditor(fieldId, content, fieldId, poiId, saveValue);
-            } else {
-                inputEl.value = content;
-                if(displayEl) displayEl.style.display = 'none';
-                inputEl.style.display = (inputEl.tagName === 'TEXTAREA') ? 'flex' : 'block';
-                
-                if (fieldId === 'title' && categorySelect) {
-                    categorySelect.style.display = 'block';
-                    categorySelect.value = currentFeature.properties['Catégorie'] || 'A définir';
-                }
-                
-                editBtn.style.display = 'none';
-                if(speakBtn) speakBtn.style.display = 'none';
-                if(saveBtn) saveBtn.style.display = 'inline-flex';
-                if(cancelBtn) cancelBtn.style.display = 'inline-flex';
-                inputEl.focus();
-            }
-        });
-    }
-
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            if(displayEl) displayEl.style.display = (inputEl.tagName === 'TEXTAREA' || fieldId === 'title') ? '' : 'block';
-            if(fieldId === 'title') { if(displayEl) displayEl.style.display = 'block'; }
-            
-            if (fieldId === 'title' && categorySelect) {
-                categorySelect.style.display = 'none';
-            }
-
-            inputEl.style.display = 'none';
-            editBtn.style.display = 'inline-flex';
-            if(speakBtn) speakBtn.style.display = 'inline-flex';
-            if(saveBtn) saveBtn.style.display = 'none';
-            if(cancelBtn) cancelBtn.style.display = 'none';
-        });
-    }
-    
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => { saveValue(inputEl.value); });
-    }
-
-    if (speakBtn) {
-        speakBtn.addEventListener('click', () => {
-            const textToSpeak = displayEl.textContent;
-            speakText(textToSpeak, speakBtn);
-        });
-    }
-}
-
-function renderSource(allProps) {
-    const sourceString = allProps.Source;
-    if (!sourceString || typeof sourceString !== 'string' || sourceString.trim() === '') return '';
-    const firstLine = sourceString.split('\n')[0].trim();
-    try {
-        const fullUrl = firstLine.startsWith('http') ? firstLine : `https://${firstLine}`;
-        new URL(fullUrl);
-        const domain = new URL(fullUrl).hostname.replace(/^www\./, '');
-        return `<div class="source-container">Source: <a href="${fullUrl}" target="_blank" rel="noopener noreferrer">${domain}</a></div>`;
-    } catch (_) {
-        return `<div class="source-container">Source: <span>${escapeXml(firstLine)}</span></div>`;
-    }
-}
-
-function setupAllEditableFields(poiId) {
-    ['title', 'short_desc', 'description', 'notes'].forEach(fieldId => {
-        setupEditableField(fieldId, poiId);
-    });
+    if (DOM.viewerImg) DOM.viewerImg.src = currentPhotoList[currentPhotoIndex];
 }
 
 async function compressImage(file, targetMinSize = 800) {
@@ -233,22 +134,157 @@ async function compressImage(file, targetMinSize = 800) {
     });
 }
 
-function setupDetailsEventListeners(poiId) {
-    document.getElementById('panel-price').addEventListener('input', (e) => updatePoiData(poiId, 'price', e.target.value));
+// --- ÉDITION DE CONTENU ---
+
+function openFullscreenEditor(title, content, fieldId, poiId, onSave) {
+    DOM.editorTitle.textContent = `Éditer: ${title}`;
+    DOM.editorTextarea.value = content;
+    currentEditor = { fieldId, poiId, callback: onSave };
+    DOM.fullscreenEditor.style.display = 'flex';
+    DOM.editorTextarea.focus();
+}
+
+export function setupEditableField(fieldId, poiId) {
+    const container = document.querySelector(`.editable-field[data-field-id="${fieldId}"]`);
+    if (!container) return;
     
-    document.getElementById('panel-chk-vu').addEventListener('change', (e) => {
-        updatePoiData(poiId, 'vu', e.target.checked);
-        if (state.activeFilters.vus && !isMobileView()) applyFilters();
-    });
+    const displayEl = container.querySelector('.editable-text, .editable-content');
+    const inputEl = container.querySelector('.editable-input');
+    const editBtn = container.querySelector('.edit-btn');
+    const saveBtn = container.querySelector('.save-btn');
+    const cancelBtn = container.querySelector('.cancel-btn');
+    const speakBtn = container.querySelector('.speak-btn');
+    const categorySelect = document.getElementById('panel-category-select');
+    
+    const saveValue = async (newValue) => {
+        const key = (fieldId === 'title') ? 'custom_title' : (fieldId === 'short_desc' ? 'Description_courte' : fieldId);
+        await updatePoiData(poiId, key, newValue.trim());
+        
+        if (fieldId === 'title' && categorySelect) {
+             const newCat = categorySelect.value;
+             await updatePoiData(poiId, 'Catégorie', newCat);
+        }
+        
+        openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
+    };
+    
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            const currentFeature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+            if (!currentFeature) return;
 
-    document.getElementById('panel-chk-incontournable').addEventListener('change', (e) => {
-        updatePoiData(poiId, 'incontournable', e.target.checked);
-        if ((state.activeFilters.vus || state.activeFilters.planifies) && !isMobileView()) applyFilters();
-    });
+            const poiData = currentFeature.properties.userData || {};
+            
+            let content = '';
+            if (fieldId === 'title') content = poiData.custom_title || currentFeature.properties['Nom du site FR'] || '';
+            else if (fieldId === 'short_desc') content = poiData.Description_courte || currentFeature.properties.Desc_wpt || '';
+            else content = poiData[fieldId] || currentFeature.properties[fieldId] || currentFeature.properties[fieldId.charAt(0).toUpperCase() + fieldId.slice(1)] || '';
+            
+            // Mode Mobile Fullscreen pour les textes longs
+            if (isMobileView() && (fieldId === 'description' || fieldId === 'notes')) {
+                openFullscreenEditor(fieldId, content, fieldId, poiId, saveValue);
+            } else {
+                // Mode Inline Desktop
+                if (inputEl) {
+                    inputEl.value = content;
+                    inputEl.style.display = (inputEl.tagName === 'TEXTAREA') ? 'flex' : 'block';
+                    inputEl.focus();
+                }
+                
+                if (displayEl) displayEl.style.display = 'none';
+                
+                if (fieldId === 'title' && categorySelect) {
+                    categorySelect.style.display = 'block';
+                    categorySelect.value = currentFeature.properties['Catégorie'] || 'A définir';
+                }
+                
+                editBtn.style.display = 'none';
+                if(speakBtn) speakBtn.style.display = 'none';
+                if(saveBtn) saveBtn.style.display = 'inline-flex';
+                if(cancelBtn) cancelBtn.style.display = 'inline-flex';
+            }
+        });
+    }
 
-    document.getElementById('panel-chk-verified').addEventListener('change', (e) => {
-        updatePoiData(poiId, 'verified', e.target.checked);
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            if (displayEl) displayEl.style.display = (inputEl.tagName === 'TEXTAREA' || fieldId === 'title') ? '' : 'block';
+            if (fieldId === 'title' && displayEl) displayEl.style.display = 'block';
+            
+            if (fieldId === 'title' && categorySelect) categorySelect.style.display = 'none';
+
+            if (inputEl) inputEl.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'inline-flex';
+            if (speakBtn) speakBtn.style.display = 'inline-flex';
+            if (saveBtn) saveBtn.style.display = 'none';
+            if (cancelBtn) cancelBtn.style.display = 'none';
+        });
+    }
+    
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => { 
+            if (inputEl) saveValue(inputEl.value); 
+        });
+    }
+
+    if (speakBtn) {
+        speakBtn.addEventListener('click', () => {
+            if (displayEl) speakText(displayEl.textContent, speakBtn);
+        });
+    }
+}
+
+function renderSource(allProps) {
+    const sourceString = allProps.Source;
+    if (!sourceString || typeof sourceString !== 'string' || sourceString.trim() === '') return '';
+    const firstLine = sourceString.split('\n')[0].trim();
+    try {
+        const fullUrl = firstLine.startsWith('http') ? firstLine : `https://${firstLine}`;
+        new URL(fullUrl);
+        const domain = new URL(fullUrl).hostname.replace(/^www\./, '');
+        return `<div class="source-container">Source: <a href="${fullUrl}" target="_blank" rel="noopener noreferrer">${domain}</a></div>`;
+    } catch (_) {
+        return `<div class="source-container">Source: <span>${escapeXml(firstLine)}</span></div>`;
+    }
+}
+
+function setupAllEditableFields(poiId) {
+    ['title', 'short_desc', 'description', 'notes'].forEach(fieldId => {
+        setupEditableField(fieldId, poiId);
     });
+}
+
+// --- SETUP LISTENERS DU PANNEAU DE DÉTAILS ---
+
+function setupDetailsEventListeners(poiId) {
+    // Note : Comme le HTML est écrasé à chaque ouverture, pas de risque de double-binding ici
+    // tant qu'on cible des éléments à l'intérieur du panneau.
+    
+    const inputPrice = document.getElementById('panel-price');
+    if (inputPrice) {
+        inputPrice.addEventListener('input', (e) => updatePoiData(poiId, 'price', e.target.value));
+    }
+    
+    const chkVu = document.getElementById('panel-chk-vu');
+    if (chkVu) {
+        chkVu.addEventListener('change', (e) => {
+            updatePoiData(poiId, 'vu', e.target.checked);
+            if (state.activeFilters.vus && !isMobileView()) applyFilters();
+        });
+    }
+
+    const chkInc = document.getElementById('panel-chk-incontournable');
+    if (chkInc) {
+        chkInc.addEventListener('change', (e) => {
+            updatePoiData(poiId, 'incontournable', e.target.checked);
+            if ((state.activeFilters.vus || state.activeFilters.planifies) && !isMobileView()) applyFilters();
+        });
+    }
+
+    const chkVerif = document.getElementById('panel-chk-verified');
+    if (chkVerif) {
+        chkVerif.addEventListener('change', (e) => updatePoiData(poiId, 'verified', e.target.checked));
+    }
 
     const softDeleteBtn = document.getElementById('btn-soft-delete');
     if (softDeleteBtn) {
@@ -267,6 +303,7 @@ function setupDetailsEventListeners(poiId) {
             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
             if (feature && feature.geometry && feature.geometry.coordinates) {
                 const [lng, lat] = feature.geometry.coordinates;
+                // Lien Google Maps universel
                 window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
             } else {
                 showToast("Coordonnées introuvables.", "error");
@@ -274,10 +311,11 @@ function setupDetailsEventListeners(poiId) {
         });
     }
 
+    // Gestion Photos
     const photoInput = document.getElementById('panel-photo-input');
     const photoBtn = document.querySelector('.photo-placeholder');
     
-    if(photoBtn) photoBtn.addEventListener('click', () => photoInput.click());
+    if(photoBtn && photoInput) photoBtn.addEventListener('click', () => photoInput.click());
 
     if(photoInput) {
         photoInput.addEventListener('change', async (e) => {
@@ -311,10 +349,13 @@ function setupDetailsEventListeners(poiId) {
             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
             const poiData = feature.properties.userData || {};
             currentPhotoList = poiData.photos || [];
-            currentPhotoIndex = parseInt(e.target.closest('.photo-item').querySelector('.photo-delete-btn').dataset.index, 10);
             
-            DOM.viewerImg.src = currentPhotoList[currentPhotoIndex];
-            DOM.photoViewer.style.display = 'flex';
+            // Recherche sécurisée de l'index
+            const deleteBtn = e.target.closest('.photo-item').querySelector('.photo-delete-btn');
+            currentPhotoIndex = parseInt(deleteBtn.dataset.index, 10);
+            
+            if (DOM.viewerImg) DOM.viewerImg.src = currentPhotoList[currentPhotoIndex];
+            if (DOM.photoViewer) DOM.photoViewer.style.display = 'flex';
             
             const displayNav = currentPhotoList.length > 1 ? 'block' : 'none';
             if(DOM.viewerNext) DOM.viewerNext.style.display = displayNav;
@@ -325,7 +366,7 @@ function setupDetailsEventListeners(poiId) {
     document.querySelectorAll('.photo-delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             if(!confirm("Supprimer cette photo ?")) return;
-            const index = parseInt(e.target.closest('.photo-delete-btn').dataset.index, 10);
+            const index = parseInt(e.target.dataset.index, 10);
             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
             const currentPhotos = feature.properties.userData.photos || [];
             const updatedPhotos = currentPhotos.filter((_, i) => i !== index);
@@ -334,9 +375,11 @@ function setupDetailsEventListeners(poiId) {
         });
     });
 
+    // Ajustement du temps
     document.getElementById('time-increment-btn')?.addEventListener('click', () => adjustTime(5));
     document.getElementById('time-decrement-btn')?.addEventListener('click', () => adjustTime(-5));
 
+    // Navigation Mobile vs Desktop
     if (isMobileView()) {
         const moveBtn = document.getElementById('mobile-move-poi-btn');
         if (moveBtn) {
@@ -352,9 +395,11 @@ function setupDetailsEventListeners(poiId) {
     } else {
         document.getElementById('prev-poi-button')?.addEventListener('click', () => navigatePoiDetails(-1));
         document.getElementById('next-poi-button')?.addEventListener('click', () => navigatePoiDetails(1));
-        document.getElementById('close-details-button')?.addEventListener('click', closeDetailsPanel);
+        document.getElementById('close-details-button')?.addEventListener('click', () => closeDetailsPanel());
     }
 }
+
+// --- GÉNÉRATION HTML ---
 
 function buildDetailsPanelHtml(feature, circuitIndex) {
     const allProps = { ...feature.properties, ...feature.properties.userData };
@@ -417,6 +462,7 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
         </select>
     `;
 
+    // VERSION DESKTOP
     const pcHtml = `
         <div class="panel-header editable-field" data-field-id="title">
             <div class="header-top-row" style="display:flex; justify-content:space-between; align-items:start; width:100%; margin-bottom:10px;">
@@ -506,6 +552,7 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
             </div>
         </div>`;
     
+    // VERSION MOBILE
     const mobileHtml = `
         <div class="panel-content">
             <div class="detail-section editable-field" data-field-id="title">
@@ -598,24 +645,31 @@ function buildDetailsPanelHtml(feature, circuitIndex) {
     return isMobileView() ? mobileHtml : pcHtml;
 }
 
+// --- OUVERTURE/FERMETURE ---
 
 export function openDetailsPanel(featureId, circuitIndex = null) {
     if (featureId === undefined || featureId < 0) return;
+    
+    // Fermeture propre d'une éventuelle popup carte existante
     if(!isMobileView() && map) map.closePopup();
 
     state.currentFeatureId = featureId;
     state.currentCircuitIndex = circuitIndex;
 
+    // Sécurité: feature existe ?
     const feature = state.loadedFeatures[featureId];
     if (!feature) return;
 
+    // Injection du HTML
     const targetPanel = isMobileView() ? DOM.mobileMainContainer : DOM.detailsPanel;
     targetPanel.innerHTML = buildDetailsPanelHtml(feature, circuitIndex);
     
+    // Ré-attachement des écouteurs (sur les nouveaux éléments uniquement)
     const poiId = getPoiId(feature);
     setupAllEditableFields(poiId);
     setupDetailsEventListeners(poiId);
 
+    // Initialisation icônes Lucide
     createIcons({ icons });
 
     if (isMobileView()) {
@@ -646,11 +700,18 @@ export function closeDetailsPanel(goBackToList = false) {
     }
 }
 
+// --- NAVIGATION ONGLETS ---
+
 export function switchSidebarTab(tabName, isNavigating = false) {
     if (!isNavigating && window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
     if (isDictationActive()) stopDictation();
-    DOM.sidebarPanels.forEach(panel => panel.classList.toggle('active', panel.dataset.panel === tabName));
-    DOM.tabButtons.forEach(button => button.classList.toggle('active', button.dataset.tab === tabName));
+    
+    DOM.sidebarPanels.forEach(panel => {
+        if(panel) panel.classList.toggle('active', panel.dataset.panel === tabName);
+    });
+    DOM.tabButtons.forEach(button => {
+        if(button) button.classList.toggle('active', button.dataset.tab === tabName);
+    });
 }
 
 export function setupTabs() {
@@ -658,8 +719,13 @@ export function setupTabs() {
         button.addEventListener('click', () => {
             const tabName = button.dataset.tab;
             if (tabName === 'details' && state.currentFeatureId !== null) {
-                const circuitIndex = state.currentCircuit.findIndex(f => getPoiId(f) === getPoiId(state.loadedFeatures[state.currentFeatureId]));
-                openDetailsPanel(state.currentFeatureId, circuitIndex !== -1 ? circuitIndex : null);
+                // Si on revient sur l'onglet détails, on essaie de garder le contexte
+                const currentFeature = state.loadedFeatures[state.currentFeatureId];
+                if (currentFeature) {
+                    const id = getPoiId(currentFeature);
+                    const circuitIndex = state.currentCircuit ? state.currentCircuit.findIndex(f => getPoiId(f) === id) : -1;
+                    openDetailsPanel(state.currentFeatureId, circuitIndex !== -1 ? circuitIndex : null);
+                }
             } else {
                 switchSidebarTab(tabName);
             }
@@ -667,18 +733,26 @@ export function setupTabs() {
     });
 }
 
+// --- UTILITAIRES ---
+
 export function adjustTime(minutesToAdd) {
     if (state.currentFeatureId === null) return;
     const trigger = document.getElementById('panel-time-display');
+    if (!trigger) return;
+
     let h = parseInt(trigger.dataset.hours, 10) || 0;
     let m = parseInt(trigger.dataset.minutes, 10) || 0;
+    
     let totalMinutes = h * 60 + m + minutesToAdd;
     if (totalMinutes < 0) totalMinutes = 0;
+    
     h = Math.floor(totalMinutes / 60);
     m = totalMinutes % 60;
+    
     const poiId = getPoiId(state.loadedFeatures[state.currentFeatureId]);
     updatePoiData(poiId, 'timeH', h);
     updatePoiData(poiId, 'timeM', m);
+    
     trigger.textContent = `${String(h).padStart(2, '0')}h${String(m).padStart(2, '0')}`;
     trigger.dataset.hours = h;
     trigger.dataset.minutes = m;
@@ -696,6 +770,7 @@ export function populateZonesMenu() {
         return;
     }
 
+    // Pré-calcul des zones
     const preFilteredFeatures = state.loadedFeatures.filter(feature => {
         const props = { ...feature.properties, ...feature.properties.userData };
         if (state.activeFilters.mosquees && props.Catégorie !== 'Mosquée') return false;
@@ -720,22 +795,24 @@ export function populateZonesMenu() {
         return;
     }
 
+    // Bouton "Toutes"
     const allZonesBtn = document.createElement('button');
     allZonesBtn.textContent = `Toutes les zones (${preFilteredFeatures.length})`;
     allZonesBtn.onclick = () => {
         state.activeFilters.zone = null;
-        zonesLabel.textContent = 'Zone';
+        if(zonesLabel) zonesLabel.textContent = 'Zone';
         zonesMenu.style.display = 'none';
         applyFilters();
     };
     zonesMenu.appendChild(allZonesBtn);
 
+    // Boutons individuels
     sortedZones.forEach(zone => {
         const zoneBtn = document.createElement('button');
         zoneBtn.textContent = `${zone} (${zoneCounts[zone]})`;
         zoneBtn.onclick = () => {
             state.activeFilters.zone = zone;
-            zonesLabel.textContent = zone;
+            if(zonesLabel) zonesLabel.textContent = zone;
             zonesMenu.style.display = 'none';
             applyFilters();
         };
@@ -743,26 +820,28 @@ export function populateZonesMenu() {
     });
 }
 
+// --- MODALES CIRCUITS ---
+
 export function openCircuitsModal() {
     renderCircuitsList();
-    DOM.circuitsModal.style.display = 'flex';
+    if(DOM.circuitsModal) DOM.circuitsModal.style.display = 'flex';
 }
 
 export function closeCircuitsModal() {
-    DOM.circuitsModal.style.display = 'none';
+    if(DOM.circuitsModal) DOM.circuitsModal.style.display = 'none';
 }
 
 function renderCircuitsList() {
+    if (!DOM.circuitsListContainer) return;
+
     DOM.circuitsListContainer.innerHTML = (state.myCircuits.length === 0)
         ? '<p class="empty-list-info">Aucun circuit sauvegardé pour cette carte.</p>'
         : state.myCircuits.map(c => {
-            // CORRECTION BUG "FAIT" PC : On ne vérifie que les lieux qui EXISTENT encore dans la base
-            // Les ID "fantômes" (supprimés de la source de données mais restés dans le circuit) sont ignorés
+            // Check si le circuit est "fait"
             const existingFeatures = c.poiIds
                 .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
-                .filter(f => f); // On retire les 'undefined' (lieux introuvables)
+                .filter(f => f); 
 
-            // Si tous les lieux RESTANTS sont vus, le circuit est considéré comme fait
             const allVisited = existingFeatures.length > 0 && existingFeatures.every(f => 
                 f.properties.userData && f.properties.userData.vu
             );
@@ -790,10 +869,12 @@ function renderCircuitsList() {
 }
 
 export async function handleCircuitsListClick(e) {
-    // 1. Gestion des boutons
+    // 1. Boutons d'action
     const button = e.target.closest('button');
     if (button) {
         const circuitItem = button.closest('.circuit-item');
+        if (!circuitItem) return;
+        
         const circuitId = circuitItem.dataset.id;
         const action = button.dataset.action;
 
@@ -804,18 +885,18 @@ export async function handleCircuitsListClick(e) {
             await deleteCircuit(circuitId);
         } else if (action === 'import') {
             state.circuitIdToImportFor = circuitId;
-            DOM.gpxImporter.click();
+            if(DOM.gpxImporter) DOM.gpxImporter.click();
         }
         return;
     }
 
-    // 2. Gestion de la Checkbox "Fait"
+    // 2. Checkbox "Fait"
     const checkbox = e.target.closest('.circuit-visited-checkbox');
     if (checkbox) {
         const circuitId = checkbox.dataset.id;
         const isChecked = checkbox.checked;
         
-        // Petit délai pour laisser l'UI se mettre à jour
+        // Timeout pour laisser l'UI changer visuellement avant le confirm
         setTimeout(async () => {
              const confirmMsg = isChecked 
                 ? "Marquer tous les lieux de ce circuit comme visités ?" 
@@ -823,9 +904,8 @@ export async function handleCircuitsListClick(e) {
              
              if(confirm(confirmMsg)) {
                  await setCircuitVisitedState(circuitId, isChecked);
-                 // On ne rafraîchit pas toute la liste pour ne pas perdre le scroll, juste visuel ok
              } else {
-                 checkbox.checked = !isChecked; // On annule
+                 checkbox.checked = !isChecked; // Annulation visuelle
              }
         }, 50);
     }
@@ -847,9 +927,12 @@ async function deleteCircuit(id) {
     }
 }
 
+// --- NOTIFICATIONS (TOASTS) ---
+
 export function showToast(message, type = 'info', duration = 4000) {
     const container = document.getElementById('toast-container');
     if (!container) return;
+    
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     
@@ -861,8 +944,8 @@ export function showToast(message, type = 'info', duration = 4000) {
 
     toast.innerHTML = `${iconSvg}<span>${message}</span>`;
     container.appendChild(toast);
-    createIcons({ icons });
     
+    // Timer pour la suppression
     setTimeout(() => {
         toast.style.animation = 'fadeOut 0.5s forwards';
         toast.addEventListener('animationend', () => toast.remove());

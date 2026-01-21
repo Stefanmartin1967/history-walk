@@ -1,7 +1,7 @@
 // database.js
 const DB_NAME = 'HistoryWalkDB';
 const DB_VERSION = 5;
-let db;
+let db; // Variable locale au module pour garder la connexion ouverte
 
 export function initDB() {
     return new Promise((resolve, reject) => {
@@ -10,28 +10,45 @@ export function initDB() {
             return resolve(db);
         }
         const request = indexedDB.open(DB_NAME, DB_VERSION);
+        
         request.onerror = (event) => {
             console.error("Erreur d'initialisation de la base de données:", event);
             reject(new Error("Erreur d'initialisation IndexedDB."));
         };
+        
         request.onsuccess = (event) => {
             db = event.target.result;
+            // Gestion générique des erreurs de connexion ultérieures
+            db.onversionchange = () => {
+                db.close();
+                console.warn("Base de données fermée car une nouvelle version a été ouverte ailleurs.");
+            };
             resolve(db);
         };
+        
         request.onupgradeneeded = (event) => {
             const tempDb = event.target.result;
+            
+            // 1. Données Utilisateur (Photos, Notes, etc.)
             if (!tempDb.objectStoreNames.contains('poiUserData')) {
-                tempDb.createObjectStore('poiUserData', { keyPath: ['mapId', 'poiId'] }).createIndex('mapId_index', 'mapId', { unique: false });
+                tempDb.createObjectStore('poiUserData', { keyPath: ['mapId', 'poiId'] })
+                      .createIndex('mapId_index', 'mapId', { unique: false });
             }
+            
+            // 2. Circuits Sauvegardés
             if (!tempDb.objectStoreNames.contains('savedCircuits')) {
-                tempDb.createObjectStore('savedCircuits', { keyPath: 'id' }).createIndex('mapId_index', 'mapId', { unique: false });
+                tempDb.createObjectStore('savedCircuits', { keyPath: 'id' })
+                      .createIndex('mapId_index', 'mapId', { unique: false });
             }
+            
+            // 3. État de l'application (Préférences)
             if (!tempDb.objectStoreNames.contains('appState')) {
                 tempDb.createObjectStore('appState', { keyPath: 'key' });
             }
+            
+            // 4. Modifications en attente (Sync)
+            // CORRECTION: On ne supprime plus le store s'il existe déjà pour éviter de perdre des données lors d'une update
             if (!tempDb.objectStoreNames.contains('modifications')) {
-                // S'assurer que la clé est bien auto-incrémentée
-                if(tempDb.objectStoreNames.contains('modifications')) tempDb.deleteObjectStore('modifications');
                 tempDb.createObjectStore('modifications', { autoIncrement: true });
             }
         };
@@ -65,10 +82,12 @@ export async function getAllPoiDataForMap(mapId) {
         const request = transaction.objectStore('poiUserData').index('mapId_index').getAll(mapId);
         request.onsuccess = () => {
             const userData = {};
-            request.result.forEach(item => {
-                const { mapId, poiId, ...data } = item;
-                userData[poiId] = data;
-            });
+            if (request.result) {
+                request.result.forEach(item => {
+                    const { mapId, poiId, ...data } = item;
+                    userData[poiId] = data;
+                });
+            }
             resolve(userData);
         };
         request.onerror = (event) => reject(event.target.error);
@@ -80,14 +99,19 @@ export async function savePoiData(mapId, poiId, data) {
     return new Promise((resolve, reject) => {
         const transaction = db.transaction('poiUserData', 'readwrite');
         const store = transaction.objectStore('poiUserData');
+        
+        // Lecture d'abord pour fusionner (merge) au lieu d'écraser
         const getRequest = store.get([mapId, poiId]);
+        
         getRequest.onsuccess = () => {
             const existingData = getRequest.result || {};
             const dataToSave = { ...existingData, ...data, mapId, poiId };
+            
             const putRequest = store.put(dataToSave);
             putRequest.onsuccess = () => resolve();
             putRequest.onerror = (event) => reject(event.target.error);
         };
+        
         getRequest.onerror = (event) => reject(event.target.error);
     });
 }
@@ -95,19 +119,33 @@ export async function savePoiData(mapId, poiId, data) {
 export async function batchSavePoiData(mapId, dataArray) {
     const db = await initDB();
     return new Promise((resolve, reject) => {
-        if (dataArray.length === 0) return resolve();
+        if (!dataArray || dataArray.length === 0) return resolve();
+
         const transaction = db.transaction('poiUserData', 'readwrite');
         const store = transaction.objectStore('poiUserData');
-        transaction.oncomplete = () => resolve();
+        let errors = [];
+
+        transaction.oncomplete = () => {
+            if (errors.length > 0) {
+                console.warn("Certaines sauvegardes batch ont échoué :", errors);
+                // On résout quand même car la transaction a commité ce qui était valide
+            }
+            resolve();
+        };
+
         transaction.onerror = (event) => reject(event.target.error);
+
         dataArray.forEach(item => {
             const { poiId, data } = item;
-            const getRequest = store.get([mapId, poiId]);
-            getRequest.onsuccess = () => {
-                const existingData = getRequest.result || {};
-                const dataToSave = { ...existingData, ...data, mapId, poiId };
+            // Note : Pour optimiser la vitesse du batch, on ne fait pas de read-before-write ici
+            // On écrase ou on suppose que 'data' est complet.
+            // Si le merge est vital, cela ralentira le processus batch.
+            const dataToSave = { ...data, mapId, poiId };
+            try {
                 store.put(dataToSave);
-            };
+            } catch (e) {
+                errors.push({ id: poiId, error: e });
+            }
         });
     });
 }
@@ -143,49 +181,50 @@ export async function deleteCircuitById(id) {
 }
 
 export async function clearAllUserData() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const db = await initDB();
-            const transaction = db.transaction(['poiUserData', 'savedCircuits', 'appState', 'modifications'], 'readwrite');
-            const storesToClear = ['poiUserData', 'savedCircuits', 'appState', 'modifications'];
-            let completed = 0;
+    try {
+        const db = await initDB();
+        // On liste explicitement les stores connus
+        const storesToClear = ['poiUserData', 'savedCircuits', 'appState', 'modifications'];
+        
+        // On vérifie qu'ils existent dans la version actuelle de la DB pour éviter une erreur
+        const activeStores = storesToClear.filter(name => db.objectStoreNames.contains(name));
+        
+        if (activeStores.length === 0) return Promise.resolve();
 
+        const transaction = db.transaction(activeStores, 'readwrite');
+
+        return new Promise((resolve, reject) => {
+            let completed = 0;
+            
             const checkCompletion = () => {
                 completed++;
-                if (completed === storesToClear.length) {
-                    resolve();
-                }
+                if (completed === activeStores.length) resolve();
             };
 
-            storesToClear.forEach(storeName => {
+            activeStores.forEach(storeName => {
                 const request = transaction.objectStore(storeName).clear();
                 request.onsuccess = checkCompletion;
-                request.onerror = (event) => {
-                    console.error(`Erreur lors du vidage de ${storeName}`, event.target.error);
-                    // On ne rejette pas pour permettre aux autres de continuer
-                    checkCompletion(); 
+                request.onerror = (e) => {
+                    console.error(`Erreur vidage ${storeName}`, e);
+                    checkCompletion(); // On continue même si un store plante
                 };
             });
 
-            transaction.onerror = (event) => {
-                reject(event.target.error);
-            };
-        } catch (error) {
-            reject(error);
-        }
-    });
+            transaction.onerror = (event) => reject(event.target.error);
+        });
+    } catch (error) {
+        return Promise.reject(error);
+    }
 }
-
-// --- AJOUTER À LA FIN DE database.js ---
 
 export function deleteDatabase() {
     return new Promise((resolve, reject) => {
-        // On suppose que le nom est défini en haut du fichier, sinon on utilise la valeur par défaut
-        const dbName = 'HistoryWalkDB'; 
+        const dbName = DB_NAME; 
         
-        // 1. On ferme la connexion active si elle existe (pour éviter le blocage)
-        if (window.db) {
-            window.db.close();
+        // 1. On ferme la connexion active locale (celle du module)
+        if (db) {
+            db.close();
+            db = null; // On remet à null pour éviter toute réutilisation
         }
 
         // 2. On lance la suppression
@@ -193,7 +232,7 @@ export function deleteDatabase() {
 
         request.onsuccess = () => {
             console.log("Base de données supprimée.");
-            localStorage.clear(); // On vide aussi le localStorage (préférences, brouillons)
+            localStorage.clear(); 
             resolve();
         };
 
@@ -203,45 +242,34 @@ export function deleteDatabase() {
         };
 
         request.onblocked = () => {
-            console.warn("Suppression bloquée.");
-            // Souvent causé par un autre onglet ouvert sur le même site
-            alert("Veuillez fermer les autres onglets de l'application pour permettre la réinitialisation.");
+            console.warn("Suppression bloquée. Fermeture forcée de la connexion et réessai...");
+            // Si bloqué, c'est souvent qu'une autre instance (onglet) est ouverte.
+            // On ne peut pas forcer la fermeture des autres onglets via JS.
+            alert("Veuillez fermer les autres onglets de l'application pour permettre la réinitialisation complète.");
         };
     });
 }
 
-// Ajoutez ceci à la fin de src/database.js
+export async function clearStore(storeName) {
+    // Utilisation de initDB pour garantir une connexion valide
+    try {
+        const db = await initDB();
+        
+        // Vérification de sécurité
+        if (!db.objectStoreNames.contains(storeName)) {
+            console.warn(`Le store ${storeName} n'existe pas.`);
+            return Promise.resolve();
+        }
 
-export function clearStore(storeName) {
-    return new Promise((resolve, reject) => {
-        // On suppose que la DB est déjà ouverte (initDB a été appelé au démarrage)
-        // Sinon, on réouvre une connexion rapide
-        const request = indexedDB.open('HistoryWalkDB'); 
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const clearRequest = store.clear();
 
-        request.onsuccess = (event) => {
-            const db = event.target.result;
-            try {
-                const transaction = db.transaction([storeName], 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const clearRequest = store.clear();
-
-                clearRequest.onsuccess = () => {
-                    resolve();
-                };
-
-                clearRequest.onerror = (e) => {
-                    console.error(`Erreur lors du vidage du store ${storeName}:`, e);
-                    reject(e.target.error);
-                };
-            } catch (err) {
-                // Si le store n'existe pas, on ne fait rien (pas grave)
-                console.warn(`Le store ${storeName} n'existe pas, impossible de le vider.`);
-                resolve();
-            }
-        };
-
-        request.onerror = (event) => {
-            reject("Impossible d'ouvrir la DB pour clearStore");
-        };
-    });
+            clearRequest.onsuccess = () => resolve();
+            clearRequest.onerror = (e) => reject(e.target.error);
+        });
+    } catch (err) {
+        return Promise.reject(err);
+    }
 }

@@ -18,11 +18,11 @@ export const iconMap = {
     'Restaurant': 'utensils-crossed',
     'Taxi': 'car-taxi-front'
 };
-// --- FIN DÉFINITION DES ICÔNES ---
 
+// --- INITIALISATION CARTE ---
 
 export function initMap() {
-    // Initialisation de la carte
+    // Initialisation de la carte centrée sur Djerba
     map = L.map('map', { 
         zoomSnap: 0.25, 
         zoomDelta: 0.25, 
@@ -38,26 +38,25 @@ export function initMap() {
 
     // 2. Couche "Satellite" (Esri World Imagery)
     const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-        maxZoom: 18 // Esri va souvent moins loin que OSM
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri',
+        maxZoom: 18
     });
 
-    // Ajout de la couche par défaut (Plan)
+    // Ajout de la couche par défaut
     planLayer.addTo(map);
 
-    // Création du contrôleur de couches
+    // Création du contrôleur de couches (Haut droite)
     const baseMaps = {
         "Plan": planLayer,
         "Satellite": satelliteLayer
     };
-
-    // Ajout du bouton en haut à droite pour changer de vue
     L.control.layers(baseMaps).addTo(map);
 
-    // Ajout de l'attribution en bas à gauche
+    // Ajout de l'attribution (Bas gauche)
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
 }
 
+// --- GESTION DES MARQUEURS ---
 
 export function createHistoryWalkIcon(category) {
     const defaultIcon = 'map-pin';
@@ -79,24 +78,25 @@ export function createHistoryWalkIcon(category) {
     });
 }
 
-// Fonction rajoutée suite au bug mobile (et nécessaire pour l'affichage liste)
+// Utile pour l'affichage dans la liste mobile
 export function getIconForFeature(feature) {
     const defaultIcon = 'map-pin';
     const category = feature.properties.Catégorie;
     const iconContent = iconMap[category] || defaultIcon;
     
     if (iconContent.startsWith('<svg')) {
-        // Pour les icônes SVG personnalisées, on retourne le SVG
         return iconContent;
     } else {
-        // Pour les icônes Lucide, on retourne la balise <i>
         return `<i data-lucide="${iconContent}"></i>`;
     }
 }
 
+// Cette fonction est appelée UNIQUEMENT quand le mode "Sélection" est actif (voir data.js)
 export function handleMarkerClick(feature) {
     addPoiToCircuit(feature);
 }
+
+// --- GESTION DES DISTANCES ET TRACÉS ---
 
 function calculateRealDistance(latLngs) {
     let totalDistance = 0;
@@ -107,20 +107,32 @@ function calculateRealDistance(latLngs) {
 }
 
 export function updatePolylines() {
+    // Nettoyage des anciennes lignes
     if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
     if (state.realTrackPolyline) state.realTrackPolyline.remove();
-    if (state.currentCircuit.length < 2) return;
+    
+    // Pas de tracé si moins de 2 points
+    if (!state.currentCircuit || state.currentCircuit.length < 2) return;
 
-    const activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
+    // Sécurité : on s'assure que myCircuits est un tableau
+    const allCircuits = state.myCircuits || [];
+    const activeCircuitData = allCircuits.find(c => c.id === state.activeCircuitId);
 
+    // Cas 1 : Circuit enregistré avec un tracé réel (GPX/Routeur)
     if (activeCircuitData && activeCircuitData.realTrack) {
-        state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, { className: 'real-track-polyline' }).addTo(map);
-    } else {
+        state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, { 
+            className: 'real-track-polyline' // Style CSS spécifique
+        }).addTo(map);
+    } 
+    // Cas 2 : Circuit en cours de création (Ligne droite "Vol d'oiseau")
+    else {
         const latLngs = state.currentCircuit.map(feature => {
             const [lon, lat] = feature.geometry.coordinates;
             return [lat, lon];
         });
-        state.orthodromicPolyline = L.polyline(latLngs, { className: 'circuit-polyline' }).addTo(map);
+        state.orthodromicPolyline = L.polyline(latLngs, { 
+            className: 'circuit-polyline' // Style CSS spécifique
+        }).addTo(map);
     }
 }
 
@@ -130,11 +142,12 @@ export function getRealDistance(circuitData) {
 }
 
 export function getOrthodromicDistance(circuit) {
-    if (circuit.length < 2) return 0;
+    if (!circuit || circuit.length < 2) return 0;
     let totalDistance = 0;
     for (let i = 0; i < circuit.length - 1; i++) {
         const from = circuit[i].geometry.coordinates;
         const to = circuit[i + 1].geometry.coordinates;
+        // Attention : GeoJSON est [Lon, Lat], Leaflet calcule avec [Lat, Lon] interne
         totalDistance += L.latLng(from[1], from[0]).distanceTo(L.latLng(to[1], to[0]));
     }
     return totalDistance;

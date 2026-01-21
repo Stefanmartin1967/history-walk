@@ -4,38 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>History Walk</title>
-    <link rel="manifest" href="manifest.json">
-    
+        
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    <script src="https://unpkg.com/lucide@0.395.0/dist/umd/lucide.min.js"></script>
-
     <link rel="stylesheet" href="style.css?v=1.4">
+    <link rel="icon" href="/favicon.ico" />
 </head>
 
-<div id="backup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
-    <div style="background: var(--surface, #fff); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
-        <h2 style="margin-top: 0; color: var(--ink, #333);">Sauvegarder</h2>
-        <p style="color: var(--ink-light, #666); margin-bottom: 20px;">Choisissez le format de votre sauvegarde :</p>
-        
-        <button id="btn-backup-full" class="action-button" style="width: 100%; margin-bottom: 10px; background: var(--brand, #007bff); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <i data-lucide="image"></i> Complet (PC)
-            <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Avec Photos</span>
-        </button>
-
-        <button id="btn-backup-lite" class="action-button" style="width: 100%; margin-bottom: 15px; background: var(--ok, #28a745); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <i data-lucide="file-text"></i> Texte Seul (Mobile)
-            <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Rapide</span>
-        </button>
-
-        <button id="btn-backup-cancel" style="background: transparent; border: 1px solid var(--border, #ccc); color: var(--ink-light, #666); padding: 8px 20px; border-radius: 6px; cursor: pointer;">
-            Annuler
-        </button>
-    </div>
-</div>
-
 <body>
+
+    <div id="backup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: var(--surface, #fff); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
+            <h2 style="margin-top: 0; color: var(--ink, #333);">Sauvegarder</h2>
+            <p style="color: var(--ink-light, #666); margin-bottom: 20px;">Choisissez le format de votre sauvegarde :</p>
+            
+            <button id="btn-backup-full" class="action-button" style="width: 100%; margin-bottom: 10px; background: var(--brand, #007bff); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i data-lucide="image"></i> Complet (PC)
+                <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Avec Photos</span>
+            </button>
+    
+            <button id="btn-backup-lite" class="action-button" style="width: 100%; margin-bottom: 15px; background: var(--ok, #28a745); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i data-lucide="file-text"></i> Texte Seul (Mobile)
+                <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Rapide</span>
+            </button>
+    
+            <button id="btn-backup-cancel" style="background: transparent; border: 1px solid var(--border, #ccc); color: var(--ink-light, #666); padding: 8px 20px; border-radius: 6px; cursor: pointer;">
+                Annuler
+            </button>
+        </div>
+    </div>
 
     <div class="topbar">
         <div class="topbar-left">
@@ -243,8 +239,8 @@
     </div>
     
     <input type="file" id="gpx-importer" accept=".gpx" style="display: none;">
-    <input type="file" id="restore-loader" accept=".json" style="display: none;">
-    <input type="file" id="destination-loader" style="display: none;"> <div id="loader-overlay" class="loader-overlay" style="display: none;">
+    <input type="file" id="destination-loader" style="display: none;"> 
+    <div id="loader-overlay" class="loader-overlay" style="display: none;">
         <div class="loader-spinner"></div>
     </div>
     <div id="toast-container" class="toast-container"></div>
@@ -256,6 +252,9 @@
         <div class="viewer-nav nav-next" id="viewer-next">❯</div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script src="https://unpkg.com/lucide@0.395.0/dist/umd/lucide.min.js"></script>
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>

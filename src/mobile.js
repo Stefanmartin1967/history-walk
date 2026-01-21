@@ -7,6 +7,8 @@ import { createIcons, icons } from 'lucide';
 import { saveUserData } from './fileManager.js'; 
 import { deleteDatabase, saveAppState } from './database.js';
 import { getIconForFeature } from './map.js';
+import { isPointInPolygon } from './utils.js';
+import { zonesData } from './zones.js';
 
 let currentView = 'circuits'; 
 
@@ -125,22 +127,41 @@ async function handleAddPoiClick() {
             const { latitude, longitude } = pos.coords;
             const newPoiId = `HW-MOB-${Date.now()}`;
             
+            // --- DÉTECTION AUTOMATIQUE DE LA ZONE ---
+            let detectedZone = "Hors Zone"; 
+            
+            // On cherche dans quel polygone on se trouve
+            if (zonesData && zonesData.features) {
+                for (const feature of zonesData.features) {
+                    // On vérifie si la géométrie est valide
+                    if (feature.geometry && feature.geometry.type === "Polygon") {
+                        const polygonCoords = feature.geometry.coordinates[0];
+                        // Appel de ta nouvelle fonction dans utils.js
+                        if (isPointInPolygon([longitude, latitude], polygonCoords)) {
+                            detectedZone = feature.properties.name; 
+                            break; 
+                        }
+                    }
+                }
+            }
+
             const newFeature = {
                 type: "Feature",
                 geometry: { type: "Point", coordinates: [longitude, latitude] },
                 properties: {
                     "Nom du site FR": "Nouveau Lieu",
                     "Catégorie": "A définir",
-                    "Zone": "Terrain",
+                    "Zone": detectedZone, // C'est ici que la magie opère !
                     "Description": "Créé sur le terrain",
-                    "HW_ID": newPoiId
+                    "HW_ID": newPoiId,
+                    "created_at": new Date().toISOString()
                 }
             };
 
             addPoiFeature(newFeature);
             await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
             
-            showToast(`Lieu créé !`, "success");
+            showToast(`Lieu créé (Zone : ${detectedZone})`, "success");
             
             const index = state.loadedFeatures.length - 1;
             openDetailsPanel(index);

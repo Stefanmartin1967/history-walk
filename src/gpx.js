@@ -9,7 +9,8 @@ import { updatePolylines } from './map.js';
 
 export function escapeXml(unsafe) {
     if (unsafe === null || unsafe === undefined) return '';
-    return unsafe.toString().replace(/[<>&'"]/g, c => ({
+    // String(unsafe) garantit que .replace existe toujours
+    return String(unsafe).replace(/[<>&'"]/g, c => ({
         '<': '&lt;',
         '>': '&gt;',
         '&': '&amp;',
@@ -17,7 +18,6 @@ export function escapeXml(unsafe) {
         '"': '&quot;'
     }[c]));
 }
-
 function generateAndDownloadGPX(circuit, id, name, description) {
     const waypointsXML = circuit.map(feature =>
         `<wpt lat="${feature.geometry.coordinates[1]}" lon="${feature.geometry.coordinates[0]}"><name>${escapeXml(getPoiName(feature))}</name><desc>${escapeXml(feature.properties.userData?.Description_courte || feature.properties.Desc_wpt || '')}</desc></wpt>`
@@ -36,18 +36,31 @@ export async function recalculatePlannedCountersForMap(mapId) {
         const circuitsForMap = await getAllCircuitsForMap(mapId);
         
         const counters = {};
+        
+        // Etape 1 : On initialise tout à 0 (même les supprimés s'ils sont chargés)
+        // Cela permet de remettre leur compteur à 0 s'ils étaient à 1 avant la suppression
         state.loadedFeatures.forEach(f => {
             counters[getPoiId(f)] = 0;
         });
 
         circuitsForMap.forEach(circuit => {
             [...new Set(circuit.poiIds)].forEach(poiId => {
+                // Etape 2 : On vérifie l'existence et l'état du POI
                 if (counters.hasOwnProperty(poiId)) {
-                    counters[poiId]++;
+                    // On cherche le POI pour vérifier s'il est "actif"
+                    const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+                    
+                    // CORRECTION : On ne compte QUE si le POI n'est pas marqué supprimé
+                    const isDeleted = feature.properties.userData && feature.properties.userData.deleted;
+                    
+                    if (!isDeleted) {
+                        counters[poiId]++;
+                    }
                 }
             });
         });
 
+        // ... Le reste (sauvegarde batch) est parfait ...
         const updatesToBatch = [];
         for (const [poiId, count] of Object.entries(counters)) {
             const currentCount = (poiDataForMap[poiId] && poiDataForMap[poiId].planifieCounter) || 0;
@@ -55,11 +68,12 @@ export async function recalculatePlannedCountersForMap(mapId) {
                 updatesToBatch.push({ poiId: poiId, data: { planifieCounter: count } });
             }
         }
-
+        
         if (updatesToBatch.length > 0) {
             await batchSavePoiData(mapId, updatesToBatch);
         }
         
+        // ... Mise à jour de l'état local ...
         state.userData = await getAllPoiDataForMap(mapId);
         state.loadedFeatures.forEach(feature => {
             const poiId = getPoiId(feature);

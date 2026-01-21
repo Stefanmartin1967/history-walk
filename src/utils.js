@@ -85,3 +85,20 @@ export function resizeImage(file, maxWidth = 1024, quality = 0.7) {
         reader.onerror = (err) => reject(err);
     });
 }
+
+// Vérifie si un point (GPS) se trouve à l'intérieur d'une zone (Polygone)
+export function isPointInPolygon(point, vs) {
+    // point = [longitude, latitude]
+    // vs = tableau de points du polygone
+    var x = point[0], y = point[1];
+    var inside = false;
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i][0], yi = vs[i][1];
+        var xj = vs[j][0], yj = vs[j][1];
+        
+        var intersect = ((yi > y) != (yj > y)) &&
+            (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
