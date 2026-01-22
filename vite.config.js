@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+
+  base: '/history-walk/',
+
   plugins: [
     VitePWA({
       // Mise à jour automatique du cache quand une nouvelle version est dispo
