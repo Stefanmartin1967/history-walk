@@ -106,11 +106,6 @@ export function applyFilters() {
         // B. Les incontournables passent toujours (Sauf si cachés ci-dessus)
         if (props.incontournable) return true;
 
-        // C. Mode Sélection de circuit
-        if (state.isSelectionModeActive && state.currentCircuit) {
-            return state.currentCircuit.some(poi => getPoiId(poi) === getPoiId(feature));
-        }
-
         // D. Filtres standards
         if (state.activeFilters.zone && props.Zone !== state.activeFilters.zone) return false;
         if (state.activeFilters.mosquees && props.Catégorie !== 'Mosquée') return false;

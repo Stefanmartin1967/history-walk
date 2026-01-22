@@ -4,8 +4,10 @@ import { getPoiId, displayGeoJSON } from './data.js';
 import { showToast, DOM, closeDetailsPanel } from './ui.js';
 import { saveAppState, savePoiData, saveCircuit, clearStore } from './database.js';
 import { processImportedGpx } from './gpx.js';
+// Import pour contrôler la vue mobile
+import { isMobileView, switchMobileView } from './mobile.js';
 
-// --- IMPORTATION GÉNÉRIQUE (Pour ouvrir une carte ou un backup) ---
+// --- IMPORTATION GÉNÉRIQUE ---
 
 export function handleFileLoad(event) {
     const file = event.target.files[0];
@@ -16,12 +18,25 @@ export function handleFileLoad(event) {
         try {
             const json = JSON.parse(e.target.result);
             
-            // Cas 1 : C'est un fichier GeoJSON standard (Carte)
+            // Cas 1 : GeoJSON (Carte)
             if (json.type === 'FeatureCollection') {
-                await displayGeoJSON(json, file.name.replace('.geojson', '').replace('.json', ''));
-                showToast(`Carte "${file.name}" chargée.`, 'success');
+                const mapName = file.name.replace('.geojson', '').replace('.json', '');
+                
+                if (isMobileView()) {
+                    // Mobile: Chargement mémoire uniquement
+                    state.loadedFeatures = json.features || [];
+                    state.currentMapId = mapName;
+                    await saveAppState('lastMapId', mapName);
+                    await saveAppState('lastGeoJSON', json);
+                    showToast(`Carte "${mapName}" chargée (Mode Mobile).`, 'success');
+                    switchMobileView('circuits');
+                } else {
+                    // Desktop: Rendu Carte
+                    await displayGeoJSON(json, mapName);
+                    showToast(`Carte "${file.name}" chargée.`, 'success');
+                }
             } 
-            // Cas 2 : C'est un Backup complet (History Walk Backup)
+            // Cas 2 : Backup
             else if (json.backupVersion && (json.baseGeoJSON || json.userData)) {
                 await restoreBackup(json);
             }
@@ -34,13 +49,10 @@ export function handleFileLoad(event) {
         }
     };
     reader.readAsText(file);
-    event.target.value = ''; // Reset pour permettre de recharger le même fichier
+    event.target.value = ''; 
 }
 
-// --- SAUVEGARDE (EXPORT) ---
-
-// forceFullMode = false (Défaut) => Sauvegarde Mobile (Rapide, sans photos)
-// forceFullMode = true => Sauvegarde Master (PC, avec photos)
+// --- SAUVEGARDE (EXPORT) - INCHANGÉ ---
 export async function saveUserData(forceFullMode = false) {
     if (!state.currentMapId) return showToast("Aucune carte chargée.", "error");
 
@@ -50,38 +62,25 @@ export async function saveUserData(forceFullMode = false) {
         backupVersion: state.appVersion || "3.0",
         date: new Date().toISOString(),
         mapId: state.currentMapId,
-        
-        // 1. Base GeoJSON
         baseGeoJSON: {
             type: "FeatureCollection",
             features: state.loadedFeatures.map(f => {
-                // On clone le lieu (la géométrie)
                 const featureClone = JSON.parse(JSON.stringify(f));
                 const poiId = getPoiId(f);
-                
-                // Intégration des données utilisateur
                 if (state.userData[poiId]) {
-                    // COPIE PROFONDE (Deep Copy) des données utilisateur
-                    // Crucial pour ne pas modifier le state actuel lors du filtrage ci-dessous
                     featureClone.properties.userData = JSON.parse(JSON.stringify(state.userData[poiId]));
                 }
-
-                // FILTRE : Si mode Mobile (Lite), on vide les photos dans le GeoJSON exporté
                 if (!includePhotos && featureClone.properties.userData && featureClone.properties.userData.photos) {
                     featureClone.properties.userData.photos = [];
                 }
-                
                 return featureClone;
             })
         },
-        
-        // 2. UserData séparé
         userData: JSON.parse(JSON.stringify(state.userData)), 
         myCircuits: state.myCircuits,
         hiddenPoiIds: state.hiddenPoiIds
     };
 
-    // FILTRE : Si mode Mobile (Lite), on vide les photos dans userData exporté
     if (!includePhotos) {
         for (const key in exportData.userData) {
             if (exportData.userData[key].photos) {
@@ -90,25 +89,46 @@ export async function saveUserData(forceFullMode = false) {
         }
     }
 
-    // Nommage du fichier
     const mode = includePhotos ? 'FULL_MASTER' : 'LITE_Mobile';
-    
-    // Format Date propre : YYYY-MM-DD_HH-MM-SS
     const now = new Date();
-    // Ajustement timezone local pour le nom de fichier
     const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    const dateStr = localDate.toISOString()
-        .replace(/T/, '_')
-        .replace(/\..+/, '')
-        .replace(/:/g, '-');
-
+    const dateStr = localDate.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
     const fileName = `HistoryWalk_Backup_${state.currentMapId}_${mode}_${dateStr}.json`;
     
     downloadJSON(exportData, fileName);
 }
 
-function downloadJSON(data, filename) {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+async function downloadJSON(data, filename) {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    
+    // 1. Création d'un objet File pour le partage
+    const file = new File([blob], filename, { type: 'application/json' });
+
+    // 2. Vérification : Est-ce qu'on peut utiliser le menu Partager natif ?
+    // (Fonctionne sur Android et iOS modernes)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                files: [file],
+                title: 'Sauvegarde History Walk',
+                text: `Backup du ${new Date().toLocaleDateString()}`
+            });
+            // Si le partage a réussi, on s'arrête là (pas besoin de télécharger en double)
+            return; 
+        } catch (error) {
+            // Si l'utilisateur annule le partage ou s'il y a une erreur,
+            // on continue vers la méthode classique ci-dessous (fallback).
+            if (error.name !== 'AbortError') {
+                console.warn("Erreur partage, bascule vers téléchargement classique:", error);
+            } else {
+                return; // L'utilisateur a annulé volontairement
+            }
+        }
+    }
+
+    // 3. Méthode Classique (PC ou vieux téléphones)
+    // C'est le code que tu avais avant, qui sert de roue de secours
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -117,24 +137,39 @@ function downloadJSON(data, filename) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast("Sauvegarde téléchargée !", "success");
+    
+    // Petit message différent selon le contexte
+    if (!navigator.canShare) {
+        showToast("Sauvegarde téléchargée (Vérifiez vos téléchargements)", "success");
+    }
 }
 
-// --- RESTAURATION ---
+// --- RESTAURATION (Modifiée pour Mobile) ---
 
 async function restoreBackup(json) {
     try {
         showToast("Restauration en cours...", "info");
 
-        // 1. Restaurer la carte de base (Les lieux)
+        // 1. Restaurer la carte de base
+        const mapId = json.mapId || 'RestoredMap';
+        state.currentMapId = mapId;
+        await saveAppState('lastMapId', mapId);
+
         if (json.baseGeoJSON) {
-            await displayGeoJSON(json.baseGeoJSON, json.mapId || 'RestoredMap');
+            if (isMobileView()) {
+                // Mobile: On stocke juste en mémoire
+                state.loadedFeatures = json.baseGeoJSON.features || [];
+                // IMPORTANT: Sauvegarder le geojson pour le prochain reload
+                await saveAppState('lastGeoJSON', json.baseGeoJSON);
+            } else {
+                // Desktop: On affiche
+                await displayGeoJSON(json.baseGeoJSON, mapId);
+            }
         }
 
-        // 2. Restaurer les données utilisateur (Notes, Prix, etc.)
+        // 2. Restaurer les données utilisateur
         if (json.userData) {
             state.userData = json.userData;
-            // On sauvegarde tout dans la DB locale pour persistance
             for (const [id, data] of Object.entries(state.userData)) {
                 await savePoiData(state.currentMapId, id, data);
             }
@@ -143,43 +178,35 @@ async function restoreBackup(json) {
         // 3. Restaurer les circuits
         if (json.myCircuits && Array.isArray(json.myCircuits)) {
             state.myCircuits = json.myCircuits;
-            
-            // --- SECURITÉ : Nettoyage de l'état actif ---
             state.activeCircuitId = null; 
-            state.currentCircuit = []; // On vide le brouillon pour éviter les conflits d'ID
-            // ----------------------------------------------
-
-            // On écrase les circuits existants dans la DB pour éviter les doublons
+            state.currentCircuit = [];
+            
             await clearStore('circuits'); 
             for (const circuit of state.myCircuits) {
                 await saveCircuit(circuit);
             }
         }
         
-        // 4. Restaurer les suppressions (Corbeille)
+        // 4. Restaurer les suppressions
         if (json.hiddenPoiIds) {
             state.hiddenPoiIds = json.hiddenPoiIds;
             await saveAppState(`hiddenPois_${state.currentMapId}`, state.hiddenPoiIds);
         }
 
-        // 5. Rafraîchir l'affichage global et nettoyer l'UI
-        
-        // Fermeture du panneau de détail s'il est ouvert (évite d'afficher des données périmées)
+        // 5. Rafraîchissement UI
         if (closeDetailsPanel) closeDetailsPanel();
 
-        // On réapplique les filtres (gestion des couleurs/masquage)
-        // Utilisation d'import dynamique pour éviter les dépendances circulaires
-        const { applyFilters } = await import('./data.js'); 
-        if (applyFilters) applyFilters();
-        
-        // Gestion Mobile
-        const { isMobileView, switchMobileView } = await import('./mobile.js');
-        if (isMobileView && isMobileView()) {
-            // Force le retour à la liste des circuits pour rafraîchir la vue
+        if (isMobileView()) {
+            // FORCE LE RAFRAÎCHISSEMENT MOBILE
+            console.log("Restauration Mobile Terminée -> Refresh UI");
             switchMobileView('circuits');
+            showToast("Données restaurées !", "success");
+        } else {
+            // Desktop Refresh
+            const { applyFilters } = await import('./data.js'); 
+            if (applyFilters) applyFilters();
+            showToast("Données restaurées avec succès !", "success");
         }
-
-        showToast("Données restaurées avec succès !", "success");
 
     } catch (error) {
         console.error("Erreur restauration:", error);
@@ -187,13 +214,12 @@ async function restoreBackup(json) {
     }
 }
 
-// --- GESTION DES IMPORTS SPÉCIFIQUES (GPX & PHOTOS) ---
+// --- IMPORTS SPÉCIFIQUES ---
 
 export async function handleGpxFileImport(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Vérification que nous avons bien un circuit cible
     if (state.circuitIdToImportFor) {
         try {
             await processImportedGpx(file, state.circuitIdToImportFor);
@@ -203,32 +229,23 @@ export async function handleGpxFileImport(event) {
             showToast("Erreur lors de l'import du GPX.", "error");
         }
     } else {
-        console.warn("Aucun circuit cible défini pour l'import GPX.");
         showToast("Veuillez sélectionner un circuit avant d'importer un GPX.", "warning");
     }
-    
     event.target.value = '';
 }
 
 export function handlePhotoImport(event) {
-    // COPIE DE SÉCURITÉ : On transforme la FileList en tableau statique
     const files = Array.from(event.target.files);
-
     if (!files || files.length === 0) return;
-
-    // On peut vider l'input maintenant
     event.target.value = '';
 
-    // Import dynamique du module Desktop
     import('./desktopMode.js').then(module => {
         if (module.handleDesktopPhotoImport) {
-            console.log("Envoi des fichiers au module Desktop...", files.length);
             module.handleDesktopPhotoImport(files);
         } else {
             showToast("Import photos non disponible ici", "warning");
         }
     }).catch(err => {
-        console.error("Erreur chargement module Photos", err);
         showToast("Erreur chargement module Photos", "error");
     });
 }
