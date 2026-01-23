@@ -92,6 +92,8 @@ export function setupSmartSearch() {
                 if (map) {
                     map.flyTo([lat, lng], 18, { duration: 1.5 });
                     DOM.searchResults.style.display = 'none';
+                    DOM.searchInput.value = ''; 
+                    DOM.searchInput.blur(); // Masque le clavier sur mobile
                 }
             }
         }

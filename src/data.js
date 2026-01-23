@@ -54,13 +54,28 @@ export async function displayGeoJSON(geoJSON, mapId) {
 
     // 2. FUSION : Carte Officielle + Lieux Ajoutés (Post-its)
     // On part des données officielles
-    let allFeatures = [...geoJSON.features];
-    
-    // On ajoute les lieux personnalisés s'il y en a
+    // 2. FUSION SÉCURISÉE : Carte Officielle + Lieux Ajoutés (Post-its)
+    // Utilisation d'un Map pour garantir l'unicité des IDs (évite l'effet fantôme)
+    const uniqueFeaturesMap = new Map();
+
+    // A. On charge le GeoJSON (même s'il est "pollué" par le cache, on récupère tout)
+    geoJSON.features.forEach(feature => {
+        const id = getPoiId(feature);
+        uniqueFeaturesMap.set(id, feature);
+    });
+
+    // B. On fusionne les lieux personnalisés
     if (state.customFeatures.length > 0) {
-        console.log(`[Data] Ajout de ${state.customFeatures.length} lieux personnalisés.`);
-        allFeatures = [...allFeatures, ...state.customFeatures];
+        console.log(`[Data] Fusion de ${state.customFeatures.length} lieux personnalisés.`);
+        state.customFeatures.forEach(feature => {
+            const id = getPoiId(feature);
+            // .set() va écraser l'ancien POI s'il existe déjà, empêchant tout doublon !
+            uniqueFeaturesMap.set(id, feature); 
+        });
     }
+
+    // On reconvertit le Map en tableau pour la suite du traitement
+    let allFeatures = Array.from(uniqueFeaturesMap.values());
 
     // 3. Préparation des données (Injection des notes/statuts utilisateur)
     state.loadedFeatures = allFeatures.map((feature, index) => {
@@ -199,7 +214,10 @@ export async function addPoiFeature(feature) {
     state.loadedFeatures.push(feature);
     
     if (!state.customFeatures) state.customFeatures = [];
+    const id = getPoiId(feature);
+if (!state.customFeatures.find(f => getPoiId(f) === id)) {
     state.customFeatures.push(feature);
+}
 
     // 2. Sauvegarde SÉPARÉE des ajouts (ne touche pas au GeoJSON officiel)
     await saveAppState(`customPois_${state.currentMapId}`, state.customFeatures);

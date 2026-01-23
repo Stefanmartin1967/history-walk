@@ -298,7 +298,8 @@ export function renderMobilePoiList(features) {
         }
     }
 
-    const reverseBtnHtml = isCircuit 
+    // Le bouton n'apparaît que si c'est un circuit ET qu'il n'est pas encore terminé
+    const reverseBtnHtml = (isCircuit && !isAllVisited)
         ? `<button id="mobile-reverse-btn" style="margin-left:auto; background:none; border:none; color:var(--brand); cursor:pointer;" title="Inverser le sens du circuit">
              <i data-lucide="arrow-up-down"></i>
            </button>` 
@@ -338,8 +339,8 @@ export function renderMobilePoiList(features) {
         const cat = feature.properties.Catégorie || '';
         const icon = getCategoryIconName(cat);
         const isVisited = feature.properties.userData?.vu;
-        const checkIcon = isVisited ? '<i data-lucide="check" style="width:14px; margin-left:5px; color:var(--ok);"></i>' : '';
-        const opacityStyle = isVisited ? 'opacity:0.7;' : '';
+        const checkIcon = isVisited ? '<i data-lucide="check" style="width:20px; height:20px; margin-left:5px; color:var(--ok); stroke-width:3;"></i>' : '';
+        const opacityStyle = '';
 
         listHtml += `
             <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between; ${opacityStyle}">
@@ -362,9 +363,14 @@ export function renderMobilePoiList(features) {
         footerDiv.style.backgroundColor = 'var(--surface)';
         footerDiv.style.zIndex = '10';
         
-        const btnStateClass = isAllVisited ? 'background-color:var(--ok); color:white;' : 'background-color:var(--surface-muted); color:var(--ink); border:1px solid var(--line);';
-        const btnIcon = isAllVisited ? 'check-circle' : 'circle';
-        const btnText = isAllVisited ? 'Circuit Terminé !' : 'Marquer comme Fait';
+        // Si pas fait : Bordure de la couleur du thème (neutre/bleu). Si fait : Bordure verte douce.
+        const btnStateClass = isAllVisited 
+    ? 'background-color:var(--surface); color:var(--ok); border: 2px solid var(--ok);' 
+    : 'background-color:var(--surface); color:var(--ink); border: 2px solid var(--brand);';
+
+// Si c'est fait, l'icône devient une flèche de retour en arrière (undo)
+        const btnIcon = isAllVisited ? 'undo-2' : 'check-circle';
+        const btnText = isAllVisited ? 'Circuit terminé (Annuler)' : 'Marquer comme fait';
         
         footerDiv.innerHTML = `
             <button id="btn-toggle-visited" style="width:100%; padding:14px; border-radius:12px; font-weight:bold; display:flex; justify-content:center; align-items:center; gap:8px; cursor:pointer; font-size:16px; transition:all 0.2s; ${btnStateClass}">

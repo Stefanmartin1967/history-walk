@@ -653,12 +653,20 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
     // Fermeture propre d'une éventuelle popup carte existante
     if(!isMobileView() && map) map.closePopup();
 
-    state.currentFeatureId = featureId;
-    state.currentCircuitIndex = circuitIndex;
-
     // Sécurité: feature existe ?
     const feature = state.loadedFeatures[featureId];
     if (!feature) return;
+
+    // --- CORRECTION : Auto-détection intelligente du circuit ---
+    // Si la position n'est pas fournie mais qu'un circuit est actif, on la retrouve !
+    if (circuitIndex === null && state.currentCircuit && state.currentCircuit.length > 0) {
+        const currentId = getPoiId(feature);
+        const foundIndex = state.currentCircuit.findIndex(f => getPoiId(f) === currentId);
+        if (foundIndex !== -1) circuitIndex = foundIndex;
+    }
+
+    state.currentFeatureId = featureId;
+    state.currentCircuitIndex = circuitIndex;
 
     // Injection du HTML
     const targetPanel = isMobileView() ? DOM.mobileMainContainer : DOM.detailsPanel;
