@@ -2,35 +2,41 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-
-  base: '/history-walk/',
+  // 1. TRÈS IMPORTANT : Le nom exact de votre dépôt GitHub (avec les slashs)
+  base: '/history-walk/', 
 
   plugins: [
     VitePWA({
-      // Mise à jour automatique du cache quand une nouvelle version est dispo
       registerType: 'autoUpdate',
       
-      // Fichiers à mettre en cache (HTML, JS, CSS, Images, etc.)
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-      
-      // Le Manifeste (L'identité de ton App)
+      // 2. Indique que le SW doit fonctionner dans ce sous-dossier
+      base: '/history-walk/', 
+      scope: '/history-walk/',
+
       manifest: {
-        name: 'History Walk Djerba',
+        name: 'History Walk',
         short_name: 'HistoryWalk',
-        description: 'Explorez le patrimoine de Djerba',
-        theme_color: '#ffffff',
+        start_url: '/history-walk/', // 3. L'URL de démarrage
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#000000',
         icons: [
           {
-            src: 'icons/pwa-192x192.png', // Tu devras créer cette image plus tard
+            // 4. Les chemins des icônes ne doivent pas commencer par /history-walk/ ici 
+            // s'ils sont dans le dossier public. Juste le nom du fichier depuis public/
+            src: 'pwa-192x192.png', 
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'icons/pwa-512x512.png', // Et celle-ci aussi
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           }
         ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,geojson}']
       }
     })
   ]
