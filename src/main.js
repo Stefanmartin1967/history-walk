@@ -334,11 +334,14 @@ window.requestSoftDelete = async function(idOrIndex) {
     }
 };
 
-// SW Registration (inchangé)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => console.log('SW enregistré:', registration.scope))
-            .catch(err => console.log('Info SW:', err));
-    });
-}
+import { registerSW } from 'virtual:pwa-register';
+
+// SW Registration (Géré par Vite PWA)
+const updateSW = registerSW({
+  onNeedRefresh() {
+    console.log("Nouvelle version disponible !");
+  },
+  onOfflineReady() {
+    console.log("Application prête pour le mode hors-ligne !");
+  },
+});
