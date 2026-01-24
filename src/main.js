@@ -116,15 +116,6 @@ async function initializeApp() {
         initDesktopMode();
     }
 
-    // Gestion redimensionnement
-    let initialModeIsMobile = isMobileView();
-    window.addEventListener('resize', () => {
-        const currentModeIsMobile = isMobileView();
-        if (currentModeIsMobile !== initialModeIsMobile) {
-            window.location.reload();
-        }
-    });
-
     try {
         await initDB();
         
