@@ -103,7 +103,7 @@ async function downloadJSON(data, filename) {
     const blob = new Blob([jsonStr], { type: 'application/json' });
     
     // 1. Création d'un objet File pour le partage
-    const file = new File([blob], filename, { type: 'application/json' });
+    const file = new File([blob], filename, { type: 'text/plain' });
 
     // 2. Vérification : Est-ce qu'on peut utiliser le menu Partager natif ?
     // (Fonctionne sur Android et iOS modernes)
