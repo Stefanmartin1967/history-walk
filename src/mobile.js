@@ -45,7 +45,7 @@ export function initMobileMode() {
             state.filterCompleted = !state.filterCompleted;
             
             // 2. Définition des valeurs
-            const iconName = state.filterCompleted ? 'check-square' : 'list';
+            const iconName = state.filterCompleted ? 'list-check' : 'list';
             const labelText = state.filterCompleted ? 'A faire' : 'Tout';
             const colorStyle = state.filterCompleted ? 'color:var(--brand);' : '';
 
