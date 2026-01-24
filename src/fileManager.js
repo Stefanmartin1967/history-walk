@@ -111,10 +111,10 @@ async function downloadJSON(data, filename) {
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
             await navigator.share({
-                files: [file],
-                title: 'Sauvegarde History Walk',
-                text: `Backup du ${new Date().toLocaleDateString()}`
-            });
+    files: [file],
+    title: safeFileName, // <-- ON REMPLACE LE TEXTE EN DUR PAR LE VRAI NOM DU FICHIER
+    text: `Backup du ${new Date().toLocaleDateString()}`
+});
             // Si le partage a réussi, on s'arrête là (pas besoin de télécharger en double)
             return; 
         } catch (error) {
@@ -174,6 +174,14 @@ async function restoreBackup(json) {
             for (const [id, data] of Object.entries(state.userData)) {
                 await savePoiData(state.currentMapId, id, data);
             }
+
+            state.loadedFeatures.forEach(feature => {
+        const id = getPoiId(feature);
+        if (state.userData[id]) {
+            feature.properties.userData = state.userData[id];
+        }
+    });
+
         }
 
         // 3. Restaurer les circuits
