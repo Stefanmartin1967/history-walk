@@ -45,7 +45,7 @@ export function initMobileMode() {
             state.filterCompleted = !state.filterCompleted;
             
             // 2. Définition des valeurs
-            const iconName = state.filterCompleted ? 'list-check' : 'list';
+            const iconName = state.filterCompleted ? 'check-square' : 'list';
             const labelText = state.filterCompleted ? 'A faire' : 'Tout';
             const colorStyle = state.filterCompleted ? 'color:var(--brand);' : '';
 
@@ -72,10 +72,10 @@ export function initMobileMode() {
         });
     }
 
-    switchMobileView('circuits');
-}
-
             createIcons({ icons });
+
+    switchMobileView('circuits');
+}       
 
 export function switchMobileView(viewName) {
     currentView = viewName;
