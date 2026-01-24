@@ -69,13 +69,16 @@ export function initMobileMode() {
             } else {
                 switchMobileView('circuits');
             }
-        });
+            
+            // 6. DESSIN DES ICÔNES ICI (À l'intérieur du clic)
+            createIcons({ icons }); 
+
+        }); // <-- FIN DU CLIC DÉPLACÉE ICI
     }
 
-            createIcons({ icons });
-
     switchMobileView('circuits');
-}       
+}
+       
 
 export function switchMobileView(viewName) {
     currentView = viewName;
