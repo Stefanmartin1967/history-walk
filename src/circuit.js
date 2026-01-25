@@ -4,45 +4,58 @@ import { DOM, openDetailsPanel, switchSidebarTab, showToast } from './ui.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { updatePolylines, getRealDistance, getOrthodromicDistance, map } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';
-import { getAppState, saveAppState, saveCircuit } from './database.js';
+import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './database.js';
 // import { saveUserData } from './fileManager.js'; // <--- RETRAIT (C'était la cause du bug de fenêtre)
 import { isMobileView, renderMobilePoiList } from './mobile.js';
 
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
+    // On récupère le circuit dans la mémoire
     const circuit = state.myCircuits.find(c => c.id === circuitId);
     if (!circuit) return;
 
-    let changeCount = 0;
+    // On crée un panier vide pour y mettre nos modifications
+    const updates = [];
     
-    // On parcourt tous les POI du circuit
+    // Pour chaque lieu contenu dans ce circuit...
     circuit.poiIds.forEach(poiId => {
         const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
         if (feature) {
+            // Si le lieu n'a pas encore de tiroir "userData", on lui en crée un
             if (!feature.properties.userData) feature.properties.userData = {};
-            // On applique le statut demandé
+            
+            // ACTION 1 : Mise à jour visuelle (Mémoire vive)
             feature.properties.userData.vu = isVisited;
-            changeCount++;
+            
+            // ACTION 2 : On prépare l'ordre de sauvegarde pour ce lieu précis
+            updates.push({
+                poiId: poiId,
+                data: feature.properties.userData
+            });
         }
     });
 
-    if (changeCount > 0) {
-        // CORRECTION ICI : On sauvegarde en interne (IndexedDB) au lieu de télécharger un fichier
-        await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
-        
-        // Rafraîchissement selon la vue
-        if (isMobileView()) {
-            // Si on est dans le circuit concerné, on rafraîchit la liste
-            if (state.activeCircuitId === circuitId) {
-                renderMobilePoiList(state.currentCircuit);
-            }
-        } else {
-            applyFilters(); // PC : Met à jour les marqueurs (gris/couleur)
+    // ACTION FINALE : Si on a des choses à sauvegarder...
+    if (updates.length > 0) {
+        try {
+            // On demande à la Database d'enregistrer tout le panier d'un coup
+            // state.currentMapId permet de savoir dans quelle carte on travaille (ex: djerba)
+            await batchSavePoiData(state.currentMapId, updates);
+            console.log(`[Circuit] ${updates.length} lieux sauvegardés en base de données.`);
+        } catch (error) {
+            console.error("Erreur de sauvegarde Database :", error);
+            showToast("Souci de sauvegarde permanente", "error");
         }
-        
-        const statusTxt = isVisited ? "marqué comme Fait" : "marqué comme Non fait";
-        showToast(`Circuit ${statusTxt} (${changeCount} lieux maj.)`, "success");
     }
+
+    // Mise à jour de l'affichage pour l'utilisateur
+    if (isMobileView()) {
+        renderMobilePoiList(state.loadedFeatures);
+    } else {
+        applyFilters(); // Sur PC, on rafraîchit les filtres pour griser/cacher les lieux vus
+    }
+    
+    showToast(isVisited ? "Circuit marqué comme fait" : "Circuit marqué comme non fait", "success");
 }
 
 // ... LE RESTE DU FICHIER RESTE IDENTIQUE ...
