@@ -31,9 +31,14 @@ import { enableDesktopCreationMode } from './desktopMode.js';
 function setSaveButtonsState(enabled) {
     const btnMobile = document.getElementById('btn-save-mobile');
     const btnFull = document.getElementById('btn-save-full');
+    const btnRestore = document.getElementById('btn-restore-data');
     
+    // Les boutons de sauvegarde s'activent si une carte est chargée
     if (btnMobile) btnMobile.disabled = !enabled;
     if (btnFull) btnFull.disabled = !enabled;
+    
+    // Le bouton Restaurer est TOUJOURS disponible sur PC
+    if (btnRestore) btnRestore.disabled = false;
 }
 
 // --- INITIALISATION ---
@@ -211,13 +216,32 @@ function setupFileListeners() {
     }
     if(DOM.btnOpenGeojson) DOM.btnOpenGeojson.addEventListener('click', () => DOM.geojsonLoader.click());
 
-    // Sauvegarde Mobile
-    const btnSaveMobile = document.getElementById('btn-save-mobile');
-    if (btnSaveMobile) btnSaveMobile.addEventListener('click', () => saveUserData(false));
+    // Sauvegarde Mobile (Données uniquement)
+const btnSaveMobile = document.getElementById('btn-save-mobile');
+if (btnSaveMobile) {
+    btnSaveMobile.addEventListener('click', () => {
+        if (window.innerWidth > 768) { 
+            // SUR PC : On veut le téléchargement direct
+            import('./fileManager.js').then(m => m.exportDataForMobilePC()); 
+        } else {
+            // SUR MOBILE : On garde le système de partage .txt
+            saveUserData(false); 
+        }
+    });
+}
 
-    // Sauvegarde Full
-    const btnSaveFull = document.getElementById('btn-save-full');
-    if (btnSaveFull) btnSaveFull.addEventListener('click', () => saveUserData(true));
+// Sauvegarde Full (Données + Photos)
+const btnSaveFull = document.getElementById('btn-save-full');
+if (btnSaveFull) {
+    btnSaveFull.addEventListener('click', () => {
+        if (window.innerWidth > 768) {
+            // SUR PC : Fenêtre "Enregistrer sous" classique
+            import('./fileManager.js').then(m => m.exportFullBackupPC());
+        } else {
+            saveUserData(true);
+        }
+    });
+}
 
     // Import Photos (Desktop specific input but safe to leave here or check ID)
     const photoLoader = document.getElementById('photo-gps-loader');

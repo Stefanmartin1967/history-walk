@@ -276,3 +276,87 @@ export function handleRestoreFile(event) {
     reader.readAsText(file);
     event.target.value = '';
 }
+
+// --- FONCTIONS EXPORT PC (Rétablit le "Enregistrer sous") ---
+
+/**
+ * Sauvegarde Légère (Données seules) pour PC
+ */
+
+/**
+ * Prépare l'objet final pour l'export (Mobile ou PC)
+ */
+async function prepareExportData(includePhotos = false) {
+    return {
+        type: 'FeatureCollection',
+        metadata: {
+            app: "History Walk",
+            version: state.appVersion,
+            date: new Date().toISOString(),
+            includesPhotos: includePhotos
+        },
+        features: state.loadedFeatures.map(f => {
+            const poiId = getPoiId(f);
+            const userData = state.userData[poiId] || {};
+            
+            // Si on ne veut PAS les photos, on crée une copie sans le champ photos
+            const finalUserData = { ...userData };
+            if (!includePhotos) {
+                delete finalUserData.photos;
+            }
+            
+            return {
+                ...f,
+                properties: {
+                    ...f.properties,
+                    userData: finalUserData
+                }
+            };
+        }),
+        myCircuits: state.myCircuits // On inclut aussi vos circuits !
+    };
+}
+
+export async function exportDataForMobilePC() {
+    try {
+        const data = await prepareExportData(false);
+        const jsonString = JSON.stringify(data, null, 2);
+        const { downloadFile } = await import('./utils.js');
+        
+        const now = new Date();
+        // Format : 2024-05-20_14h30
+        const timestamp = now.toISOString().slice(0, 10) + '_' + 
+                          now.getHours().toString().padStart(2, '0') + 'h' + 
+                          now.getMinutes().toString().padStart(2, '0');
+        
+        // On repasse en .json pour la compatibilité
+        const fileName = `HistoryWalk_Backup_Mobile_${timestamp}.json`;
+        
+        downloadFile(fileName, jsonString, 'application/json');
+        showToast("Sauvegarde légère (.json) terminée", "success");
+    } catch (err) {
+        console.error(err);
+        showToast("Erreur export PC", "error");
+    }
+}
+
+export async function exportFullBackupPC() {
+    try {
+        const data = await prepareExportData(true);
+        const jsonString = JSON.stringify(data, null, 2);
+        const { downloadFile } = await import('./utils.js');
+        
+        const now = new Date();
+        const timestamp = now.toISOString().slice(0, 10) + '_' + 
+                          now.getHours().toString().padStart(2, '0') + 'h' + 
+                          now.getMinutes().toString().padStart(2, '0');
+        
+        const fileName = `HistoryWalk_FULL_PC_${timestamp}.json`;
+        
+        downloadFile(fileName, jsonString, 'application/json');
+        showToast("Sauvegarde complète (.json) terminée", "success");
+    } catch (err) {
+        console.error(err);
+        showToast("Erreur export complet", "error");
+    }
+}
