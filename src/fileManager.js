@@ -277,46 +277,44 @@ export function handleRestoreFile(event) {
     event.target.value = '';
 }
 
-// --- FONCTIONS EXPORT PC (Rétablit le "Enregistrer sous") ---
-
 /**
- * Sauvegarde Légère (Données seules) pour PC
- */
-
-/**
- * Prépare l'objet final pour l'export (Mobile ou PC)
+ * MOTEUR INTERNE : Prépare l'objet de sauvegarde avec le bon format
  */
 async function prepareExportData(includePhotos = false) {
-    return {
+    const geojson = {
         type: 'FeatureCollection',
-        metadata: {
-            app: "History Walk",
-            version: state.appVersion,
-            date: new Date().toISOString(),
-            includesPhotos: includePhotos
-        },
         features: state.loadedFeatures.map(f => {
-            const poiId = getPoiId(f);
+            // getPoiId doit être accessible dans ce fichier
+            const poiId = typeof getPoiId === 'function' ? getPoiId(f) : (f.properties.HW_ID || f.id);
             const userData = state.userData[poiId] || {};
-            
-            // Si on ne veut PAS les photos, on crée une copie sans le champ photos
             const finalUserData = { ...userData };
-            if (!includePhotos) {
-                delete finalUserData.photos;
-            }
-            
+            if (!includePhotos) delete finalUserData.photos;
+
             return {
                 ...f,
-                properties: {
-                    ...f.properties,
-                    userData: finalUserData
+                properties: { 
+                    ...f.properties, 
+                    userData: finalUserData 
                 }
             };
-        }),
-        myCircuits: state.myCircuits // On inclut aussi vos circuits !
+        })
+    };
+
+    // On retourne le format "Carton avec étiquette" attendu par la Fusion
+    return {
+        backupVersion: "3.0",
+        mapId: state.currentMapId || 'djerba',
+        date: new Date().toISOString(),
+        baseGeoJSON: geojson,
+        userData: state.userData || {},
+        myCircuits: state.myCircuits || [],
+        hiddenPoiIds: state.hiddenPoiIds || []
     };
 }
 
+/**
+ * BOUTON : Sauvegarde Mobile / Lite (Sans photos)
+ */
 export async function exportDataForMobilePC() {
     try {
         const data = await prepareExportData(false);
@@ -324,22 +322,22 @@ export async function exportDataForMobilePC() {
         const { downloadFile } = await import('./utils.js');
         
         const now = new Date();
-        // Format : 2024-05-20_14h30
         const timestamp = now.toISOString().slice(0, 10) + '_' + 
                           now.getHours().toString().padStart(2, '0') + 'h' + 
                           now.getMinutes().toString().padStart(2, '0');
         
-        // On repasse en .json pour la compatibilité
         const fileName = `HistoryWalk_Backup_Mobile_${timestamp}.json`;
-        
         downloadFile(fileName, jsonString, 'application/json');
-        showToast("Sauvegarde légère (.json) terminée", "success");
+        showToast("Sauvegarde légère terminée", "success");
     } catch (err) {
-        console.error(err);
-        showToast("Erreur export PC", "error");
+        console.error("Erreur Export Lite:", err);
+        showToast("Erreur lors de l'export léger", "error");
     }
 }
 
+/**
+ * BOUTON : Sauvegarde Full PC (Avec photos)
+ */
 export async function exportFullBackupPC() {
     try {
         const data = await prepareExportData(true);
@@ -352,11 +350,10 @@ export async function exportFullBackupPC() {
                           now.getMinutes().toString().padStart(2, '0');
         
         const fileName = `HistoryWalk_FULL_PC_${timestamp}.json`;
-        
         downloadFile(fileName, jsonString, 'application/json');
-        showToast("Sauvegarde complète (.json) terminée", "success");
+        showToast("Sauvegarde complète terminée", "success");
     } catch (err) {
-        console.error(err);
-        showToast("Erreur export complet", "error");
+        console.error("Erreur Export Full:", err);
+        showToast("Erreur lors de l'export complet", "error");
     }
 }
