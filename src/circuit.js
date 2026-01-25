@@ -1,5 +1,5 @@
 // circuit.js
-import { state, MAX_CIRCUIT_POINTS } from './state.js';
+import { state, MAX_CIRCUIT_POINTS, setSelectionMode, addPoiToCurrentCircuit } from './state.js';
 import { DOM, openDetailsPanel, switchSidebarTab, showToast } from './ui.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { updatePolylines, getRealDistance, getOrthodromicDistance, map } from './map.js';
@@ -119,41 +119,43 @@ export async function loadCircuitDraft() {
     }
 }
 
+// --- LE BOUTON QUI APPELLE LE MAJORDOME ET GÈRE L'AFFICHAGE ---
 export function toggleSelectionMode(forceValue) {
-    // 1. On s'assure que l'état est bien un booléen (true ou false)
-    // On ignore forceValue si c'est un événement de clic (un objet)
-    if (forceValue && typeof forceValue === 'object') {
-        state.isSelectionModeActive = !state.isSelectionModeActive;
-    } else if (forceValue !== undefined) {
-        state.isSelectionModeActive = forceValue;
+    // 1. Le Majordome gère la donnée (L'État)
+    // On garde votre logique de "forceValue" qui était très bien
+    if (typeof forceValue === 'boolean') {
+        setSelectionMode(forceValue);
     } else {
-        state.isSelectionModeActive = !state.isSelectionModeActive;
+        setSelectionMode(!state.isSelectionModeActive);
     }
     
-    // 2. Mise à jour visuelle
+    // 2. Mise à jour du bouton
     if(DOM.btnModeSelection) {
         DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
     }
 
-    // 3. SAUVEGARDE SÉCURISÉE (On ne sauve que true ou false)
-    saveAppState('isSelectionModeActive', !!state.isSelectionModeActive);
-
-    // 4. Interface
+    // 3. Gestion de l'Interface (Panneaux et Lignes)
     if (state.isSelectionModeActive) {
         if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'flex';
         switchSidebarTab('circuit');
         renderCircuitPanel();
+        showToast("Mode sélection activé : Cliquez sur la carte pour ajouter des points", "info");
     } else {
         if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'none';
         if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
         if (state.realTrackPolyline) state.realTrackPolyline.remove();
+        showToast("Mode sélection désactivé", "info");
     }
+    
     applyFilters();
 }
 
+// --- FONCTION POUR AJOUTER UN POINT (La version robuste) ---
 export function addPoiToCircuit(feature) {
     // 1. Sécurité : Éviter d'ajouter deux fois le même point d'affilée
-    if (state.currentCircuit.length > 0 && getPoiId(feature) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) return;
+    if (state.currentCircuit.length > 0 && getPoiId(feature) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) {
+        return; 
+    }
     
     // 2. Sécurité : Limite de points
     if (state.currentCircuit.length >= MAX_CIRCUIT_POINTS) {
@@ -161,20 +163,17 @@ export function addPoiToCircuit(feature) {
         return;
     }
 
-    // 3. UI : Basculer l'onglet si on est sur le panneau de détails
-    if (DOM.rightSidebar.style.display === 'flex' && document.querySelector('#details-panel.active')) {
-        switchSidebarTab('circuit');
-    }
+    // 3. UI : Ouvrir le panneau et basculer sur l'onglet Circuit
+    if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'flex';
+    switchSidebarTab('circuit');
 
-    // 4. L'ACTION : Ajouter au tableau en mémoire
-    state.currentCircuit.push(feature);
+    // 4. L'ACTION PROPRE : On appelle le Majordome au lieu du .push()
+    addPoiToCurrentCircuit(feature);
 
-    // 5. LA SAUVEGARDE : On enregistre immédiatement dans la Database
-    // On utilise saveAppState pour que le PC s'en souvienne au prochain F5
+    // 5. LA SAUVEGARDE : On enregistre les DONNÉES du brouillon dans IndexedDB (Le vrai tiroir)
     saveAppState('currentCircuit', state.currentCircuit);
 
     // 6. MISE À JOUR VISUELLE
-    // Note : J'utilise vos noms de fonctions d'origine (renderCircuitPanel / updatePolylines)
     renderCircuitPanel(); 
     if (typeof updatePolylines === 'function') updatePolylines();
 }

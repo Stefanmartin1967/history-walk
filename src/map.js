@@ -1,6 +1,7 @@
 // map.js
 import { state } from './state.js';
 import { addPoiToCircuit } from './circuit.js';
+import { openDetailsPanel, showToast } from './ui.js'; // <-- Ajouter l'import de l'UI
 
 export let map;
 
@@ -23,15 +24,15 @@ export const iconMap = {
 
 export function initMap() {
     // Initialisation de la carte centrée sur Djerba
-    map = L.map('map', { 
-        zoomSnap: 0.25, 
-        zoomDelta: 0.25, 
-        wheelPxPerZoomLevel: 180, 
-        attributionControl: false 
+    map = L.map('map', {
+        zoomSnap: 0.25,
+        zoomDelta: 0.25,
+        wheelPxPerZoomLevel: 180,
+        attributionControl: false
     }).setView([33.8076, 10.8451], 11);
 
     // 1. Couche "Plan" (OpenStreetMap)
-    const planLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    const planLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
     });
@@ -68,22 +69,25 @@ export function createHistoryWalkIcon(category) {
     } else {
         iconHtml = `<i data-lucide="${iconContent}"></i>`;
     }
-    
-    return L.divIcon({ 
-        html: `<div class="hw-icon-wrapper">${iconHtml}</div>`, 
-        className: 'hw-icon', 
-        iconSize: [32, 32], 
+
+    return L.divIcon({
+        html: `<div class="hw-icon-wrapper">${iconHtml}</div>`,
+        className: 'hw-icon',
+        iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
     });
 }
 
 // Utile pour l'affichage dans la liste mobile
+// --- LE NOUVEL AIGUILLEUR DE CLIC ---
+// --- FONCTION POUR LES ICONES (Celle qui avait disparu !) ---
 export function getIconForFeature(feature) {
     const defaultIcon = 'map-pin';
     const category = feature.properties.Catégorie;
+    // On suppose que iconMap est défini plus haut dans votre fichier
     const iconContent = iconMap[category] || defaultIcon;
-    
+
     if (iconContent.startsWith('<svg')) {
         return iconContent;
     } else {
@@ -91,9 +95,23 @@ export function getIconForFeature(feature) {
     }
 }
 
-// Cette fonction est appelée UNIQUEMENT quand le mode "Sélection" est actif (voir data.js)
+// --- LE NOUVEL AIGUILLEUR DE CLIC ---
 export function handleMarkerClick(feature) {
-    addPoiToCircuit(feature);
+    // L'AIGUILLAGE STRICT
+    if (state.isSelectionModeActive) {
+        // --- MODE SELECTION (ON) ---
+        if (state.currentCircuit.length >= 15) {
+            showToast("Circuit plein (15 points max) !", "warning");
+            return;
+        }
+        addPoiToCircuit(feature);
+        showToast("Ajouté au circuit", "success");
+
+    } else {
+        // --- MODE CONSULTATION (OFF) ---
+        const globalIndex = state.loadedFeatures.findIndex(f => f.properties.HW_ID === feature.properties.HW_ID);
+        openDetailsPanel(globalIndex, null);
+    }
 }
 
 // --- GESTION DES DISTANCES ET TRACÉS ---
@@ -110,7 +128,7 @@ export function updatePolylines() {
     // Nettoyage des anciennes lignes
     if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
     if (state.realTrackPolyline) state.realTrackPolyline.remove();
-    
+
     // Pas de tracé si moins de 2 points
     if (!state.currentCircuit || state.currentCircuit.length < 2) return;
 
@@ -120,17 +138,17 @@ export function updatePolylines() {
 
     // Cas 1 : Circuit enregistré avec un tracé réel (GPX/Routeur)
     if (activeCircuitData && activeCircuitData.realTrack) {
-        state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, { 
+        state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, {
             className: 'real-track-polyline' // Style CSS spécifique
         }).addTo(map);
-    } 
+    }
     // Cas 2 : Circuit en cours de création (Ligne droite "Vol d'oiseau")
     else {
         const latLngs = state.currentCircuit.map(feature => {
             const [lon, lat] = feature.geometry.coordinates;
             return [lat, lon];
         });
-        state.orthodromicPolyline = L.polyline(latLngs, { 
+        state.orthodromicPolyline = L.polyline(latLngs, {
             className: 'circuit-polyline' // Style CSS spécifique
         }).addTo(map);
     }
