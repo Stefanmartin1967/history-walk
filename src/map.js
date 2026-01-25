@@ -114,6 +114,25 @@ export function handleMarkerClick(feature) {
     }
 }
 
+// --- LE NOUVEAU PEINTRE ---
+let currentDrawnLine = null; 
+
+export function clearMapLines() {
+    if (currentDrawnLine) {
+        currentDrawnLine.remove();
+        currentDrawnLine = null;
+    }
+}
+
+export function drawLineOnMap(coordinates, isRealTrack = false) {
+    clearMapLines();
+    const styleName = isRealTrack ? 'real-track-polyline' : 'circuit-polyline';
+    // Vérification de sécurité pour éviter le plantage si la carte n'est pas encore chargée
+    if (map) { 
+        currentDrawnLine = L.polyline(coordinates, { className: styleName }).addTo(map);
+    }
+}
+
 // --- GESTION DES DISTANCES ET TRACÉS ---
 
 function calculateRealDistance(latLngs) {

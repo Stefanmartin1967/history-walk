@@ -1,8 +1,8 @@
 // circuit.js
-import { state, MAX_CIRCUIT_POINTS, setSelectionMode, addPoiToCurrentCircuit } from './state.js';
+import { state, MAX_CIRCUIT_POINTS, setSelectionMode, addPoiToCurrentCircuit, resetCurrentCircuit } from './state.js';
 import { DOM, openDetailsPanel, switchSidebarTab, showToast } from './ui.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
-import { updatePolylines, getRealDistance, getOrthodromicDistance, map } from './map.js';
+import { drawLineOnMap, clearMapLines, getRealDistance, getOrthodromicDistance, map } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';
 import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './database.js';
 // import { saveUserData } from './fileManager.js'; // <--- RETRAIT (C'était la cause du bug de fenêtre)
@@ -212,7 +212,7 @@ export function renderCircuitPanel() {
     }
     updateCircuitMetadata();
     
-    if (map) updatePolylines();
+    refreshCircuitDisplay();
     
     if(window.lucide) lucide.createIcons();
 }
@@ -303,13 +303,18 @@ export function generateCircuitName() {
     }
 }
 
+// --- FONCTION POUR VIDER LE BROUILLON (Version Majordome + UI) ---
 export async function clearCircuit(withConfirmation = true) {
     const doClear = async () => {
-        state.currentCircuit = [];
+        // 1. Le Majordome vide la liste des points en mémoire
+        resetCurrentCircuit();
+
+        // 2. On réinitialise les infos du circuit
         state.activeCircuitId = null;
         state.currentCircuitIndex = null;
-        if(DOM.circuitDescription) DOM.circuitDescription.value = '';
         
+        // 3. Nettoyage de l'interface (Champs texte et formulaires)
+        if(DOM.circuitDescription) DOM.circuitDescription.value = '';
         const tAller = document.getElementById('transport-aller-temps');
         if(tAller) {
             tAller.value = '';
@@ -318,13 +323,19 @@ export async function clearCircuit(withConfirmation = true) {
             document.getElementById('transport-retour-cout').value = '';
         }
 
-        await saveAppState(`circuitDraft_${state.currentMapId}`, null);
+        // 4. LA LIGNE MAGIQUE : On sauvegarde ce "vide" dans le disque dur !
+        await saveAppState('currentCircuit', []);
+
+        // 5. Mise à jour de l'affichage (Panneau et Carte)
         renderCircuitPanel();
+        refreshCircuitDisplay(); // Le nouveau Peintre efface les lignes !
+
         if (document.querySelector('#circuit-panel.active') && DOM.circuitTitleText) {
             DOM.circuitTitleText.textContent = 'Nouveau Circuit';
         }
     };
 
+    // 6. La confirmation avant d'effacer (Votre logique d'origine)
     if (withConfirmation && state.currentCircuit.length > 0) {
         if (confirm("Voulez-vous vraiment vider le brouillon du circuit ?")) await doClear();
     } else if (!withConfirmation) {
@@ -425,4 +436,21 @@ export function setupCircuitPanelEventListeners() {
         const el = document.getElementById(id);
         if(el) el.addEventListener('change', saveCircuitDraft);
     });
+}
+
+// --- LE CHEF D'ORCHESTRE (Traducteur pour la carte) ---
+export function refreshCircuitDisplay() {
+    // 1. S'il n'y a pas assez de points pour faire une ligne, on demande au peintre d'effacer.
+    if (state.currentCircuit.length < 2) {
+        clearMapLines();
+        return;
+    }
+
+    // 2. On traduit les POIs en coordonnées GPS [Latitude, Longitude] pour le Peintre
+    const coordinates = state.currentCircuit.map(feature => {
+        return [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
+    });
+
+    // 3. On donne l'ordre au Peintre
+    drawLineOnMap(coordinates, false); 
 }
