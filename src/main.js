@@ -94,62 +94,77 @@ async function loadDefaultMap() {
 }
 
 async function initializeApp() {
+    // 1. Initialisation de base (toujours en premier)
     const versionEl = document.getElementById('app-version');
     if(versionEl) versionEl.textContent = APP_VERSION;
     
     initializeDomReferences();
     
+    // On lance les icônes tout de suite pour éviter l'interface vide
+    if (typeof createIcons === 'function') createIcons();
+
     if(typeof populateAddPoiModalCategories === 'function') {
         populateAddPoiModalCategories();
     }
 
-    // --- 1. SETUP DES LISTENERS GLOBAUX (CRUCIAL POUR MOBILE) ---
-    // On les branche AVANT de décider du mode, pour être sûr que les boutons fichiers marchent
     setupFileListeners();
 
-    // --- 2. DÉTECTION DU MODE ---
+    // 2. Mode Mobile ou Desktop
     if (isMobileView()) {
-        console.log("Démarrage en mode MOBILE");
         initMobileMode();
     } else {
-        console.log("Démarrage en mode DESKTOP");
         initDesktopMode();
     }
 
     try {
         await initDB();
         
+        // Restauration du thème
         const savedTheme = await getAppState('currentTheme');
         if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
-        // Chargement des données (Carte ou Sauvegarde)
         const lastMapId = await getAppState('lastMapId');
         const lastGeoJSON = await getAppState('lastGeoJSON');
         
         if (lastMapId && lastGeoJSON) {
-            setSaveButtonsState(true);
-            if(DOM.btnRestoreData) DOM.btnRestoreData.disabled = false;
-            
             state.currentMapId = lastMapId;
+            setSaveButtonsState(true);
 
-            // Charge UserData
+            // Chargement des données utilisateur et circuits
             try {
-                const loadedData = await getAllPoiDataForMap(lastMapId);
-                if (loadedData) state.userData = loadedData;
-           } catch (dbErr) { console.warn(dbErr); }
+                state.userData = await getAllPoiDataForMap(lastMapId) || {};
+                state.myCircuits = await getAllCircuitsForMap(lastMapId) || [];
+            } catch (e) { console.error("Erreur DB secondaire:", e); }
 
-           // Charge Circuits
-            try {
-                state.myCircuits = await getAllCircuitsForMap(lastMapId);
-            } catch (err) { state.myCircuits = []; }
-
-            // BRANCHEMENT AFFICHAGE
+            // 3. Affichage de la carte
             if (isMobileView()) {
-                console.log("Mobile: Restauration état sans carte.");
                 state.loadedFeatures = lastGeoJSON.features || [];
                 switchMobileView('circuits');
             } else {
                 await displayGeoJSON(lastGeoJSON, lastMapId);
+
+                // --- RESTAURATION SÉCURISÉE DU BROUILLON ---
+                try {
+                    const savedDraft = await getAppState('currentCircuit');
+                    const selectionWasActive = await getAppState('isSelectionModeActive');
+
+                    if (savedDraft && savedDraft.length > 0) {
+                        state.currentCircuit = savedDraft;
+                        if (selectionWasActive === true) {
+                            // On vérifie que la fonction existe avant d'appeler
+                            if (typeof toggleSelectionMode === 'function') {
+                                toggleSelectionMode(true);
+                            }
+                        }
+                        
+                        setTimeout(() => {
+                            if (typeof updatePolylines === 'function') updatePolylines();
+                            if (typeof renderCircuitPanel === 'function') renderCircuitPanel();
+                        }, 800);
+                    }
+                } catch (err) {
+                    console.warn("Échec restauration brouillon:", err);
+                }
             }
             
         } else {
@@ -157,9 +172,11 @@ async function initializeApp() {
         }
 
     } catch (error) {
-        console.error("Échec init:", error);
-        showToast("Erreur d'initialisation", "error");
+        console.error("Échec init global:", error);
     }
+
+    // Relancer une fois les icônes à la toute fin pour être sûr
+    if (typeof createIcons === 'function') createIcons();
 }
 
 async function initDesktopMode() {

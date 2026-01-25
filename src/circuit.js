@@ -119,17 +119,32 @@ export async function loadCircuitDraft() {
     }
 }
 
-export function toggleSelectionMode() {
-    state.isSelectionModeActive = !state.isSelectionModeActive;
-    if(DOM.btnModeSelection) DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
+export function toggleSelectionMode(forceValue) {
+    // 1. On s'assure que l'état est bien un booléen (true ou false)
+    // On ignore forceValue si c'est un événement de clic (un objet)
+    if (forceValue && typeof forceValue === 'object') {
+        state.isSelectionModeActive = !state.isSelectionModeActive;
+    } else if (forceValue !== undefined) {
+        state.isSelectionModeActive = forceValue;
+    } else {
+        state.isSelectionModeActive = !state.isSelectionModeActive;
+    }
     
+    // 2. Mise à jour visuelle
+    if(DOM.btnModeSelection) {
+        DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
+    }
+
+    // 3. SAUVEGARDE SÉCURISÉE (On ne sauve que true ou false)
+    saveAppState('isSelectionModeActive', !!state.isSelectionModeActive);
+
+    // 4. Interface
     if (state.isSelectionModeActive) {
-        if (map) map.closePopup();
-        DOM.rightSidebar.style.display = 'flex';
+        if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'flex';
         switchSidebarTab('circuit');
         renderCircuitPanel();
     } else {
-        DOM.rightSidebar.style.display = 'none';
+        if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'none';
         if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
         if (state.realTrackPolyline) state.realTrackPolyline.remove();
     }
@@ -137,17 +152,31 @@ export function toggleSelectionMode() {
 }
 
 export function addPoiToCircuit(feature) {
+    // 1. Sécurité : Éviter d'ajouter deux fois le même point d'affilée
     if (state.currentCircuit.length > 0 && getPoiId(feature) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) return;
+    
+    // 2. Sécurité : Limite de points
     if (state.currentCircuit.length >= MAX_CIRCUIT_POINTS) {
         showToast(`Maximum de ${MAX_CIRCUIT_POINTS} points atteint.`, 'warning');
         return;
     }
+
+    // 3. UI : Basculer l'onglet si on est sur le panneau de détails
     if (DOM.rightSidebar.style.display === 'flex' && document.querySelector('#details-panel.active')) {
         switchSidebarTab('circuit');
     }
+
+    // 4. L'ACTION : Ajouter au tableau en mémoire
     state.currentCircuit.push(feature);
-    saveCircuitDraft();
-    renderCircuitPanel();
+
+    // 5. LA SAUVEGARDE : On enregistre immédiatement dans la Database
+    // On utilise saveAppState pour que le PC s'en souvienne au prochain F5
+    saveAppState('currentCircuit', state.currentCircuit);
+
+    // 6. MISE À JOUR VISUELLE
+    // Note : J'utilise vos noms de fonctions d'origine (renderCircuitPanel / updatePolylines)
+    renderCircuitPanel(); 
+    if (typeof updatePolylines === 'function') updatePolylines();
 }
 
 export function renderCircuitPanel() {
