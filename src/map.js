@@ -189,3 +189,45 @@ export function getOrthodromicDistance(circuit) {
     }
     return totalDistance;
 }
+
+// --- LE PEINTRE DE POINTS (Reçoit les données déjà filtrées) ---
+export function refreshMapMarkers(visibleFeatures) {
+    if (!map) return;
+
+    // 1. Initialisation ou Nettoyage de la couche
+    if (!state.geojsonLayer) {
+        state.geojsonLayer = L.layerGroup().addTo(map);
+    } else {
+        state.geojsonLayer.clearLayers();
+    }
+
+    if (visibleFeatures.length === 0) return;
+
+    // 2. Dessin des points
+    const tempLayer = L.geoJSON(visibleFeatures, {
+        pointToLayer: (feature, latlng) => {
+            const category = feature.properties.Catégorie || 'default'; 
+            const icon = createHistoryWalkIcon(category);
+            const marker = L.marker(latlng, { icon: icon });
+            
+            // Le clic utilise notre aiguilleur propre !
+            marker.on('click', (e) => {
+                L.DomEvent.stop(e); 
+                handleMarkerClick(feature); 
+            });
+            return marker;
+        }
+    });
+    
+    // 3. Ajout à la carte
+    tempLayer.eachLayer(layer => state.geojsonLayer.addLayer(layer));
+
+    // 4. Zoom automatique si on a filtré par zone
+    if (state.activeFilters.zone && state.geojsonLayer.getLayers().length > 0) {
+        const bounds = state.geojsonLayer.getBounds();
+        if (bounds.isValid()) map.flyToBounds(bounds.pad(0.1));
+    }
+
+    // 5. La baguette magique pour dessiner les icônes dynamiques !
+    if (window.lucide) lucide.createIcons();
+}

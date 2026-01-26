@@ -100,89 +100,46 @@ export async function displayGeoJSON(geoJSON, mapId) {
 
 // --- FILTRES & AFFICHAGE ---
 
-export function applyFilters() {
-    // 1. Initialisation sécurisée du layer
-    if (!state.geojsonLayer) {
-        state.geojsonLayer = L.layerGroup().addTo(map);
-    } else {
-        state.geojsonLayer.clearLayers();
-    }
+// --- 1. LE TAMIS PUR (Le Cerveau) ---
+// Il ne fait que du tri mathématique en mémoire. Il ne touche pas à la carte.
+export function getFilteredFeatures() {
+    if (!state.loadedFeatures) return [];
 
-    if (!state.loadedFeatures || state.loadedFeatures.length === 0) return;
-
-    // 2. Filtrage logique
-    const visibleFeatures = state.loadedFeatures.filter(feature => {
+    return state.loadedFeatures.filter(feature => {
         const props = { ...feature.properties, ...feature.properties.userData };
         const poiId = getPoiId(feature);
         
-        // A. Lieux cachés manuellement par l'utilisateur
+        // A. Lieux cachés par l'utilisateur
         if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) return false; 
         
-        // B. Les incontournables passent toujours (Sauf si cachés ci-dessus)
+        // B. Les incontournables passent TOUJOURS
         if (props.incontournable) return true;
 
-        // D. Filtres standards
+        // C. Les Filtres choisis
         if (state.activeFilters.zone && props.Zone !== state.activeFilters.zone) return false;
         if (state.activeFilters.mosquees && props.Catégorie !== 'Mosquée') return false;
         if (state.activeFilters.vus && props.vu) return false;
-
-        const isPlanned = (props.planifieCounter || 0) > 0;
-        if (state.activeFilters.planifies && isPlanned) return false;
+        if (state.activeFilters.planifies && (props.planifieCounter || 0) > 0) return false;
         
         return true;
     });
+}
 
-    // 3. Création et Ajout des marqueurs sur la carte
-    if (map && visibleFeatures.length > 0) {
-        
-        // Utilisation de L.geoJSON pour parser correctement les coordonnées
-        const tempLayer = L.geoJSON(visibleFeatures, {
-            pointToLayer: (feature, latlng) => {
-                const category = feature.properties.Catégorie || 'default'; 
-                const icon = createHistoryWalkIcon(category);
-                
-                const marker = L.marker(latlng, { icon: icon });
-                
-                // Gestion du Clic optimisée
-                marker.on('click', (e) => {
-                    L.DomEvent.stop(e); 
-                    
-                    if (state.isSelectionModeActive) {
-                        handleMarkerClick(feature);
-                    } else {
-                        // On retrouve l'index dans la liste globale pour l'UI
-                        const globalIndex = state.loadedFeatures.indexOf(feature);
-                        
-                        // Calcul si le point fait partie du circuit en cours
-                        let circuitIndex = -1;
-                        if (state.currentCircuit) {
-                            const currentId = getPoiId(feature);
-                            circuitIndex = state.currentCircuit.findIndex(f => getPoiId(f) === currentId);
-                        }
-                        
-                        // Ouverture du panneau
-                        openDetailsPanel(globalIndex, circuitIndex !== -1 ? circuitIndex : null);
-                    }
-                });
-                return marker;
-            }
-        });
-        
-        // Ajout final au groupe de calques
-        tempLayer.eachLayer(layer => {
-            state.geojsonLayer.addLayer(layer);
-        });
-    }
-    
-    // 4. Gestion finale (Icônes et Zoom)
-    if (window.lucide) lucide.createIcons();
+// --- 2. LE DISTRIBUTEUR ---
+// Il récupère le résultat du Tamis et l'envoie au bon affichage (PC ou Mobile)
+export function applyFilters() {
+    // 1. On passe les données au Tamis
+    const visibleFeatures = getFilteredFeatures();
 
-    // Zoom automatique si on filtre par Zone
-    if (map && state.activeFilters.zone && state.geojsonLayer.getLayers().length > 0) {
-        const b = state.geojsonLayer.getBounds();
-        if (b.isValid()) {
-             map.flyToBounds(b.pad(0.1));
-        }
+    // 2. On envoie le résultat (les 50 points) à qui en a besoin
+    if (isMobileView()) {
+        // [Futur] : Ici, on mettra à jour la liste HTML mobile
+        console.log(`[Filtre Mobile] ${visibleFeatures.length} lieux trouvés.`);
+    } else {
+        // PC : On envoie les points au Peintre de la carte
+        import('./map.js').then(module => {
+            if (module.refreshMapMarkers) module.refreshMapMarkers(visibleFeatures);
+        });
     }
 }
 
