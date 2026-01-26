@@ -126,19 +126,28 @@ export function getFilteredFeatures() {
 }
 
 // --- 2. LE DISTRIBUTEUR ---
-// Il récupère le résultat du Tamis et l'envoie au bon affichage (PC ou Mobile)
 export function applyFilters() {
     // 1. On passe les données au Tamis
     const visibleFeatures = getFilteredFeatures();
 
-    // 2. On envoie le résultat (les 50 points) à qui en a besoin
+    // 2. On envoie le résultat
     if (isMobileView()) {
-        // [Futur] : Ici, on mettra à jour la liste HTML mobile
         console.log(`[Filtre Mobile] ${visibleFeatures.length} lieux trouvés.`);
+        // Mise à jour de la liste Mobile
+        import('./mobile.js').then(module => {
+             if (module.renderMobilePoiList) module.renderMobilePoiList(visibleFeatures);
+        });
     } else {
-        // PC : On envoie les points au Peintre de la carte
+        // A. PC : On met à jour la CARTE (Marqueurs)
         import('./map.js').then(module => {
             if (module.refreshMapMarkers) module.refreshMapMarkers(visibleFeatures);
+        });
+
+        // B. PC : On met à jour le MENU DES ZONES (Les compteurs !)
+        import('./ui.js').then(module => {
+            if (module.populateZonesMenu) {
+                module.populateZonesMenu(); 
+            }
         });
     }
 }
@@ -165,6 +174,8 @@ export async function updatePoiData(poiId, key, value) {
 // --- AJOUT D'UN LIEU (Fonction Post-it) ---
 
 export async function addPoiFeature(feature) {
+
+    console.log("🧐 INSPECTION DU POI REÇU :", feature);
     console.log("[Data] Ajout d'un nouveau lieu (Post-it)...");
 
     // 1. Ajout à la liste en mémoire vive (pour affichage immédiat)

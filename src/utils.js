@@ -1,4 +1,5 @@
 // utils.js
+import { zonesData } from './zones.js';
 export function downloadFile(filename, content, mimeType) {
     const blob = new Blob([content], { type: mimeType });
     const a = document.createElement('a');
@@ -101,4 +102,22 @@ export function isPointInPolygon(point, vs) {
         if (intersect) inside = !inside;
     }
     return inside;
+}
+
+// --- DÉTECTEUR DE ZONE AUTOMATIQUE ---
+export function getZoneFromCoords(lat, lng) {
+    if (!zonesData || !zonesData.features) return "A définir";
+
+    const point = [lng, lat]; 
+    
+    // On boucle sur tous les quartiers (Houmt Souk, Erriadh...)
+    for (const feature of zonesData.features) {
+        const polygon = feature.geometry.coordinates[0]; 
+        
+        // On utilise la fonction isPointInPolygon qui existe déjà dans votre fichier !
+        if (isPointInPolygon(point, polygon)) { 
+            return feature.properties.name; 
+        }
+    }
+    return "Hors zone"; 
 }

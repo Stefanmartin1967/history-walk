@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { saveAppState, savePoiData } from './database.js';
 import { logModification } from './logger.js';
 import { showToast, DOM, closeDetailsPanel, openDetailsPanel } from './ui.js';
-import { getExifLocation, calculateDistance, resizeImage } from './utils.js';
+import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords } from './utils.js';
 
 let desktopDraftMarker = null;
 const BASE_CATEGORIES = ["Mosquée", "Site historique", "Curiosité", "Hôtel", "Restaurant", "Café", "Taxi", "Commerce"];
@@ -259,6 +259,9 @@ export function openDesktopAddModal(lat, lng) {
         const category = catSelect.value;
         if (!name) return showToast("Nom requis", "warning");
 
+        // 1. Calcul de la zone (Tu l'avais déjà, c'est bien !)
+        const zoneAutomatique = getZoneFromCoords(lat, lng);
+
         const newPoiId = `HW-PC-${Date.now()}`;
         const newFeature = {
             type: "Feature",
@@ -266,17 +269,22 @@ export function openDesktopAddModal(lat, lng) {
             properties: {
                 "Nom du site FR": name,
                 "Catégorie": category,
-                "Zone": "A définir (PC)",
+                // CORRECTION ICI 👇 :
+                // 1. On utilise ta variable zoneAutomatique
+                // 2. On met une sécurité (||) si jamais la zone n'est pas trouvée
+                // 3. J'ai mis "zone" en minuscule (standard) au cas où tes filtres sont stricts
+                "Zone": zoneAutomatique || "Non définie", 
                 "Description": "Ajouté depuis PC",
                 "HW_ID": newPoiId
             }
         };
 
+        // ... la suite reste identique
         addPoiFeature(newFeature);
         await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
         await logModification(newPoiId, 'Création PC', 'All', null, 'Nouveau lieu PC');
 
-        showToast(`Lieu "${name}" ajouté !`, "success");
+        showToast(`Lieu "${name}" ajouté dans ${zoneAutomatique || 'A définir'} !`, "success");
         modal.style.display = 'none';
     });
 
