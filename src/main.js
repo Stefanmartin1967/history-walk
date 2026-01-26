@@ -17,8 +17,9 @@ import {
 
 import {
     toggleSelectionMode,
-    setupCircuitPanelEventListeners
-} from './circuit.js';
+    clearCircuit,
+    addPoiToCircuit
+} from './circuit.js';;
 
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
 import { isMobileView, initMobileMode, switchMobileView } from './mobile.js';
@@ -109,13 +110,12 @@ async function loadDefaultMap() {
 }
 
 async function initializeApp() {
-    // 1. Initialisation de base (toujours en premier)
+    // 1. Initialisation de base
     const versionEl = document.getElementById('app-version');
     if (versionEl) versionEl.textContent = APP_VERSION;
 
     initializeDomReferences();
 
-    // On lance les icônes tout de suite pour éviter l'interface vide
     if (typeof createIcons === 'function') createIcons();
 
     if (typeof populateAddPoiModalCategories === 'function') {
@@ -134,7 +134,6 @@ async function initializeApp() {
     try {
         await initDB();
 
-        // Restauration du thème
         const savedTheme = await getAppState('currentTheme');
         if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
@@ -145,7 +144,6 @@ async function initializeApp() {
             state.currentMapId = lastMapId;
             setSaveButtonsState(true);
 
-            // Chargement des données utilisateur et circuits
             try {
                 state.userData = await getAllPoiDataForMap(lastMapId) || {};
                 state.myCircuits = await getAllCircuitsForMap(lastMapId) || [];
@@ -161,19 +159,12 @@ async function initializeApp() {
                 // --- RESTAURATION SÉCURISÉE DU BROUILLON ---
                 try {
                     const savedDraft = await getAppState('currentCircuit');
-                    const selectionWasActive = await getAppState('isSelectionModeActive');
-
+                    
                     if (savedDraft && savedDraft.length > 0) {
                         state.currentCircuit = savedDraft;
-                        if (selectionWasActive === true) {
-                            // On vérifie que la fonction existe avant d'appeler
-                            if (typeof toggleSelectionMode === 'function') {
-                                toggleSelectionMode(true);
-                            }
-                        }
-
+                        // On relance l'affichage du circuit avec nos NOUVELLES fonctions
                         setTimeout(() => {
-                            if (typeof updatePolylines === 'function') updatePolylines();
+                            if (typeof refreshCircuitDisplay === 'function') refreshCircuitDisplay();
                             if (typeof renderCircuitPanel === 'function') renderCircuitPanel();
                         }, 800);
                     }
@@ -190,7 +181,42 @@ async function initializeApp() {
         console.error("Échec init global:", error);
     }
 
-    // Relancer une fois les icônes à la toute fin pour être sûr
+    // --- 4. LA TOUR DE CONTRÔLE DES ÉVÉNEMENTS (C'est ICI que ça se place !) ---
+    function setupGlobalEventListeners() {
+        console.log("[Main] Branchement des boutons de la Tour de Contrôle...");
+
+        // Bouton "Créer un circuit"
+        const btnSelect = document.getElementById('btn-select-mode');
+        if (btnSelect) {
+            btnSelect.addEventListener('click', () => toggleSelectionMode());
+        }
+
+        // Bouton "Vider le circuit"
+        const btnClear = document.getElementById('btn-clear-circuit');
+        if (btnClear) {
+            btnClear.addEventListener('click', () => clearCircuit(true));
+        }
+
+        // Bouton "Fermer le panneau"
+        const btnClose = document.getElementById('close-circuit-panel-button');
+        if (btnClose) {
+            btnClose.addEventListener('click', async () => {
+                if (state.currentCircuit.length > 0) {
+                    if (confirm("Voulez-vous vraiment fermer et effacer le brouillon du circuit ?")) {
+                        await clearCircuit(false);
+                        toggleSelectionMode(false); // On force le mode OFF
+                    }
+                } else {
+                    toggleSelectionMode(false);
+                }
+            });
+        }
+    }
+
+    // On allume la tour de contrôle
+    setupGlobalEventListeners();
+
+    // 5. Relancer les icônes à la toute fin
     if (typeof createIcons === 'function') createIcons();
 }
 
@@ -323,7 +349,6 @@ function setupDesktopUIListeners() {
     });
 
     setupTabs();
-    setupCircuitPanelEventListeners();
 
     if (DOM.closeCircuitsModal) DOM.closeCircuitsModal.addEventListener('click', closeCircuitsModal);
     if (DOM.circuitsModal) DOM.circuitsModal.addEventListener('click', (e) => {

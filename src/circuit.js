@@ -399,45 +399,6 @@ export async function loadCircuitById(id) {
     showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
 }
 
-export function setupCircuitPanelEventListeners() {
-    if(DOM.btnClearCircuit) DOM.btnClearCircuit.addEventListener('click', () => clearCircuit(true));
-    if(DOM.btnExportGpx) document.getElementById('btn-export-gpx').addEventListener('click', saveAndExportCircuit);
-    
-    if(DOM.btnImportGpx) DOM.btnImportGpx.addEventListener('click', () => {
-        if (state.activeCircuitId) {
-            state.circuitIdToImportFor = state.activeCircuitId;
-            DOM.gpxImporter.click();
-        }
-    });
-
-    const closeBtn = document.getElementById('close-circuit-panel-button');
-    if(closeBtn) {
-        closeBtn.addEventListener('click', async () => {
-            if (state.currentCircuit.length > 0) {
-                if (confirm("Voulez-vous vraiment fermer et effacer le brouillon du circuit ?")) {
-                    await clearCircuit(false);
-                    toggleSelectionMode();
-                }
-            } else {
-                toggleSelectionMode();
-            }
-        });
-    }
-
-    if(DOM.btnLoopCircuit) DOM.btnLoopCircuit.addEventListener('click', () => {
-        if (state.currentCircuit.length > 0 && state.currentCircuit.length < MAX_CIRCUIT_POINTS) {
-            addPoiToCircuit(state.currentCircuit[0]);
-        }
-    });
-    
-    if(DOM.circuitDescription) DOM.circuitDescription.addEventListener('input', saveCircuitDraft);
-    
-    ['transport-aller-temps', 'transport-aller-cout', 'transport-retour-temps', 'transport-retour-cout'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.addEventListener('change', saveCircuitDraft);
-    });
-}
-
 // --- LE CHEF D'ORCHESTRE (Traducteur pour la carte) ---
 export function refreshCircuitDisplay() {
     // 1. S'il n'y a pas assez de points pour faire une ligne, on demande au peintre d'effacer.
