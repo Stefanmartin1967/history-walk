@@ -273,13 +273,26 @@ function setupDetailsEventListeners(poiId) {
         });
     }
 
-    const chkInc = document.getElementById('panel-chk-incontournable');
-    if (chkInc) {
-        chkInc.addEventListener('change', (e) => {
-            updatePoiData(poiId, 'incontournable', e.target.checked);
-            if ((state.activeFilters.vus || state.activeFilters.planifies) && !isMobileView()) applyFilters();
-        });
-    }
+    // --- NOUVEAU CÂBLAGE : CASE INCONTOURNABLE ---
+const chkInc = document.getElementById('panel-chk-incontournable');
+if (chkInc) {
+    chkInc.addEventListener('change', async (e) => {
+        // 1. Sauvegarde (Mémoire + Disque) via votre fonction habituelle
+        await updatePoiData(poiId, 'incontournable', e.target.checked);
+
+        // 2. Mise à jour visuelle : On demande au Peintre de rafraîchir la carte
+        if (!isMobileView()) {
+            import('./data.js').then(dataModule => {
+                import('./map.js').then(mapModule => {
+                    if (mapModule.refreshMapMarkers && dataModule.getFilteredFeatures) {
+                        // Le Tamis filtre, le Peintre dessine (avec le nouveau style doré !)
+                        mapModule.refreshMapMarkers(dataModule.getFilteredFeatures());
+                    }
+                });
+            });
+        }
+    });
+}
 
     const chkVerif = document.getElementById('panel-chk-verified');
     if (chkVerif) {

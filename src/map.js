@@ -208,6 +208,14 @@ export function refreshMapMarkers(visibleFeatures) {
         pointToLayer: (feature, latlng) => {
             const category = feature.properties.Catégorie || 'default'; 
             const icon = createHistoryWalkIcon(category);
+
+            // ---> C'EST ICI LE BON ENDROIT POUR LE VIP <---
+            // Si le lieu est incontournable, on ajoute la classe CSS dorée à l'icône
+            if (feature.properties.userData?.incontournable === true) {
+                icon.options.className += ' marker-vip'; 
+            }
+            // ----------------------------------------------
+
             const marker = L.marker(latlng, { icon: icon });
             
             // Le clic utilise notre aiguilleur propre !
