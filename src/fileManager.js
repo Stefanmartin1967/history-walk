@@ -326,9 +326,13 @@ export async function exportDataForMobilePC() {
                           now.getHours().toString().padStart(2, '0') + 'h' + 
                           now.getMinutes().toString().padStart(2, '0');
         
-        const fileName = `HistoryWalk_Backup_Mobile_${timestamp}.json`;
-        downloadFile(fileName, jsonString, 'application/json');
-        showToast("Sauvegarde légère terminée", "success");
+        // CHANGEMENT ICI : On force l'extension .txt pour le Mobile
+        const fileName = `HistoryWalk_Backup_Mobile_${timestamp}.txt`;
+        
+        // CHANGEMENT ICI : On force le type 'text/plain'
+        downloadFile(fileName, jsonString, 'text/plain');
+        
+        showToast("Sauvegarde légère (.txt) prête à être partagée !", "success");
     } catch (err) {
         console.error("Erreur Export Lite:", err);
         showToast("Erreur lors de l'export léger", "error");
