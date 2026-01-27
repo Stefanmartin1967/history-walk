@@ -792,8 +792,22 @@ export function populateZonesMenu() {
     }
 
     // Pré-calcul des zones
+    // Pré-calcul des zones
     const preFilteredFeatures = state.loadedFeatures.filter(feature => {
+        
+        // --- NOUVEAU BLOC DE FILTRE (Début) ---
+        // 1. On récupère l'ID du POI
+        const poiId = getPoiId(feature);
+
+        // 2. On vérifie s'il est dans la "liste noire" (hiddenPoiIds)
+        if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) {
+            return false; // Si oui, on l'ignore totalement du comptage !
+        }
+        // --- NOUVEAU BLOC DE FILTRE (Fin) ---
+
         const props = { ...feature.properties, ...feature.properties.userData };
+        
+        // La suite de tes filtres reste identique...
         if (state.activeFilters.mosquees && props.Catégorie !== 'Mosquée') return false;
         if (state.activeFilters.vus && props.vu && !props.incontournable) return false;
         const isPlanned = (props.planifieCounter || 0) > 0;
