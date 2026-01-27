@@ -294,12 +294,19 @@ function setupDesktopUIListeners() {
     if (DOM.btnModeSelection) DOM.btnModeSelection.addEventListener('click', toggleSelectionMode);
     if (DOM.btnMyCircuits) DOM.btnMyCircuits.addEventListener('click', openCircuitsModal);
 
-    // Filtres
-    document.getElementById('btn-filter-mosquees')?.addEventListener('click', (e) => {
+    // Filtres : Gestion du bouton Restaurant
+    document.getElementById('btn-filter-restaurants')?.addEventListener('click', (e) => {
+        // 1. On active/désactive le bouton visuellement
         const isActive = e.currentTarget.classList.toggle('active');
-        state.activeFilters.mosquees = isActive;
+        
+        // 2. On met à jour la mémoire
+        state.activeFilters.restaurants = isActive;
+        
+        // 3. On met à jour la carte (les points)
         applyFilters();
-        populateZonesMenu();
+        
+        // 4. On met à jour les compteurs dans le menu (C'est ce qui manquait !)
+        if (typeof populateZonesMenu === 'function') populateZonesMenu();
     });
     // ... (Autres filtres identiques à avant) ...
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {

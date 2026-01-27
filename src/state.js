@@ -28,7 +28,7 @@ export const state = {
     realTrackPolyline: null,
     filterCompleted: false,
     activeFilters: {
-        mosquees: false,
+        restaurants: false,
         vus: false,
         planifies: false,
         zone: null

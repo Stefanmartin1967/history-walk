@@ -117,7 +117,7 @@ export function getFilteredFeatures() {
 
         // C. Les Filtres choisis
         if (state.activeFilters.zone && props.Zone !== state.activeFilters.zone) return false;
-        if (state.activeFilters.mosquees && props.Catégorie !== 'Mosquée') return false;
+        if (state.activeFilters.restaurants && props.Catégorie !== 'Restaurant') return false;
         if (state.activeFilters.vus && props.vu) return false;
         if (state.activeFilters.planifies && (props.planifieCounter || 0) > 0) return false;
         

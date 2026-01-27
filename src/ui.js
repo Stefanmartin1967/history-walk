@@ -808,7 +808,7 @@ export function populateZonesMenu() {
         const props = { ...feature.properties, ...feature.properties.userData };
         
         // La suite de tes filtres reste identique...
-        if (state.activeFilters.mosquees && props.Catégorie !== 'Mosquée') return false;
+        if (state.activeFilters.restaurants && props.Catégorie !== 'Restaurant') return false;
         if (state.activeFilters.vus && props.vu && !props.incontournable) return false;
         const isPlanned = (props.planifieCounter || 0) > 0;
         if (state.activeFilters.planifies && isPlanned && !props.incontournable) return false;
