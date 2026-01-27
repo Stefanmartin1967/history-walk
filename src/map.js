@@ -22,6 +22,10 @@ export const iconMap = {
 
 // --- INITIALISATION CARTE ---
 
+// --- INITIALISATION CARTE ---
+
+// --- INITIALISATION CARTE ---
+
 export function initMap() {
     // Initialisation de la carte centrée sur Djerba
     map = L.map('map', {
@@ -37,27 +41,36 @@ export function initMap() {
         maxZoom: 19
     });
 
-    // 2. Couche "Satellite" (Esri World Imagery)
-    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    // 2. Couche "Satellite" (ESRI World Imagery - L'image de fond)
+    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri',
         maxZoom: 18
     });
 
-    // Ajout de la couche par défaut
+    // 3. Couche "Étiquettes" (ESRI Boundaries & Places - Les noms par-dessus)
+    const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        pane: 'shadowPane' // Astuce pour que les étiquettes ne soient pas trop intrusives
+    });
+
+    // Création d'un "Groupe" pour le Satellite Hybride (Image + Noms)
+    const esriHybridGroup = L.layerGroup([esriSatellite, esriLabels]);
+
+    // Ajout de la couche par défaut (Plan)
     planLayer.addTo(map);
 
-    // Création du contrôleur de couches (Haut droite)
+    // Création du contrôleur de couches
     const baseMaps = {
         "Plan": planLayer,
-        "Satellite": satelliteLayer
+        "Satellite": esriHybridGroup // Ici on charge le groupe (Image + Noms)
     };
-    L.control.layers(baseMaps).addTo(map);
+
+    // Position du contrôleur : HAUT GAUCHE (topleft) pour ne pas être caché par le sidebar
+    L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
     // Ajout de l'attribution (Bas gauche)
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
 }
-
-// --- GESTION DES MARQUEURS ---
 
 export function createHistoryWalkIcon(category) {
     const defaultIcon = 'map-pin';
