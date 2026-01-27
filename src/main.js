@@ -18,8 +18,9 @@ import {
 import {
     toggleSelectionMode,
     clearCircuit,
-    addPoiToCircuit
-} from './circuit.js';;
+    addPoiToCircuit,
+    setupCircuitEventListeners  // <--- Ajoute cette ligne (n'oublie pas la virgule au-dessus)
+} from './circuit.js';
 
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
 import { isMobileView, initMobileMode, switchMobileView } from './mobile.js';
@@ -115,6 +116,7 @@ async function initializeApp() {
     if (versionEl) versionEl.textContent = APP_VERSION;
 
     initializeDomReferences();
+    setupCircuitEventListeners();
 
     if (typeof createIcons === 'function') createIcons();
 

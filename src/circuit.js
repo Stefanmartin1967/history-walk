@@ -415,3 +415,55 @@ export function refreshCircuitDisplay() {
     // 3. On donne l'ordre au Peintre
     drawLineOnMap(coordinates, false); 
 }
+
+// --- À AJOUTER À LA FIN DE circuit.js ---
+
+export function setupCircuitEventListeners() {
+    console.log("⚡ Démarrage des écouteurs du Circuit...");
+
+    // 1. Bouton EXPORTER GPX
+    // On vérifie DOM.btnExportGpx (généré automatiquement par ton ui.js)
+    if (DOM.btnExportGpx) {
+        // On clone le bouton pour supprimer les vieux bugs d'écouteurs
+        const newBtn = DOM.btnExportGpx.cloneNode(true);
+        DOM.btnExportGpx.parentNode.replaceChild(newBtn, DOM.btnExportGpx);
+        DOM.btnExportGpx = newBtn; 
+        
+        DOM.btnExportGpx.addEventListener('click', () => {
+            console.log("Clic sur Exporter GPX");
+            saveAndExportCircuit();
+        });
+    }
+
+    // 2. Bouton IMPORTER GPX
+    if (DOM.btnImportGpx) {
+        DOM.btnImportGpx.addEventListener('click', () => {
+            console.log("Clic sur Importer GPX");
+            if (state.activeCircuitId) {
+                state.circuitIdToImportFor = state.activeCircuitId;
+                if(DOM.gpxImporter) DOM.gpxImporter.click();
+            } else {
+                // Création d'un nouveau circuit via import
+                if(DOM.gpxImporter) DOM.gpxImporter.click();
+            }
+        });
+    }
+
+    // 3. Bouton BOUCLER
+    if (DOM.btnLoopCircuit) {
+        DOM.btnLoopCircuit.addEventListener('click', () => {
+            console.log("Clic sur Boucler");
+            if (state.currentCircuit.length > 0 && state.currentCircuit.length < MAX_CIRCUIT_POINTS) {
+                // Ajoute le 1er point à la fin pour fermer la boucle
+                addPoiToCircuit(state.currentCircuit[0]); 
+            } else {
+                showToast("Impossible de boucler (Circuit vide ou plein)", "warning");
+            }
+        });
+    }
+    
+    // 4. Description (Input texte)
+    if(DOM.circuitDescription) {
+        DOM.circuitDescription.addEventListener('input', saveCircuitDraft);
+    }
+}

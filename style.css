@@ -1992,8 +1992,8 @@ input[type=range] {
 
 /* --- RESPONSIVE TOPBAR (Adaptation PC Portable) --- */
 
-/* En dessous de 1500px de large (PC Portable standard) */
-@media (max-width: 1500px) {
+/* En dessous de 2000px de large (PC Portable standard) */
+@media (max-width: 2000px) {
 
     /* On cache le texte (span) à l'intérieur des boutons .btn */
     .topbar-right .btn span,
