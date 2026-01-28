@@ -6275,6 +6275,283 @@
         "Desc_wpt": null,
         "HW_ID": "HW-01K77WPE6701ZTW3Z1PK130SE6VF73"
       }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.87100923061371,
+          33.729394601860776
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769539691760",
+        "Nom du site FR": "Restaurant Cobry",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.037467122077944,
+          33.77354239374834
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769542364439",
+        "Nom du site FR": "Chez Adel",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.9923791885376,
+          33.83780102463962
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769542434217",
+        "Nom du site FR": "Chez Chouchou",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.019759178161621,
+          33.81642398377623
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769612186183",
+        "Nom du site FR": "Grillades Zammouri",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.858751535415651,
+          33.877394804513656
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769612491396",
+        "Nom du site FR": "El Ghorfa",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.988039374351503,
+          33.83242273106209
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769614171212",
+        "Nom du site FR": "Le bistrot Djerba",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.858832001686098,
+          33.87725451244007
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769614282535",
+        "Nom du site FR": "El Ghorfa",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.991429686546327,
+          33.83513642770124
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769614412951",
+        "Nom du site FR": "Les palmiers",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir",
+        "Description": "Entre autre plat, on y trouve la souris d'agneau"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.98987802863121,
+          33.8071732033091
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769614572530",
+        "Nom du site FR": "Restaurant La Clémence",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir",
+        "Description": "Véritable cuisine Djerbienne"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.967812836170197,
+          33.8671005396419
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769614959325",
+        "Nom du site FR": "Café Restaurant Santorini",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir",
+        "Description": "Restaurant situé face à la mer"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.855264663696289,
+          33.88526860573818
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769615185858",
+        "Nom du site FR": "La paillot de pirate",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.985392034053802,
+          33.851708604660665
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769615329045",
+        "Nom du site FR": "L'autre monde",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.058672666549683,
+          33.78876449595512
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769615497253",
+        "Nom du site FR": "Restaurant la lagune",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir",
+        "Description": "Restaurant situé en bord de mer, sur la plage"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.013649106025698,
+          33.75688148085831
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769616224738",
+        "Nom du site FR": "Restaurant Port D'Aghir",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir",
+        "Description": "Restaurant de bord de plage, face à la mer"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.993072194726633,
+          33.809265952929884
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769616447744",
+        "Nom du site FR": "Restaurant La Mamma",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.03928565979004,
+          33.83106807850052
+        ]
+      },
+      "properties": {
+        "HW_ID": "HW-PC-1769616725138",
+        "Nom du site FR": "Restaurant Grill La Perla",
+        "Nom du site AR": "",
+        "Catégorie": "Restaurant",
+        "Zone": "A définir"
+      }
     }
   ]
 }
