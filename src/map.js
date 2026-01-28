@@ -128,18 +128,46 @@ export function handleMarkerClick(feature) {
 let currentDrawnLine = null; 
 
 export function clearMapLines() {
+    // 1. Nettoyage de la variable locale
     if (currentDrawnLine) {
         currentDrawnLine.remove();
         currentDrawnLine = null;
     }
+
+    // 2. Nettoyage des références dans le State (Utilisées par circuit.js)
+    // On boucle sur les deux types de polylines possibles
+    if (state.orthodromicPolyline) {
+        state.orthodromicPolyline.remove();
+        state.orthodromicPolyline = null;
+    }
+    
+    if (state.realTrackPolyline) {
+        state.realTrackPolyline.remove();
+        state.realTrackPolyline = null;
+    }
 }
 
 export function drawLineOnMap(coordinates, isRealTrack = false) {
+    // On nettoie AVANT de dessiner
     clearMapLines();
-    const styleName = isRealTrack ? 'real-track-polyline' : 'circuit-polyline';
-    // Vérification de sécurité pour éviter le plantage si la carte n'est pas encore chargée
-    if (map) { 
-        currentDrawnLine = L.polyline(coordinates, { className: styleName }).addTo(map);
+
+    const color = isRealTrack ? '#ff0000' : '#0000ff'; // Rouge pour réel, Bleu pour théorique
+    const dashArray = isRealTrack ? null : '5, 10';   // Plein pour réel, Pointillé pour théorique
+
+    const polyline = L.polyline(coordinates, {
+        color: color,
+        weight: 3,
+        dashArray: dashArray,
+        interactive: false
+    }).addTo(map);
+
+    // On stocke la référence aux deux endroits pour être sûr
+    currentDrawnLine = polyline;
+    
+    if (isRealTrack) {
+        state.realTrackPolyline = polyline;
+    } else {
+        state.orthodromicPolyline = polyline;
     }
 }
 

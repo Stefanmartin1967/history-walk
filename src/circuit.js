@@ -7,6 +7,7 @@ import { saveAndExportCircuit } from './gpx.js';
 import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './database.js';
 // import { saveUserData } from './fileManager.js'; // <--- RETRAIT (C'était la cause du bug de fenêtre)
 import { isMobileView, renderMobilePoiList } from './mobile.js';
+import * as View from './circuit-view.js';
 
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
@@ -178,43 +179,54 @@ export function addPoiToCircuit(feature) {
     if (typeof updatePolylines === 'function') updatePolylines();
 }
 
+// circuit.js (extrait)
+// circuit.js
 export function renderCircuitPanel() {
-    if(!DOM.circuitStepsList) return;
+    const points = state.currentCircuit;
 
-    DOM.circuitStepsList.innerHTML = '';
-    const btnLoop = document.getElementById('btn-loop-circuit');
-    if(btnLoop) btnLoop.disabled = state.currentCircuit.length === 0 || state.currentCircuit.length >= MAX_CIRCUIT_POINTS;
-    
-    const btnExport = document.getElementById('btn-export-gpx');
-    if(btnExport) btnExport.disabled = state.currentCircuit.length === 0;
-    
-    const btnImport = document.getElementById('btn-import-gpx');
-    if(btnImport) btnImport.disabled = !state.activeCircuitId;
+    View.renderCircuitList(points, {
+        onAction: (action, index) => handleCircuitAction(action, index),
+        onDetails: (feature, index) => {
+            const featureId = state.loadedFeatures.indexOf(feature);
+            openDetailsPanel(featureId, index);
+        }
+    });
 
-    if (state.currentCircuit.length === 0) {
-        DOM.circuitStepsList.innerHTML = `<p class="empty-list-info">Cliquez sur les lieux sur la carte pour les ajouter à votre circuit.</p>`;
-    } else {
-        state.currentCircuit.forEach((feature, index) => {
-            const poiName = getPoiName(feature);
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'step';
-            stepDiv.innerHTML = `<div class="num">${index + 1}</div><div class="step-main" title="${poiName}">${poiName}</div><div class="step-actions"><button class="stepbtn" data-action="up" title="Monter" ${index === 0 ? 'disabled' : ''}><i data-lucide="chevron-up"></i></button><button class="stepbtn" data-action="down" title="Descendre" ${index === state.currentCircuit.length - 1 ? 'disabled' : ''}><i data-lucide="chevron-down"></i></button><button class="stepbtn" data-action="remove" title="Retirer"><i data-lucide="trash-2"></i></button></div>`;
-            stepDiv.querySelector('.step-actions').addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (button) handleCircuitAction(button.dataset.action, index);
-            });
-            stepDiv.querySelector('.step-main').addEventListener('click', () => {
-                const featureId = state.loadedFeatures.indexOf(feature);
-                openDetailsPanel(featureId, index);
-            });
-            DOM.circuitStepsList.appendChild(stepDiv);
-        });
-    }
+    // On met à jour les boutons
+    View.updateControlButtons({
+        cannotLoop: points.length === 0 || points.length >= MAX_CIRCUIT_POINTS,
+        isEmpty: points.length === 0,
+        isActive: !!state.activeCircuitId // On passe l'info si un circuit est chargé
+    });
+
     updateCircuitMetadata();
+    refreshCircuitDisplay(); // Cette fonction va maintenant choisir la bonne ligne !
+}
+
+export function updateCircuitMetadata(updateTitle = true) {
+    // 1. LOGIQUE DE CALCUL (On récupère ce qui était dans ton ancienne fonction)
+    let totalDistance = 0;
+    let isRealTrack = false;
+
+    const activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
     
-    refreshCircuitDisplay();
-    
-    if(window.lucide) lucide.createIcons();
+    if (activeCircuitData && activeCircuitData.realTrack) {
+        totalDistance = getRealDistance(activeCircuitData);
+        isRealTrack = true;
+    } else {
+        totalDistance = getOrthodromicDistance(state.currentCircuit);
+    }
+
+    const title = generateCircuitName();
+
+    // 2. ENVOI À LA VUE (On ne touche plus au DOM ici)
+    View.updateStatsUI({
+        countText: `${state.currentCircuit.length}/${MAX_CIRCUIT_POINTS}`,
+        distanceText: (totalDistance / 1000).toFixed(1) + ' km',
+        title: title,
+        iconType: isRealTrack ? 'footprints' : 'bird',
+        iconTitle: isRealTrack ? 'Distance du tracé réel' : "Distance à vol d'oiseau"
+    });
 }
 
 function handleCircuitAction(action, index) {
@@ -242,38 +254,6 @@ function handleCircuitAction(action, index) {
     }
     saveCircuitDraft();
     renderCircuitPanel();
-}
-
-export function updateCircuitMetadata(updateTitle = true) {
-    if(!DOM.circuitPoiCount) return;
-
-    DOM.circuitPoiCount.textContent = `${state.currentCircuit.length}/${MAX_CIRCUIT_POINTS}`;
-    const distanceIcon = document.getElementById('distance-icon');
-    let totalDistance = 0;
-    
-    const activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
-    if (activeCircuitData && activeCircuitData.realTrack) {
-        totalDistance = getRealDistance(activeCircuitData);
-        if(distanceIcon) {
-            distanceIcon.setAttribute('data-lucide', 'footprints');
-            distanceIcon.title = 'Distance du tracé réel';
-        }
-    } else {
-        totalDistance = getOrthodromicDistance(state.currentCircuit);
-        if(distanceIcon) {
-            distanceIcon.setAttribute('data-lucide', 'bird');
-            distanceIcon.title = 'Distance à vol d\'oiseau';
-        }
-    }
-    
-    if(DOM.circuitDistance) DOM.circuitDistance.textContent = (totalDistance / 1000).toFixed(1) + ' km';
-    if(window.lucide) lucide.createIcons();
-    
-    if (updateTitle && DOM.circuitTitleText) {
-        const fullTitle = generateCircuitName();
-        DOM.circuitTitleText.textContent = fullTitle;
-        DOM.circuitTitleText.title = fullTitle;
-    }
 }
 
 export function generateCircuitName() {
@@ -355,65 +335,96 @@ export function navigatePoiDetails(direction) {
     }
 }
 
-export async function loadCircuitById(id) {
-    const circuitToLoad = state.myCircuits.find(c => c.id === id);
-    if (!circuitToLoad) return;
+export function updateCircuitForm(data) {
+    if (DOM.circuitTitleText) DOM.circuitTitleText.textContent = data.name || 'Circuit chargé';
+    if (DOM.circuitDescription) DOM.circuitDescription.value = data.description || '';
     
-    await clearCircuit(false);
-    
-    state.activeCircuitId = id;
-    
-    if(DOM.circuitTitleText) DOM.circuitTitleText.textContent = circuitToLoad.name || 'Circuit chargé';
-    if(DOM.circuitDescription) DOM.circuitDescription.value = circuitToLoad.description || '';
-    
-    if (circuitToLoad.transport) {
-        const tAller = document.getElementById('transport-aller-temps');
-        if(tAller) {
-            tAller.value = circuitToLoad.transport.allerTemps || '';
-            document.getElementById('transport-aller-cout').value = circuitToLoad.transport.allerCout || '';
-            document.getElementById('transport-retour-temps').value = circuitToLoad.transport.retourTemps || '';
-            document.getElementById('transport-retour-cout').value = circuitToLoad.transport.retourCout || '';
-        }
-    }
-    
-    state.currentCircuit = circuitToLoad.poiIds.map(poiId => state.loadedFeatures.find(f => getPoiId(f) === poiId)).filter(Boolean);
+    // Remplissage des transports
+    const fields = {
+        'transport-aller-temps': data.transport?.allerTemps,
+        'transport-aller-cout': data.transport?.allerCout,
+        'transport-retour-temps': data.transport?.retourTemps,
+        'transport-retour-cout': data.transport?.retourCout
+    };
 
-    if (isMobileView()) {
-        renderMobilePoiList(state.currentCircuit);
-    } else {
-        if (!state.isSelectionModeActive) {
-            toggleSelectionMode();
-        } else {
-            renderCircuitPanel();
-        }
-        applyFilters();
-
-        if (map && state.currentCircuit.length > 0) {
-            const group = L.featureGroup(state.currentCircuit.map(f => {
-                const coords = f.geometry.coordinates;
-                return L.marker([coords[1], coords[0]]);
-            }));
-            map.flyToBounds(group.getBounds().pad(0.1)); 
-        }
+    for (const [id, value] of Object.entries(fields)) {
+        const el = document.getElementById(id);
+        if (el) el.value = value || '';
     }
-    showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
 }
 
 // --- LE CHEF D'ORCHESTRE (Traducteur pour la carte) ---
 export function refreshCircuitDisplay() {
-    // 1. S'il n'y a pas assez de points pour faire une ligne, on demande au peintre d'effacer.
-    if (state.currentCircuit.length < 2) {
-        clearMapLines();
-        return;
+    // 1. On commence par TOUT effacer sur la carte pour éviter les superpositions
+    clearMapLines();
+
+    // 2. S'il n'y a pas assez de points, on s'arrête là
+    if (state.currentCircuit.length < 2) return;
+
+    // 3. On cherche si le circuit actuel possède une trace réelle (GPX importé)
+    const activeCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
+
+    if (activeCircuit && activeCircuit.realTrack) {
+        // CAS A : On a un tracé réel -> On demande au peintre de dessiner la ligne rouge
+        // Note : On suppose que ta fonction drawLineOnMap(coords, isReal) gère la couleur
+        drawLineOnMap(activeCircuit.realTrack, true); 
+    } else {
+        // CAS B : Pas de tracé réel -> On calcule les coordonnées pour la ligne bleue
+        const coordinates = state.currentCircuit.map(feature => [
+            feature.geometry.coordinates[1], 
+            feature.geometry.coordinates[0]
+        ]);
+        drawLineOnMap(coordinates, false); 
+    }
+}
+
+// circuit.js
+
+export async function loadCircuitById(id) {
+    const circuitToLoad = state.myCircuits.find(c => c.id === id);
+    if (!circuitToLoad) return;
+    
+    // 1. Nettoyage de l'ancien état (sans confirmation)
+    await clearCircuit(false);
+    
+    // 2. Mise à jour de l'état
+    state.activeCircuitId = id;
+    state.currentCircuit = circuitToLoad.poiIds
+        .map(poiId => state.loadedFeatures.find(f => getPoiId(f) === poiId))
+        .filter(Boolean);
+
+    // 3. Délégation à la VUE (On sort le HTML d'ici !)
+    View.updateCircuitForm(circuitToLoad);
+
+    // 4. Gestion de l'affichage selon le mode (Mobile ou PC)
+    if (isMobileView()) {
+        renderMobilePoiList(state.currentCircuit);
+    } else {
+        // Active le mode sélection si besoin et rafraîchit le panneau
+        if (!state.isSelectionModeActive) {
+            toggleSelectionMode(true);
+        } else {
+            renderCircuitPanel(); 
+        }
+        applyFilters();
+
+        // 5. Centrage Intelligent de la carte
+        if (map && (state.currentCircuit.length > 0 || circuitToLoad.realTrack)) {
+            // On priorise la trace réelle pour le centrage si elle existe
+            const pointsToFit = (circuitToLoad.realTrack && circuitToLoad.realTrack.length > 0) 
+                ? circuitToLoad.realTrack 
+                : state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+            
+            // On crée un groupe temporaire pour calculer les limites (bounds)
+            const bounds = L.latLngBounds(pointsToFit);
+            map.flyToBounds(bounds, { padding: [20, 20] });
+        }
     }
 
-    // 2. On traduit les POIs en coordonnées GPS [Latitude, Longitude] pour le Peintre
-    const coordinates = state.currentCircuit.map(feature => {
-        return [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
-    });
-
-    // 3. On donne l'ordre au Peintre
-    drawLineOnMap(coordinates, false); 
+    showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
+    
+    // On force un dernier rafraîchissement des lignes pour être sûr
+    refreshCircuitDisplay();
 }
 
 // --- À AJOUTER À LA FIN DE circuit.js ---
