@@ -67,6 +67,38 @@ export function initMap() {
 
     // Ajout de l'attribution (Bas gauche)
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
+    initMapListeners();
+}
+
+/**
+ * Initialise les écouteurs d'événements pour la carte
+ * (La carte écoute les signaux envoyés par le reste de l'appli)
+ */
+export function initMapListeners() {
+    console.log("📍 La carte est maintenant à l'écoute des changements de circuit...");
+
+    window.addEventListener('circuit:updated', (e) => {
+        const { points, activeId } = e.detail;
+
+        // 1. On nettoie tout
+        clearMapLines();
+
+        if (points.length < 2) return;
+
+        // 2. On récupère les infos fraîches depuis le state
+        const activeCircuit = state.myCircuits.find(c => c.id === activeId);
+        
+        // 3. Choix du tracé (Réel prioritaire sur Vol d'oiseau)
+        if (activeCircuit?.realTrack) {
+            drawLineOnMap(activeCircuit.realTrack, true);
+        } else {
+            const coords = points.map(f => [
+                f.geometry.coordinates[1], 
+                f.geometry.coordinates[0]
+            ]);
+            drawLineOnMap(coords, false);
+        }
+    });
 }
 
 export function createHistoryWalkIcon(category) {

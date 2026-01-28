@@ -81,16 +81,38 @@ export function updateStatsUI(data) {
 /**
  * Gestion de l'état visuel des boutons de contrôle
  */
+// circuit-view.js
+
+// circuit-view.js
+
 export function updateControlButtons(uiState) {
-    const btnLoop = document.getElementById('btn-loop-circuit');
     const btnExport = document.getElementById('btn-export-gpx');
-    const btnImport = document.getElementById('btn-import-gpx'); // On récupère l'import
-    
-    if (btnLoop) btnLoop.disabled = uiState.cannotLoop;
-    if (btnExport) btnExport.disabled = uiState.isEmpty;
-    
-    // Le bouton import est actif si on a un circuit OU si on est en train d'en créer un
-    if (btnImport) btnImport.disabled = false; 
+    const btnImport = document.getElementById('btn-import-gpx');
+    const btnClear = document.getElementById('btn-clear-circuit');
+
+    // EXPORT : Actif seulement si le circuit n'est pas vide
+    if (btnExport) {
+        btnExport.disabled = uiState.isEmpty; 
+    }
+
+    // IMPORT / MODIFIER : Toujours actif (vu précédemment)
+    if (btnImport) {
+        btnImport.disabled = false; 
+        if (uiState.isActive) {
+            btnImport.innerHTML = '<i data-lucide="edit-3"></i> Modifier';
+        } else {
+            btnImport.innerHTML = '<i data-lucide="file-up"></i> Importer';
+        }
+    }
+
+    // VIDER / FERMER
+    if (btnClear) {
+        btnClear.innerHTML = uiState.isActive ? 
+            '<i data-lucide="x"></i> Fermer' : 
+            '<i data-lucide="trash-2"></i> Réinitialiser';
+    }
+
+    if (window.lucide) window.lucide.createIcons();
 }
 
 export function updateCircuitForm(data) {
@@ -109,4 +131,18 @@ export function updateCircuitForm(data) {
         const el = document.getElementById(id);
         if (el) el.value = value || '';
     }
+}
+
+export function convertToDraft() {
+    if (!state.activeCircuitId) return;
+
+    // On détache le circuit de son ID (il devient un brouillon local)
+    state.activeCircuitId = null;
+    
+    // On informe l'utilisateur
+    showToast("Mode édition activé. La trace réelle est remplacée par le tracé prévisionnel.", "info");
+    
+    // On rafraîchit tout : le bouton redeviendra "Importer" et la ligne redeviendra bleue
+    renderCircuitPanel();
+    notifyCircuitChanged();
 }

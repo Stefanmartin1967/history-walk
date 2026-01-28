@@ -166,7 +166,7 @@ async function initializeApp() {
                         state.currentCircuit = savedDraft;
                         // On relance l'affichage du circuit avec nos NOUVELLES fonctions
                         setTimeout(() => {
-                            if (typeof refreshCircuitDisplay === 'function') refreshCircuitDisplay();
+                            if (typeof refreshCircuitDisplay === 'function') notifyCircuitChanged();;
                             if (typeof renderCircuitPanel === 'function') renderCircuitPanel();
                         }, 800);
                     }

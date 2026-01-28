@@ -17,17 +17,17 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
 
     // On crée un panier vide pour y mettre nos modifications
     const updates = [];
-    
+
     // Pour chaque lieu contenu dans ce circuit...
     circuit.poiIds.forEach(poiId => {
         const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
         if (feature) {
             // Si le lieu n'a pas encore de tiroir "userData", on lui en crée un
             if (!feature.properties.userData) feature.properties.userData = {};
-            
+
             // ACTION 1 : Mise à jour visuelle (Mémoire vive)
             feature.properties.userData.vu = isVisited;
-            
+
             // ACTION 2 : On prépare l'ordre de sauvegarde pour ce lieu précis
             updates.push({
                 poiId: poiId,
@@ -55,7 +55,7 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
     } else {
         applyFilters(); // Sur PC, on rafraîchit les filtres pour griser/cacher les lieux vus
     }
-    
+
     showToast(isVisited ? "Circuit marqué comme fait" : "Circuit marqué comme non fait", "success");
 }
 
@@ -92,14 +92,14 @@ export async function loadCircuitDraft() {
         const savedData = await getAppState(`circuitDraft_${state.currentMapId}`);
         if (savedData && Array.isArray(savedData.poiIds) && savedData.poiIds.length > 0) {
             state.currentCircuit = savedData.poiIds.map(id => state.loadedFeatures.find(feature => getPoiId(feature) === id)).filter(Boolean);
-            
+
             const circuitName = generateCircuitName();
-            if(DOM.circuitTitleText) DOM.circuitTitleText.textContent = circuitName;
-            
-            if(DOM.circuitDescription) DOM.circuitDescription.value = savedData.description || '';
-            
+            if (DOM.circuitTitleText) DOM.circuitTitleText.textContent = circuitName;
+
+            if (DOM.circuitDescription) DOM.circuitDescription.value = savedData.description || '';
+
             const tAllerTemps = document.getElementById('transport-aller-temps');
-            if(tAllerTemps && savedData.transport) {
+            if (tAllerTemps && savedData.transport) {
                 tAllerTemps.value = savedData.transport.allerTemps || '';
                 document.getElementById('transport-aller-cout').value = savedData.transport.allerCout || '';
                 document.getElementById('transport-retour-temps').value = savedData.transport.retourTemps || '';
@@ -129,9 +129,9 @@ export function toggleSelectionMode(forceValue) {
     } else {
         setSelectionMode(!state.isSelectionModeActive);
     }
-    
+
     // 2. Mise à jour du bouton
-    if(DOM.btnModeSelection) {
+    if (DOM.btnModeSelection) {
         DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
     }
 
@@ -147,36 +147,32 @@ export function toggleSelectionMode(forceValue) {
         if (state.realTrackPolyline) state.realTrackPolyline.remove();
         showToast("Mode sélection désactivé", "info");
     }
-    
+
     applyFilters();
 }
 
 // --- FONCTION POUR AJOUTER UN POINT (La version robuste) ---
+// circuit.js
+
 export function addPoiToCircuit(feature) {
-    // 1. Sécurité : Éviter d'ajouter deux fois le même point d'affilée
-    if (state.currentCircuit.length > 0 && getPoiId(feature) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) {
+    // 1. Sécurité : Si un circuit est déjà chargé (Mode Consultation)
+    if (state.activeCircuitId) {
+        showToast("Mode lecture seule. Cliquez sur 'Modifier' pour changer ce circuit.", "info");
         return; 
     }
     
-    // 2. Sécurité : Limite de points
+    // 2. Sécurités habituelles
+    if (state.currentCircuit.length > 0 && getPoiId(feature) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) return;
     if (state.currentCircuit.length >= MAX_CIRCUIT_POINTS) {
         showToast(`Maximum de ${MAX_CIRCUIT_POINTS} points atteint.`, 'warning');
         return;
     }
 
-    // 3. UI : Ouvrir le panneau et basculer sur l'onglet Circuit
-    if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'flex';
-    switchSidebarTab('circuit');
-
-    // 4. L'ACTION PROPRE : On appelle le Majordome au lieu du .push()
+    // 3. Ajout normal (Mode Brouillon)
     addPoiToCurrentCircuit(feature);
-
-    // 5. LA SAUVEGARDE : On enregistre les DONNÉES du brouillon dans IndexedDB (Le vrai tiroir)
     saveAppState('currentCircuit', state.currentCircuit);
-
-    // 6. MISE À JOUR VISUELLE
     renderCircuitPanel(); 
-    if (typeof updatePolylines === 'function') updatePolylines();
+    notifyCircuitChanged();
 }
 
 // circuit.js (extrait)
@@ -200,7 +196,7 @@ export function renderCircuitPanel() {
     });
 
     updateCircuitMetadata();
-    refreshCircuitDisplay(); // Cette fonction va maintenant choisir la bonne ligne !
+    notifyCircuitChanged();; // Cette fonction va maintenant choisir la bonne ligne !
 }
 
 export function updateCircuitMetadata(updateTitle = true) {
@@ -209,7 +205,7 @@ export function updateCircuitMetadata(updateTitle = true) {
     let isRealTrack = false;
 
     const activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
-    
+
     if (activeCircuitData && activeCircuitData.realTrack) {
         totalDistance = getRealDistance(activeCircuitData);
         isRealTrack = true;
@@ -237,11 +233,11 @@ function handleCircuitAction(action, index) {
     } else if (action === 'remove') {
         const removedFeature = state.currentCircuit[index];
         state.currentCircuit.splice(index, 1);
-        
+
         if (state.currentFeatureId !== null && getPoiId(state.loadedFeatures[state.currentFeatureId]) === getPoiId(removedFeature)) {
             state.currentFeatureId = null;
             state.currentCircuitIndex = null;
-            
+
             if (document.querySelector('#details-panel.active')) {
                 if (state.currentCircuit.length > 0) {
                     const firstFeatureId = state.loadedFeatures.indexOf(state.currentCircuit[0]);
@@ -259,10 +255,10 @@ function handleCircuitAction(action, index) {
 export function generateCircuitName() {
     if (state.currentCircuit.length === 0) return "Nouveau Circuit";
     if (state.currentCircuit.length === 1) return `Départ de ${getPoiName(state.currentCircuit[0])}`;
-    
+
     const startPoi = getPoiName(state.currentCircuit[0]);
     const endPoi = getPoiName(state.currentCircuit[state.currentCircuit.length - 1]);
-    
+
     let middlePoi = "";
     if (state.currentCircuit.length > 2) {
         const middleIndex = Math.floor((state.currentCircuit.length - 1) / 2);
@@ -274,10 +270,10 @@ export function generateCircuitName() {
             return `Boucle autour de ${startPoi} via ${middlePoi}`;
         }
         return `Boucle autour de ${startPoi}`;
-    } 
+    }
     else {
         if (middlePoi) {
-             return `Circuit de ${startPoi} à ${endPoi} via ${middlePoi}`;
+            return `Circuit de ${startPoi} à ${endPoi} via ${middlePoi}`;
         }
         return `Circuit de ${startPoi} à ${endPoi}`;
     }
@@ -285,49 +281,37 @@ export function generateCircuitName() {
 
 // --- FONCTION POUR VIDER LE BROUILLON (Version Majordome + UI) ---
 export async function clearCircuit(withConfirmation = true) {
-    const doClear = async () => {
-        // 1. Le Majordome vide la liste des points en mémoire
+    // CAS 1 : On consulte un circuit enregistré (Mode Lecture Seule)
+    if (state.activeCircuitId) {
+        // Pas d'alerte, on "ferme" juste la vue
+        toggleSelectionMode(false); // Cette fonction ferme déjà le panneau et nettoie la carte
         resetCurrentCircuit();
-
-        // 2. On réinitialise les infos du circuit
         state.activeCircuitId = null;
-        state.currentCircuitIndex = null;
-        
-        // 3. Nettoyage de l'interface (Champs texte et formulaires)
-        if(DOM.circuitDescription) DOM.circuitDescription.value = '';
-        const tAller = document.getElementById('transport-aller-temps');
-        if(tAller) {
-            tAller.value = '';
-            document.getElementById('transport-aller-cout').value = '';
-            document.getElementById('transport-retour-temps').value = '';
-            document.getElementById('transport-retour-cout').value = '';
-        }
-
-        // 4. LA LIGNE MAGIQUE : On sauvegarde ce "vide" dans le disque dur !
-        await saveAppState('currentCircuit', []);
-
-        // 5. Mise à jour de l'affichage (Panneau et Carte)
-        renderCircuitPanel();
-        refreshCircuitDisplay(); // Le nouveau Peintre efface les lignes !
-
-        if (document.querySelector('#circuit-panel.active') && DOM.circuitTitleText) {
-            DOM.circuitTitleText.textContent = 'Nouveau Circuit';
-        }
-    };
-
-    // 6. La confirmation avant d'effacer (Votre logique d'origine)
-    if (withConfirmation && state.currentCircuit.length > 0) {
-        if (confirm("Voulez-vous vraiment vider le brouillon du circuit ?")) await doClear();
-    } else if (!withConfirmation) {
-        await doClear();
+        return;
     }
+
+    // CAS 2 : On est en mode Brouillon (Modification en cours)
+    const hasPoints = state.currentCircuit.length > 0;
+    if (withConfirmation && hasPoints) {
+        if (!confirm("Voulez-vous vraiment réinitialiser ce brouillon ?")) return;
+    }
+
+    // Reset de la donnée
+    resetCurrentCircuit();
+    state.activeCircuitId = null;
+    
+    // On vide les champs texte
+    if(DOM.circuitDescription) DOM.circuitDescription.value = '';
+    
+    renderCircuitPanel();
+    notifyCircuitChanged();
 }
 
 export function navigatePoiDetails(direction) {
     if (state.currentCircuitIndex === null) return;
-    
+
     const newIndex = state.currentCircuitIndex + direction;
-    
+
     if (newIndex >= 0 && newIndex < state.currentCircuit.length) {
         const newFeature = state.currentCircuit[newIndex];
         const newFeatureId = state.loadedFeatures.indexOf(newFeature);
@@ -338,7 +322,7 @@ export function navigatePoiDetails(direction) {
 export function updateCircuitForm(data) {
     if (DOM.circuitTitleText) DOM.circuitTitleText.textContent = data.name || 'Circuit chargé';
     if (DOM.circuitDescription) DOM.circuitDescription.value = data.description || '';
-    
+
     // Remplissage des transports
     const fields = {
         'transport-aller-temps': data.transport?.allerTemps,
@@ -354,39 +338,43 @@ export function updateCircuitForm(data) {
 }
 
 // --- LE CHEF D'ORCHESTRE (Traducteur pour la carte) ---
-export function refreshCircuitDisplay() {
-    // 1. On commence par TOUT effacer sur la carte pour éviter les superpositions
-    clearMapLines();
-
-    // 2. S'il n'y a pas assez de points, on s'arrête là
-    if (state.currentCircuit.length < 2) return;
-
-    // 3. On cherche si le circuit actuel possède une trace réelle (GPX importé)
-    const activeCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
-
-    if (activeCircuit && activeCircuit.realTrack) {
-        // CAS A : On a un tracé réel -> On demande au peintre de dessiner la ligne rouge
-        // Note : On suppose que ta fonction drawLineOnMap(coords, isReal) gère la couleur
-        drawLineOnMap(activeCircuit.realTrack, true); 
-    } else {
-        // CAS B : Pas de tracé réel -> On calcule les coordonnées pour la ligne bleue
-        const coordinates = state.currentCircuit.map(feature => [
-            feature.geometry.coordinates[1], 
-            feature.geometry.coordinates[0]
-        ]);
-        drawLineOnMap(coordinates, false); 
-    }
+export function notifyCircuitChanged() {
+    const event = new CustomEvent('circuit:updated', {
+        detail: {
+            points: state.currentCircuit,
+            activeId: state.activeCircuitId
+        }
+    });
+    window.dispatchEvent(event);
 }
 
 // circuit.js
 
+export function convertToDraft() {
+    if (!state.activeCircuitId) return;
+
+    // 1. On "oublie" l'ID pour autoriser l'édition
+    state.activeCircuitId = null;
+    
+    // 2. On change le nom pour ne pas écraser l'original par mégarde plus tard
+    if (DOM.circuitTitleText) {
+        DOM.circuitTitleText.textContent += " (modifié)";
+    }
+
+    showToast("Mode édition activé. Vous pouvez maintenant modifier ce circuit.", "info");
+
+    // 3. On redessine tout (Boutons + Carte)
+    renderCircuitPanel(); 
+    notifyCircuitChanged(); // Cela va forcer le passage à la ligne bleue
+}
+
 export async function loadCircuitById(id) {
     const circuitToLoad = state.myCircuits.find(c => c.id === id);
     if (!circuitToLoad) return;
-    
+
     // 1. Nettoyage de l'ancien état (sans confirmation)
     await clearCircuit(false);
-    
+
     // 2. Mise à jour de l'état
     state.activeCircuitId = id;
     state.currentCircuit = circuitToLoad.poiIds
@@ -404,17 +392,17 @@ export async function loadCircuitById(id) {
         if (!state.isSelectionModeActive) {
             toggleSelectionMode(true);
         } else {
-            renderCircuitPanel(); 
+            renderCircuitPanel();
         }
         applyFilters();
 
         // 5. Centrage Intelligent de la carte
         if (map && (state.currentCircuit.length > 0 || circuitToLoad.realTrack)) {
             // On priorise la trace réelle pour le centrage si elle existe
-            const pointsToFit = (circuitToLoad.realTrack && circuitToLoad.realTrack.length > 0) 
-                ? circuitToLoad.realTrack 
+            const pointsToFit = (circuitToLoad.realTrack && circuitToLoad.realTrack.length > 0)
+                ? circuitToLoad.realTrack
                 : state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
-            
+
             // On crée un groupe temporaire pour calculer les limites (bounds)
             const bounds = L.latLngBounds(pointsToFit);
             map.flyToBounds(bounds, { padding: [20, 20] });
@@ -422,9 +410,9 @@ export async function loadCircuitById(id) {
     }
 
     showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
-    
+
     // On force un dernier rafraîchissement des lignes pour être sûr
-    refreshCircuitDisplay();
+    notifyCircuitChanged();;
 }
 
 // --- À AJOUTER À LA FIN DE circuit.js ---
@@ -438,8 +426,8 @@ export function setupCircuitEventListeners() {
         // On clone le bouton pour supprimer les vieux bugs d'écouteurs
         const newBtn = DOM.btnExportGpx.cloneNode(true);
         DOM.btnExportGpx.parentNode.replaceChild(newBtn, DOM.btnExportGpx);
-        DOM.btnExportGpx = newBtn; 
-        
+        DOM.btnExportGpx = newBtn;
+
         DOM.btnExportGpx.addEventListener('click', () => {
             console.log("Clic sur Exporter GPX");
             saveAndExportCircuit();
@@ -449,32 +437,43 @@ export function setupCircuitEventListeners() {
     // 2. Bouton IMPORTER GPX
     if (DOM.btnImportGpx) {
         DOM.btnImportGpx.addEventListener('click', () => {
-            console.log("Clic sur Importer GPX");
+            console.log("Clic sur Import/Modifier. ID Actif :", state.activeCircuitId);
+
             if (state.activeCircuitId) {
-                state.circuitIdToImportFor = state.activeCircuitId;
-                if(DOM.gpxImporter) DOM.gpxImporter.click();
+                // CAS 1 : On est en mode consultation -> On bascule en brouillon
+                convertToDraft();
             } else {
-                // Création d'un nouveau circuit via import
-                if(DOM.gpxImporter) DOM.gpxImporter.click();
+                // CAS 2 : On est en mode création -> On ouvre l'import GPX
+                if (DOM.gpxImporter) {
+                    DOM.gpxImporter.click();
+                } else {
+                    console.error("Élément DOM gpxImporter introuvable");
+                }
             }
         });
     }
 
+    // BOUTON VIDER / FERMER
+    if (DOM.btnClearCircuit) {
+        DOM.btnClearCircuit.addEventListener('click', () => {
+            clearCircuit(true);
+        });
+    }
     // 3. Bouton BOUCLER
     if (DOM.btnLoopCircuit) {
         DOM.btnLoopCircuit.addEventListener('click', () => {
             console.log("Clic sur Boucler");
             if (state.currentCircuit.length > 0 && state.currentCircuit.length < MAX_CIRCUIT_POINTS) {
                 // Ajoute le 1er point à la fin pour fermer la boucle
-                addPoiToCircuit(state.currentCircuit[0]); 
+                addPoiToCircuit(state.currentCircuit[0]);
             } else {
                 showToast("Impossible de boucler (Circuit vide ou plein)", "warning");
             }
         });
     }
-    
+
     // 4. Description (Input texte)
-    if(DOM.circuitDescription) {
+    if (DOM.circuitDescription) {
         DOM.circuitDescription.addEventListener('input', saveCircuitDraft);
     }
 }
