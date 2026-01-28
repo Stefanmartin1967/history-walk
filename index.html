@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="maritime">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>History Walk</title>
-        
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css?v=1.4">
     <link rel="icon" href="/favicon.ico" />
@@ -12,22 +13,28 @@
 
 <body>
 
-    <div id="backup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
-        <div style="background: var(--surface, #fff); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
+    <div id="backup-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div
+            style="background: var(--surface, #fff); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
             <h2 style="margin-top: 0; color: var(--ink, #333);">Sauvegarder</h2>
-            <p style="color: var(--ink-light, #666); margin-bottom: 20px;">Choisissez le format de votre sauvegarde :</p>
-            
-            <button id="btn-backup-full" class="action-button" style="width: 100%; margin-bottom: 10px; background: var(--brand, #007bff); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <p style="color: var(--ink-light, #666); margin-bottom: 20px;">Choisissez le format de votre sauvegarde :
+            </p>
+
+            <button id="btn-backup-full" class="action-button"
+                style="width: 100%; margin-bottom: 10px; background: var(--brand, #007bff); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <i data-lucide="image"></i> Complet (PC)
                 <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Avec Photos</span>
             </button>
-    
-            <button id="btn-backup-lite" class="action-button" style="width: 100%; margin-bottom: 15px; background: var(--ok, #28a745); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+
+            <button id="btn-backup-lite" class="action-button"
+                style="width: 100%; margin-bottom: 15px; background: var(--ok, #28a745); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <i data-lucide="file-text"></i> Texte Seul (Mobile)
                 <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Rapide</span>
             </button>
-    
-            <button id="btn-backup-cancel" style="background: transparent; border: 1px solid var(--border, #ccc); color: var(--ink-light, #666); padding: 8px 20px; border-radius: 6px; cursor: pointer;">
+
+            <button id="btn-backup-cancel"
+                style="background: transparent; border: 1px solid var(--border, #ccc); color: var(--ink-light, #666); padding: 8px 20px; border-radius: 6px; cursor: pointer;">
                 Annuler
             </button>
         </div>
@@ -38,52 +45,67 @@
             <h1 class="app-title" id="app-title">History Walk</h1>
         </div>
         <div class="topbar-center">
-             <div class="search-container">
+            <div class="search-container">
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="search" id="search-input" placeholder="Rechercher un lieu...">
                 <div class="search-results" id="search-results" style="display: none;"></div>
             </div>
         </div>
-        <a href="fusion.html" target="_blank" class="btn" title="Ouvrir la Console de Fusion" style="text-decoration: none; display: flex; align-items: center; gap: 6px;">
-        <i data-lucide="combine"></i><span>Fusion</span>
+        <a href="fusion.html" target="_blank" class="btn" title="Ouvrir la Console de Fusion"
+            style="text-decoration: none; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="combine"></i><span>Fusion</span>
         </a>
         <div class="topbar-right">
-            
-            <button class="btn" id="btn-open-geojson" title="Ouvrir une carte"><i data-lucide="folder-open"></i><span>Ouvrir</span></button>
+
+            <button class="btn" id="btn-open-geojson" title="Ouvrir une carte"><i
+                    data-lucide="folder-open"></i><span>Ouvrir</span></button>
             <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
-            
-            <button class="btn" id="btn-import-photos" title="Importation Photos GPS (PC)"><i data-lucide="camera"></i><span>Photos GPS</span></button>
+
+            <button class="btn" id="btn-import-photos" title="Importation Photos GPS (PC)"><i
+                    data-lucide="camera"></i><span>Photos GPS</span></button>
             <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
 
-            <button class="btn" id="btn-save-mobile" title="Sauvegarde Mobile (Sans photos)" disabled><i data-lucide="save"></i><span>Mobile</span></button>
-            
-            <button class="btn" id="btn-save-full" title="Sauvegarde PC (Avec photos)" disabled><i data-lucide="save-all"></i><span>PC</span></button>
+            <button class="btn" id="btn-save-mobile" title="Sauvegarde Mobile (Sans photos)" disabled><i
+                    data-lucide="save"></i><span>Mobile</span></button>
 
-            <button class="btn" id="btn-restore-data" title="Restaurer une sauvegarde" disabled><i data-lucide="folder-down"></i><span>Restaurer</span></button>
-            <input type="file" id="restore-loader" accept=".json,.geojson,.txt,application/json,text/plain,*/*" style="display:none;">
+            <button class="btn" id="btn-save-full" title="Sauvegarde PC (Avec photos)" disabled><i
+                    data-lucide="save-all"></i><span>PC</span></button>
+
+            <button class="btn" id="btn-restore-data" title="Restaurer une sauvegarde" disabled><i
+                    data-lucide="folder-down"></i><span>Restaurer</span></button>
+            <input type="file" id="restore-loader" accept=".json,.geojson,.txt,application/json,text/plain,*/*"
+                style="display:none;">
 
             <div class="separator"></div>
 
-            <button class="btn" id="btn-mode-selection" title="Mode Sélection (Édition/Circuits)"><i data-lucide="mouse-pointer-click"></i><span>Sélection</span></button>
-            
-            <button class="btn" id="btn-filter-restaurants" title="Restaurants uniquement"><i data-lucide="utensils-crossed"></i><span>Restaurants</span></button>
-            
-            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les lieux visités"><i data-lucide="eye"></i><span>Visités</span></button>
-            
-            <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i data-lucide="calendar-check"></i><span>Planifiés</span></button>
-            
+            <button class="btn" id="btn-mode-selection" title="Mode Sélection (Édition/Circuits)"><i
+                    data-lucide="mouse-pointer-click"></i><span>Sélection</span></button>
+
+            <button class="btn" id="btn-filter-restaurants" title="Restaurants uniquement"><i
+                    data-lucide="utensils-crossed"></i><span>Restaurants</span></button>
+
+            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les lieux visités"><i
+                    data-lucide="eye"></i><span>Visités</span></button>
+
+            <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i
+                    data-lucide="calendar-check"></i><span>Planifiés</span></button>
+
             <div class="zones-container">
-                <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span id="zonesLabel">Zone</span></button>
+                <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span
+                        id="zonesLabel">Zone</span></button>
                 <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
             </div>
 
-            <button class="btn" id="btn-my-circuits" title="Gérer mes circuits"><i data-lucide="route"></i><span>Circuits</span></button>
+            <button class="btn" id="btn-my-circuits" title="Gérer mes circuits"><i
+                    data-lucide="route"></i><span>Circuits</span></button>
 
             <div class="separator"></div>
 
-            <button class="btn" id="btn-export-pdf" title="Exporter en PDF (Bientôt)" disabled><i data-lucide="file-down"></i><span>PDF</span></button>
-            
-            <button class="btn" id="btn-theme-selector" title="Changer le thème"><i data-lucide="palette"></i><span>Thème</span></button>
+            <button class="btn" id="btn-export-pdf" title="Exporter en PDF (Bientôt)" disabled><i
+                    data-lucide="file-down"></i><span>PDF</span></button>
+
+            <button class="btn" id="btn-theme-selector" title="Changer le thème"><i
+                    data-lucide="palette"></i><span>Thème</span></button>
         </div>
     </div>
 
@@ -103,7 +125,8 @@
                 </div>
 
                 <div class="circuit-description-container">
-                    <textarea id="circuit-description" rows="3" placeholder="Ajoutez une description pour votre circuit..."></textarea>
+                    <textarea id="circuit-description" rows="3"
+                        placeholder="Ajoutez une description pour votre circuit..."></textarea>
                 </div>
                 <div class="header-controls">
                     <div class="controls-group"></div>
@@ -114,7 +137,8 @@
                         <i id="distance-icon" data-lucide="bird" title="Distance à vol d'oiseau"></i>
                     </div>
                     <div class="controls-group">
-                        <button class="header-btn" id="close-circuit-panel-button" title="Fermer"><i data-lucide="x"></i></button>
+                        <button class="header-btn" id="close-circuit-panel-button" title="Fermer"><i
+                                data-lucide="x"></i></button>
                     </div>
                 </div>
                 <div class="transport-info">
@@ -125,7 +149,7 @@
                             <span>min</span>
                         </div>
                         <div class="transport-field">
-                             <input type="number" id="transport-aller-cout" min="0" max="999" placeholder="0">
+                            <input type="number" id="transport-aller-cout" min="0" max="999" placeholder="0">
                             <span>TND</span>
                         </div>
                     </div>
@@ -136,51 +160,56 @@
                             <span>min</span>
                         </div>
                         <div class="transport-field">
-                             <input type="number" id="transport-retour-cout" min="0" max="999" placeholder="0">
+                            <input type="number" id="transport-retour-cout" min="0" max="999" placeholder="0">
                             <span>TND</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="steps" id="circuit-steps-list">
-                <p class="empty-list-info">Activez le mode sélection et cliquez sur la carte pour ajouter des points d'intérêt.</p>
+                <p class="empty-list-info">Activez le mode sélection et cliquez sur la carte pour ajouter des points
+                    d'intérêt.</p>
             </div>
             <div class="panel-footer">
-                <button class="footer-btn pill" id="btn-loop-circuit"><i data-lucide="repeat"></i> <span>Boucler</span></button>
-                <button class="footer-btn pill" id="btn-clear-circuit"><i data-lucide="trash-2"></i> <span>Vider</span></button>
-                <button class="footer-btn pill" id="btn-import-gpx" disabled><i data-lucide="upload-cloud"></i> <span>Importer GPX</span></button>
-                <button class="footer-btn pill" id="btn-export-gpx" disabled><i data-lucide="download-cloud"></i> <span>Export GPX</span></button>
+                <button class="footer-btn pill" id="btn-loop-circuit"><i data-lucide="repeat"></i>
+                    <span>Boucler</span></button>
+                <button class="footer-btn pill" id="btn-clear-circuit"><i data-lucide="trash-2"></i>
+                    <span>Vider</span></button>
+                <button class="footer-btn pill" id="btn-import-gpx" disabled><i data-lucide="upload-cloud"></i>
+                    <span>Importer GPX</span></button>
+                <button class="footer-btn pill" id="btn-export-gpx" disabled><i data-lucide="download-cloud"></i>
+                    <span>Export GPX</span></button>
             </div>
         </div>
 
         <div class="sidebar-panel" id="details-panel" data-panel="details">
-            </div>
+        </div>
     </div>
 
     <div id="mobile-container">
         <main id="mobile-main-container"></main>
-        
+
         <nav id="mobile-nav" class="mobile-nav">
             <button class="mobile-nav-btn" data-view="circuits">
                 <i data-lucide="route"></i>
                 <span>Circuits</span>
             </button>
-    
+
             <button class="mobile-nav-btn" data-view="search">
                 <i data-lucide="search"></i>
                 <span>Rech.</span>
             </button>
-    
+
             <button class="mobile-nav-btn" id="btn-mobile-filter">
-            <i data-lucide="list"></i>
-            <span>Filtre</span>
+                <i data-lucide="list"></i>
+                <span>Filtre</span>
             </button>
-    
+
             <button class="mobile-nav-btn" data-view="add-poi">
                 <i data-lucide="plus-circle"></i>
                 <span>Ajout</span>
             </button>
-    
+
             <button class="mobile-nav-btn" data-view="actions">
                 <i data-lucide="settings"></i>
                 <span>Menu</span>
@@ -206,19 +235,22 @@
                 <button id="close-add-poi-modal" class="header-btn"><i data-lucide="x"></i></button>
             </div>
             <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; padding-top: 20px;">
-                
+
                 <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
                     <label for="new-poi-name" style="font-weight: 600;">Nom du lieu</label>
-                    <input type="text" id="new-poi-name" class="editable-input" placeholder="Ex: Mosquée du centre..." style="padding: 12px;">
+                    <input type="text" id="new-poi-name" class="editable-input" placeholder="Ex: Mosquée du centre..."
+                        style="padding: 12px;">
                 </div>
 
                 <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
                     <label for="new-poi-category" style="font-weight: 600;">Catégorie</label>
-                    <select id="new-poi-category" class="editable-input" style="padding: 12px; background: var(--surface);">
-                        </select>
+                    <select id="new-poi-category" class="editable-input"
+                        style="padding: 12px; background: var(--surface);">
+                    </select>
                 </div>
 
-                <div style="font-size: 12px; color: var(--ink-soft); background: var(--surface-muted); padding: 8px; border-radius: 8px;">
+                <div
+                    style="font-size: 12px; color: var(--ink-soft); background: var(--surface-muted); padding: 8px; border-radius: 8px;">
                     📍 GPS : <span id="new-poi-coords">En attente...</span>
                 </div>
 
@@ -237,9 +269,9 @@
         </div>
         <textarea id="editor-textarea"></textarea>
     </div>
-    
+
     <input type="file" id="gpx-importer" accept=".gpx" style="display: none;">
-    <input type="file" id="destination-loader" style="display: none;"> 
+    <input type="file" id="destination-loader" style="display: none;">
     <div id="loader-overlay" class="loader-overlay" style="display: none;">
         <div class="loader-spinner"></div>
     </div>
@@ -256,5 +288,17 @@
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <script src="https://unpkg.com/lucide@0.395.0/dist/umd/lucide.min.js"></script>
     <script type="module" src="/src/main.js"></script>
+    <style>
+        #bmc-wbtn {
+            right: auto !important; /* Annule la droite */
+            left: 8px !important;  /* Force la gauche */
+            bottom: 60px !important; /* Remonte le bouton (avant c'était 18px) */
+        }
+    </style>
+    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+        data-id="history_walk" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FFDD00"
+        data-position="Left" data-x_margin="18" data-y_margin="18"></script>
+
 </body>
+
 </html>
