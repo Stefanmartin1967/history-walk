@@ -10,6 +10,10 @@ import { isMobileView } from './mobile.js';
  * Logique métier pour supprimer un circuit
  * Gère la base de données, l'état mémoire et les calculs GPX
  */
+/**
+ * Logique métier pour supprimer un circuit
+ * Gère la base de données, l'état mémoire et les calculs GPX
+ */
 export async function performCircuitDeletion(id) {
     try {
         // 1. Suppression physique dans la base de données
@@ -23,18 +27,27 @@ export async function performCircuitDeletion(id) {
             await clearCircuit(false);
         }
         
-        // 4. Recalcul technique des compteurs
+        // 4. Recalcul technique des compteurs pour les marqueurs de la carte
         await recalculatePlannedCountersForMap(state.currentMapId);
         
-        // 5. Mise à jour des filtres si on est sur ordinateur
+        // 5. Mise à jour des filtres (uniquement sur Desktop)
         if (!isMobileView()) {
             applyFilters();
         }
         
-        return { success: true };
+        // 6. Succès : On renvoie l'info ET le texte à afficher
+        return { 
+            success: true, 
+            message: "Le circuit a été définitivement supprimé." 
+        };
+
     } catch (error) {
+        // En cas de panne technique (ex: base de données verrouillée)
         console.error("Erreur technique lors de la suppression:", error);
-        return { success: false, error };
+        return { 
+            success: false, 
+            message: "Erreur technique : impossible de supprimer le circuit." 
+        };
     }
 }
 
@@ -86,5 +99,18 @@ export function getZonesData() {
         totalVisible: preFilteredFeatures.length,
         zoneCounts: zoneCounts,
         sortedZones: Object.keys(zoneCounts).sort()
+    };
+}
+
+/**
+ * Calcule le nouveau temps pour un POI (Heures/Minutes)
+ */
+export function calculateAdjustedTime(currentH, currentM, minutesToAdd) {
+    let totalMinutes = (parseInt(currentH) || 0) * 60 + (parseInt(currentM) || 0) + minutesToAdd;
+    if (totalMinutes < 0) totalMinutes = 0;
+    
+    return {
+        h: Math.floor(totalMinutes / 60),
+        m: totalMinutes % 60
     };
 }

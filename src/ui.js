@@ -10,7 +10,7 @@ import { showToast } from './toast.js';
 import { changePhoto, setCurrentPhotos, currentPhotoList, currentPhotoIndex, handlePhotoUpload, handlePhotoDeletion } from './photo-manager.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
 import { escapeXml } from './gpx.js';
-import { performCircuitDeletion, toggleCircuitVisitedStatus, getZonesData } from './circuit-actions.js';
+import { performCircuitDeletion, toggleCircuitVisitedStatus, getZonesData, calculateAdjustedTime } from './circuit-actions.js';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
@@ -321,16 +321,20 @@ if (chkInc) {
     if (isMobileView()) {
         const moveBtn = document.getElementById('mobile-move-poi-btn');
         if (moveBtn) {
-            moveBtn.addEventListener('click', () => {
+            moveBtn.addEventListener('click', async () => {
                 if (confirm("Mettre à jour avec votre position GPS actuelle ?")) {
-                    updatePoiPosition(poiId);
+                    // On délègue la mise à jour et on affiche le toast
+                    await updatePoiPosition(poiId);
+                    showToast("Position mise à jour", "success");
                 }
             });
         }
+        // ON GARDE CES BOUTONS : ils sont essentiels pour la navigation mobile
         document.getElementById('details-prev-btn')?.addEventListener('click', () => navigatePoiDetails(-1));
         document.getElementById('details-next-btn')?.addEventListener('click', () => navigatePoiDetails(1));
         document.getElementById('details-close-btn')?.addEventListener('click', () => closeDetailsPanel(true));
     } else {
+        // ON GARDE CE BLOC : il gère la navigation sur ordinateur
         document.getElementById('prev-poi-button')?.addEventListener('click', () => navigatePoiDetails(-1));
         document.getElementById('next-poi-button')?.addEventListener('click', () => navigatePoiDetails(1));
         document.getElementById('close-details-button')?.addEventListener('click', () => closeDetailsPanel());
@@ -440,22 +444,21 @@ export function adjustTime(minutesToAdd) {
     const trigger = document.getElementById('panel-time-display');
     if (!trigger) return;
 
-    let h = parseInt(trigger.dataset.hours, 10) || 0;
-    let m = parseInt(trigger.dataset.minutes, 10) || 0;
-    
-    let totalMinutes = h * 60 + m + minutesToAdd;
-    if (totalMinutes < 0) totalMinutes = 0;
-    
-    h = Math.floor(totalMinutes / 60);
-    m = totalMinutes % 60;
+    // On délègue le calcul mathématique au spécialiste
+    const newTime = calculateAdjustedTime(
+        trigger.dataset.hours, 
+        trigger.dataset.minutes, 
+        minutesToAdd
+    );
     
     const poiId = getPoiId(state.loadedFeatures[state.currentFeatureId]);
-    updatePoiData(poiId, 'timeH', h);
-    updatePoiData(poiId, 'timeM', m);
+    updatePoiData(poiId, 'timeH', newTime.h);
+    updatePoiData(poiId, 'timeM', newTime.m);
     
-    trigger.textContent = `${String(h).padStart(2, '0')}h${String(m).padStart(2, '0')}`;
-    trigger.dataset.hours = h;
-    trigger.dataset.minutes = m;
+    // ui.js ne fait plus que l'affichage visuel
+    trigger.textContent = `${String(newTime.h).padStart(2, '0')}h${String(newTime.m).padStart(2, '0')}`;
+    trigger.dataset.hours = newTime.h;
+    trigger.dataset.minutes = newTime.m;
 }
 
 export function populateZonesMenu() {
