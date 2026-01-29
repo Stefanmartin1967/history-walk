@@ -47,3 +47,44 @@ export async function toggleCircuitVisitedStatus(circuitId, isChecked) {
         return { success: false };
     }
 }
+
+import { getPoiId } from './data.js'; // Assurez-vous d'ajouter getPoiId aux imports en haut
+
+/**
+ * Prépare les données des zones : filtre les POI et compte les occurrences par zone
+ */
+export function getZonesData() {
+    if (!state.loadedFeatures || state.loadedFeatures.length === 0) return null;
+
+    // 1. Filtrage (La logique "Métier")
+    const preFilteredFeatures = state.loadedFeatures.filter(feature => {
+        const poiId = getPoiId(feature);
+
+        // Filtre Liste Noire
+        if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) return false;
+
+        const props = { ...feature.properties, ...feature.properties.userData };
+        
+        // Filtres d'état (Restaurants, Vus, Planifiés)
+        if (state.activeFilters.restaurants && props.Catégorie !== 'Restaurant') return false;
+        if (state.activeFilters.vus && props.vu && !props.incontournable) return false;
+        
+        const isPlanned = (props.planifieCounter || 0) > 0;
+        if (state.activeFilters.planifies && isPlanned && !props.incontournable) return false;
+        
+        return true;
+    });
+
+    // 2. Comptage par zone
+    const zoneCounts = preFilteredFeatures.reduce((acc, feature) => {
+        const zone = feature.properties.Zone;
+        if (zone) acc[zone] = (acc[zone] || 0) + 1;
+        return acc;
+    }, {});
+
+    return {
+        totalVisible: preFilteredFeatures.length,
+        zoneCounts: zoneCounts,
+        sortedZones: Object.keys(zoneCounts).sort()
+    };
+}

@@ -10,7 +10,7 @@ import { showToast } from './toast.js';
 import { changePhoto, compressImage, setCurrentPhotos, currentPhotoList, currentPhotoIndex } from './photo-manager.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
 import { escapeXml } from './gpx.js';
-import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-actions.js';
+import { performCircuitDeletion, toggleCircuitVisitedStatus, getZonesData } from './circuit-actions.js';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
@@ -467,58 +467,22 @@ export function adjustTime(minutesToAdd) {
 
 export function populateZonesMenu() {
     const zonesMenu = document.getElementById('zonesMenu');
+    const zonesLabel = document.getElementById('zonesLabel');
     if (!zonesMenu) return;
 
-    const zonesLabel = document.getElementById('zonesLabel');
     zonesMenu.innerHTML = '';
 
-    if (!state.loadedFeatures || state.loadedFeatures.length === 0) {
-        zonesMenu.innerHTML = '<button disabled>Aucune zone</button>';
-        return;
-    }
+    // On demande les données calculées au spécialiste
+    const data = getZonesData();
 
-    // Pré-calcul des zones
-    // Pré-calcul des zones
-    const preFilteredFeatures = state.loadedFeatures.filter(feature => {
-        
-        // --- NOUVEAU BLOC DE FILTRE (Début) ---
-        // 1. On récupère l'ID du POI
-        const poiId = getPoiId(feature);
-
-        // 2. On vérifie s'il est dans la "liste noire" (hiddenPoiIds)
-        if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) {
-            return false; // Si oui, on l'ignore totalement du comptage !
-        }
-        // --- NOUVEAU BLOC DE FILTRE (Fin) ---
-
-        const props = { ...feature.properties, ...feature.properties.userData };
-        
-        // La suite de tes filtres reste identique...
-        if (state.activeFilters.restaurants && props.Catégorie !== 'Restaurant') return false;
-        if (state.activeFilters.vus && props.vu && !props.incontournable) return false;
-        const isPlanned = (props.planifieCounter || 0) > 0;
-        if (state.activeFilters.planifies && isPlanned && !props.incontournable) return false;
-        return true;
-    });
-
-    const zoneCounts = preFilteredFeatures.reduce((acc, feature) => {
-        const zone = feature.properties.Zone;
-        if (zone) {
-            acc[zone] = (acc[zone] || 0) + 1;
-        }
-        return acc;
-    }, {});
-
-    const sortedZones = Object.keys(zoneCounts).sort();
-
-    if (sortedZones.length === 0) {
+    if (!data || data.sortedZones.length === 0) {
         zonesMenu.innerHTML = '<button disabled>Aucune zone visible</button>';
         return;
     }
 
-    // Bouton "Toutes"
+    // Création du bouton "Toutes"
     const allZonesBtn = document.createElement('button');
-    allZonesBtn.textContent = `Toutes les zones (${preFilteredFeatures.length})`;
+    allZonesBtn.textContent = `Toutes les zones (${data.totalVisible})`;
     allZonesBtn.onclick = () => {
         state.activeFilters.zone = null;
         if(zonesLabel) zonesLabel.textContent = 'Zone';
@@ -527,10 +491,10 @@ export function populateZonesMenu() {
     };
     zonesMenu.appendChild(allZonesBtn);
 
-    // Boutons individuels
-    sortedZones.forEach(zone => {
+    // Création des boutons par zone
+    data.sortedZones.forEach(zone => {
         const zoneBtn = document.createElement('button');
-        zoneBtn.textContent = `${zone} (${zoneCounts[zone]})`;
+        zoneBtn.textContent = `${zone} (${data.zoneCounts[zone]})`;
         zoneBtn.onclick = () => {
             state.activeFilters.zone = zone;
             if(zonesLabel) zonesLabel.textContent = zone;
