@@ -9,11 +9,11 @@ import {
     openCircuitsModal,
     closeCircuitsModal,
     handleCircuitsListClick,
-    showToast,
     populateZonesMenu,
     closeDetailsPanel,
     populateAddPoiModalCategories
 } from './ui.js';
+import { showToast } from './toast.js';
 
 import {
     toggleSelectionMode,

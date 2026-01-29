@@ -2,7 +2,7 @@
 import { initDB } from './database.js';
 import { downloadFile } from './utils.js';
 import { state } from './state.js';
-import { showToast } from './ui.js';
+import { showToast } from './toast.js';
 
 async function getDbConnection() {
     await initDB();

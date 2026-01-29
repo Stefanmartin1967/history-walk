@@ -1,7 +1,8 @@
 // fileManager.js
 import { state } from './state.js';
 import { getPoiId, displayGeoJSON } from './data.js';
-import { showToast, DOM, closeDetailsPanel } from './ui.js';
+import { DOM, closeDetailsPanel } from './ui.js';
+import { showToast } from './toast.js';
 import { saveAppState, savePoiData, saveCircuit, clearStore } from './database.js';
 import { processImportedGpx } from './gpx.js';
 // Import pour contrôler la vue mobile

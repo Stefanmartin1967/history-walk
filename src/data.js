@@ -2,7 +2,7 @@
 // --- 1. IMPORTS ---
 import { state } from './state.js';
 import { map, createHistoryWalkIcon, handleMarkerClick } from './map.js';
-import { populateZonesMenu, DOM, openDetailsPanel, showToast } from './ui.js';
+import { populateZonesMenu, DOM, openDetailsPanel, } from './ui.js';
 import { loadCircuitDraft } from './circuit.js';
 import { 
     getAllPoiDataForMap, 
@@ -13,6 +13,7 @@ import {
 } from './database.js';
 import { logModification } from './logger.js';
 import { isMobileView, renderMobilePoiList } from './mobile.js';
+import { showToast } from './toast.js';
 
 // --- UTILITAIRES ---
 

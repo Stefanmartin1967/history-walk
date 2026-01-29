@@ -3,7 +3,7 @@ import { state, APP_VERSION } from './state.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { generateCircuitName } from './circuit.js';
 import { getAllPoiDataForMap, getAllCircuitsForMap, saveCircuit, batchSavePoiData, getAppState } from './database.js';
-import { showToast } from './ui.js';
+import { showToast } from './toast.js';;
 import { downloadFile } from './utils.js';
 import { updatePolylines } from './map.js';
 

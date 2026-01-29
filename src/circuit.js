@@ -1,6 +1,6 @@
 // circuit.js
 import { state, MAX_CIRCUIT_POINTS, setSelectionMode, addPoiToCurrentCircuit, resetCurrentCircuit } from './state.js';
-import { DOM, openDetailsPanel, switchSidebarTab, showToast } from './ui.js';
+import { DOM, openDetailsPanel, switchSidebarTab } from './ui.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { drawLineOnMap, clearMapLines, getRealDistance, getOrthodromicDistance, map } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';
@@ -8,6 +8,7 @@ import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './data
 // import { saveUserData } from './fileManager.js'; // <--- RETRAIT (C'était la cause du bug de fenêtre)
 import { isMobileView, renderMobilePoiList } from './mobile.js';
 import * as View from './circuit-view.js';
+import { showToast } from './toast.js';
 
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {

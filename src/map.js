@@ -1,7 +1,8 @@
 // map.js
 import { state } from './state.js';
 import { addPoiToCircuit } from './circuit.js';
-import { openDetailsPanel, showToast } from './ui.js'; // <-- Ajouter l'import de l'UI
+import { openDetailsPanel } from './ui.js'; // <-- Ajouter l'import de l'UI
+import { showToast } from './toast.js';
 
 export let map;
 

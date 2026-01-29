@@ -1,6 +1,6 @@
 // mobile.js
 import { state } from './state.js';
-import { DOM, showToast, openDetailsPanel } from './ui.js';
+import { DOM, openDetailsPanel } from './ui.js';
 import { getPoiId, getPoiName, addPoiFeature } from './data.js';
 import { loadCircuitById, clearCircuit, setCircuitVisitedState } from './circuit.js'; 
 import { createIcons, icons } from 'lucide';
@@ -9,6 +9,7 @@ import { deleteDatabase, saveAppState } from './database.js';
 import { getIconForFeature } from './map.js';
 import { isPointInPolygon } from './utils.js';
 import { zonesData } from './zones.js';
+import { showToast } from './toast.js';
 
 let currentView = 'circuits'; 
 
