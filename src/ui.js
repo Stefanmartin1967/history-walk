@@ -2,15 +2,15 @@
 import { state, POI_CATEGORIES } from './state.js';
 import { getPoiId, getPoiName, updatePoiData, applyFilters } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
-import { loadCircuitById, clearCircuit, navigatePoiDetails, setCircuitVisitedState } from './circuit.js';
-import { escapeXml, recalculatePlannedCountersForMap } from './gpx.js';
+import { loadCircuitById, clearCircuit, navigatePoiDetails } from './circuit.js';
 import { map } from './map.js';
-import { deleteCircuitById } from './database.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
 import { changePhoto, compressImage, setCurrentPhotos, currentPhotoList, currentPhotoIndex } from './photo-manager.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
+import { escapeXml } from './gpx.js';
+import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-actions.js';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
@@ -617,34 +617,35 @@ export async function handleCircuitsListClick(e) {
         const circuitId = checkbox.dataset.id;
         const isChecked = checkbox.checked;
         
-        // Timeout pour laisser l'UI changer visuellement avant le confirm
-        setTimeout(async () => {
-             const confirmMsg = isChecked 
-                ? "Marquer tous les lieux de ce circuit comme visités ?" 
-                : "Décocher tous les lieux (remettre à 'Non visité') ?";
+        const confirmMsg = isChecked 
+            ? "Marquer tous les lieux de ce circuit comme visités ?" 
+            : "Décocher tous les lieux (remettre à 'Non visité') ?";
              
-             if(confirm(confirmMsg)) {
-                 await setCircuitVisitedState(circuitId, isChecked);
-             } else {
-                 checkbox.checked = !isChecked; // Annulation visuelle
-             }
-        }, 50);
+        if (confirm(confirmMsg)) {
+            // On appelle notre nouveau spécialiste
+            await toggleCircuitVisitedStatus(circuitId, isChecked);
+            // On rafraîchit l'affichage pour que la case reste cochée
+            renderCircuitsList();
+        } else {
+            // Si l'utilisateur annule, on remet la case dans son état précédent
+            checkbox.checked = !isChecked;
+        }
     }
 }
 
 async function deleteCircuit(id) {
+    // L'UI gère l'interaction humaine
     if (!confirm("Supprimer ce circuit ?")) return;
-    try {
-        await deleteCircuitById(id);
-        state.myCircuits = state.myCircuits.filter(c => c.id !== id);
-        if (state.activeCircuitId === id) await clearCircuit(false);
-        await recalculatePlannedCountersForMap(state.currentMapId);
+
+    // L'UI délègue la corvée au spécialiste
+    const result = await performCircuitDeletion(id);
+
+    if (result.success) {
+        // L'UI s'occupe de mettre à jour le visuel
         renderCircuitsList();
-        if(!isMobileView()) applyFilters();
         showToast("Circuit supprimé.", 'success');
-    } catch (error) {
-        console.error("Erreur suppression:", error);
-        showToast("Erreur suppression.", 'error');
+    } else {
+        showToast("Erreur lors de la suppression.", 'error');
     }
 }
 
