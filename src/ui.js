@@ -1,13 +1,13 @@
 // ui.js
 import { state, POI_CATEGORIES } from './state.js';
-import { getPoiId, getPoiName, updatePoiData, applyFilters } from './data.js';
+import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { loadCircuitById, clearCircuit, navigatePoiDetails } from './circuit.js';
 import { map } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
-import { changePhoto, compressImage, setCurrentPhotos, currentPhotoList, currentPhotoIndex } from './photo-manager.js';
+import { changePhoto, setCurrentPhotos, currentPhotoList, currentPhotoIndex, handlePhotoUpload, handlePhotoDeletion } from './photo-manager.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
 import { escapeXml } from './gpx.js';
 import { performCircuitDeletion, toggleCircuitVisitedStatus, getZonesData } from './circuit-actions.js';
@@ -261,26 +261,17 @@ if (chkInc) {
         photoInput.addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             if(files.length === 0) return;
+            
             showToast("Traitement des photos...", "info");
             
-            const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-            const poiData = feature.properties.userData || {};
-            const currentPhotos = poiData.photos || [];
+            // On demande au manager de gérer toute la corvée (compression + sauvegarde)
+            const result = await handlePhotoUpload(poiId, files);
             
-            const newPhotos = [];
-            for(const file of files) {
-                try {
-                    const compressed = await compressImage(file);
-                    newPhotos.push(compressed);
-                } catch(err) {
-                    console.error("Erreur image", err);
-                }
+            if (result.success) {
+                showToast(`${result.count} photo(s) ajoutée(s).`, "success");
+                // On rafraîchit le panneau pour voir les nouvelles photos
+                openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
             }
-
-            const updatedPhotos = [...currentPhotos, ...newPhotos];
-            await updatePoiData(poiId, 'photos', updatedPhotos);
-            showToast(`${newPhotos.length} photo(s) ajoutée(s).`, "success");
-            openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
         });
     }
 
@@ -288,21 +279,19 @@ if (chkInc) {
     document.querySelectorAll('.photo-item .img-preview').forEach(img => {
         img.addEventListener('click', (e) => {
             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-            const poiData = feature.properties.userData || {};
+            const photos = feature?.properties?.userData?.photos || [];
             
-            // On récupère l'index (le numéro) de la photo
             const deleteBtn = e.target.closest('.photo-item').querySelector('.photo-delete-btn');
             const photoIndex = parseInt(deleteBtn.dataset.index, 10);
             
-            // On envoie les données au "Chef Photo" (photo-manager.js)
-            setCurrentPhotos(poiData.photos || [], photoIndex);
+            // On informe le manager de la photo actuelle
+            setCurrentPhotos(photos, photoIndex);
             
-            // On affiche l'image dans le grand visionneur
-            if (DOM.viewerImg) DOM.viewerImg.src = currentPhotoList[photoIndex];
+            // Affichage UI (le métier de ui.js)
+            if (DOM.viewerImg) DOM.viewerImg.src = photos[photoIndex];
             if (DOM.photoViewer) DOM.photoViewer.style.display = 'flex';
             
-            // On affiche les flèches "Suivant/Précédent" s'il y a plus d'une photo
-            const displayNav = currentPhotoList.length > 1 ? 'block' : 'none';
+            const displayNav = photos.length > 1 ? 'block' : 'none';
             if(DOM.viewerNext) DOM.viewerNext.style.display = displayNav;
             if(DOM.viewerPrev) DOM.viewerPrev.style.display = displayNav;
         });
@@ -311,12 +300,16 @@ if (chkInc) {
     document.querySelectorAll('.photo-delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             if(!confirm("Supprimer cette photo ?")) return;
+            
             const index = parseInt(e.target.dataset.index, 10);
-            const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-            const currentPhotos = feature.properties.userData.photos || [];
-            const updatedPhotos = currentPhotos.filter((_, i) => i !== index);
-            await updatePoiData(poiId, 'photos', updatedPhotos);
-            openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
+            
+            // On délègue la suppression technique au manager
+            const success = await handlePhotoDeletion(poiId, index);
+            
+            if (success) {
+                // On rafraîchit l'affichage
+                openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
+            }
         });
     });
 

@@ -1,5 +1,7 @@
 // photo-manager.js
 import { DOM } from './ui.js';
+import { getPoiId, updatePoiData } from './data.js';
+import { state } from './state.js'; 
 
 export let currentPhotoList = [];
 export let currentPhotoIndex = 0;
@@ -43,3 +45,45 @@ export async function compressImage(file, targetMinSize = 800) {
         };
     });
 }
+
+/**
+ * Gère l'ajout de nouvelles photos : compression + fusion + sauvegarde
+ */
+export async function handlePhotoUpload(poiId, files) {
+    const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+    if (!feature) return { success: false };
+
+    const poiData = feature.properties.userData || {};
+    const currentPhotos = poiData.photos || [];
+    const newPhotos = [];
+
+    for (const file of files) {
+        try {
+            // On utilise la fonction de compression déjà présente dans ce fichier
+            const compressed = await compressImage(file);
+            newPhotos.push(compressed);
+        } catch (err) {
+            console.error("Erreur compression image", err);
+        }
+    }
+
+    const updatedPhotos = [...currentPhotos, ...newPhotos];
+    await updatePoiData(poiId, 'photos', updatedPhotos);
+    
+    return { success: true, count: newPhotos.length };
+}
+
+/**
+ * Gère la suppression d'une photo spécifique
+ */
+export async function handlePhotoDeletion(poiId, index) {
+    const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+    if (!feature) return false;
+
+    const currentPhotos = feature.properties.userData.photos || [];
+    const updatedPhotos = currentPhotos.filter((_, i) => i !== index);
+    
+    await updatePoiData(poiId, 'photos', updatedPhotos);
+    return true;
+}
+
