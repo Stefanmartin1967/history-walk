@@ -1,9 +1,7 @@
 // data.js
 // --- 1. IMPORTS ---
 import { state } from './state.js';
-import { map, createHistoryWalkIcon, handleMarkerClick } from './map.js';
-import { populateZonesMenu, DOM, openDetailsPanel, } from './ui.js';
-import { loadCircuitDraft } from './circuit.js';
+import { eventBus } from './events.js';
 import { 
     getAllPoiDataForMap, 
     getAllCircuitsForMap, 
@@ -12,7 +10,6 @@ import {
     saveAppState 
 } from './database.js';
 import { logModification } from './logger.js';
-import { isMobileView, renderMobilePoiList } from './mobile.js';
 import { showToast } from './toast.js';
 
 // --- UTILITAIRES ---
@@ -54,8 +51,6 @@ export async function displayGeoJSON(geoJSON, mapId) {
     state.customFeatures = storedCustomFeatures || [];
 
     // 2. FUSION : Carte Officielle + Lieux Ajoutés (Post-its)
-    // On part des données officielles
-    // 2. FUSION SÉCURISÉE : Carte Officielle + Lieux Ajoutés (Post-its)
     // Utilisation d'un Map pour garantir l'unicité des IDs (évite l'effet fantôme)
     const uniqueFeaturesMap = new Map();
 
@@ -96,7 +91,6 @@ export async function displayGeoJSON(geoJSON, mapId) {
 
     // 4. Lancement de l'affichage
     applyFilters();
-    populateZonesMenu();
 }
 
 // --- FILTRES & AFFICHAGE ---
@@ -131,26 +125,11 @@ export function applyFilters() {
     // 1. On passe les données au Tamis
     const visibleFeatures = getFilteredFeatures();
 
-    // 2. On envoie le résultat
-    if (isMobileView()) {
-        console.log(`[Filtre Mobile] ${visibleFeatures.length} lieux trouvés.`);
-        // Mise à jour de la liste Mobile
-        import('./mobile.js').then(module => {
-             if (module.renderMobilePoiList) module.renderMobilePoiList(visibleFeatures);
-        });
-    } else {
-        // A. PC : On met à jour la CARTE (Marqueurs)
-        import('./map.js').then(module => {
-            if (module.refreshMapMarkers) module.refreshMapMarkers(visibleFeatures);
-        });
+    // 2. On envoie le signal
+    console.log(`[Filtre] ${visibleFeatures.length} lieux trouvés.`);
 
-        // B. PC : On met à jour le MENU DES ZONES (Les compteurs !)
-        import('./ui.js').then(module => {
-            if (module.populateZonesMenu) {
-                module.populateZonesMenu(); 
-            }
-        });
-    }
+    // On notifie le reste de l'application que les données filtrées sont prêtes
+    eventBus.emit('data:filtered', visibleFeatures);
 }
 
 // --- MODIFICATION DES DONNÉES ---
@@ -184,9 +163,9 @@ export async function addPoiFeature(feature) {
     
     if (!state.customFeatures) state.customFeatures = [];
     const id = getPoiId(feature);
-if (!state.customFeatures.find(f => getPoiId(f) === id)) {
-    state.customFeatures.push(feature);
-}
+    if (!state.customFeatures.find(f => getPoiId(f) === id)) {
+        state.customFeatures.push(feature);
+    }
 
     // 2. Sauvegarde SÉPARÉE des ajouts (ne touche pas au GeoJSON officiel)
     await saveAppState(`customPois_${state.currentMapId}`, state.customFeatures);

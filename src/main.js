@@ -1,7 +1,8 @@
 // main.js
 import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsForMap } from './database.js';
 import { APP_VERSION, state } from './state.js';
-import { initMap, map } from './map.js';
+import { initMap, map, refreshMapMarkers } from './map.js';
+import { eventBus } from './events.js';
 import {
     initializeDomReferences,
     setupTabs,
@@ -18,12 +19,11 @@ import { showToast } from './toast.js';
 import {
     toggleSelectionMode,
     clearCircuit,
-    addPoiToCircuit,
-    setupCircuitEventListeners  // <--- Ajoute cette ligne (n'oublie pas la virgule au-dessus)
+    setupCircuitEventListeners
 } from './circuit.js';
 
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
-import { isMobileView, initMobileMode, switchMobileView } from './mobile.js';
+import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } from './mobile.js';
 
 import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile } from './fileManager.js';
 import { setupSearch, setupSmartSearch } from './searchManager.js';
@@ -117,6 +117,7 @@ async function initializeApp() {
 
     initializeDomReferences();
     setupCircuitEventListeners();
+    setupEventBusListeners(); // <--- LISTENER EVENT BUS
 
     if (typeof createIcons === 'function') createIcons();
 
@@ -222,6 +223,21 @@ async function initializeApp() {
     if (typeof createIcons === 'function') createIcons();
 }
 
+function setupEventBusListeners() {
+    console.log("[Main] Écoute des événements de données...");
+
+    eventBus.on('data:filtered', (visibleFeatures) => {
+        if (isMobileView()) {
+            console.log(`[Main] Mise à jour Mobile : ${visibleFeatures.length} lieux.`);
+            renderMobilePoiList(visibleFeatures);
+        } else {
+            console.log(`[Main] Mise à jour Desktop : ${visibleFeatures.length} lieux.`);
+            refreshMapMarkers(visibleFeatures);
+            populateZonesMenu();
+        }
+    });
+}
+
 async function initDesktopMode() {
     initMap(); // Leaflet
     if (typeof map !== 'undefined') {
@@ -296,30 +312,21 @@ function setupDesktopUIListeners() {
 
     // Filtres : Gestion du bouton Restaurant
     document.getElementById('btn-filter-restaurants')?.addEventListener('click', (e) => {
-        // 1. On active/désactive le bouton visuellement
         const isActive = e.currentTarget.classList.toggle('active');
-        
-        // 2. On met à jour la mémoire
         state.activeFilters.restaurants = isActive;
-        
-        // 3. On met à jour la carte (les points)
         applyFilters();
-        
-        // 4. On met à jour les compteurs dans le menu (C'est ce qui manquait !)
-        if (typeof populateZonesMenu === 'function') populateZonesMenu();
     });
-    // ... (Autres filtres identiques à avant) ...
+
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {
         const isActive = e.currentTarget.classList.toggle('active');
         state.activeFilters.vus = isActive;
         applyFilters();
-        populateZonesMenu();
     });
+
     document.getElementById('btn-filter-planifies')?.addEventListener('click', (e) => {
         const isActive = e.currentTarget.classList.toggle('active');
         state.activeFilters.planifies = isActive;
         applyFilters();
-        populateZonesMenu();
     });
 
     document.getElementById('btn-filter-zones')?.addEventListener('click', (e) => {
