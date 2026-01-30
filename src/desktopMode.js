@@ -133,7 +133,7 @@ export async function handleDesktopPhotoImport(filesList) {
             if (confirmCreate) {
                 if (loader) loader.style.display = 'none';
                 // On lance la création
-                createDraftMarker(center.lat, center.lng, map);
+                createDraftMarker(center.lat, center.lng, map, cluster);
 
                 showToast(`Placez le marqueur pour le groupe ${i+1}. L'import s'arrête ici.`, 'info');
                 // IMPORTANT : On doit arrêter la boucle ici car la création est manuelle
@@ -202,7 +202,7 @@ async function addPhotosToPoi(feature, clusterItems) {
     }
 }
 
-export function createDraftMarker(lat, lng, mapInstance) {
+export function createDraftMarker(lat, lng, mapInstance, photos = []) {
     if (desktopDraftMarker) {
         mapInstance.removeLayer(desktopDraftMarker);
     }
@@ -226,7 +226,7 @@ export function createDraftMarker(lat, lng, mapInstance) {
     
     validateBtn.addEventListener('click', () => {
         const finalLatLng = desktopDraftMarker.getLatLng();
-        openDesktopAddModal(finalLatLng.lat, finalLatLng.lng);
+        openDesktopAddModal(finalLatLng.lat, finalLatLng.lng, photos);
         
         if (mapInstance && desktopDraftMarker) {
             mapInstance.removeLayer(desktopDraftMarker);
@@ -239,7 +239,7 @@ export function createDraftMarker(lat, lng, mapInstance) {
     desktopDraftMarker.on('dragend', () => desktopDraftMarker.openPopup());
 }
 
-export function openDesktopAddModal(lat, lng) {
+export function openDesktopAddModal(lat, lng, photos = []) {
     const modal = document.getElementById('add-poi-modal');
     if (!modal) { console.error("Erreur Modal Manquant"); return; }
 
@@ -293,7 +293,14 @@ export function openDesktopAddModal(lat, lng) {
         await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
         await logModification(newPoiId, 'Création PC', 'All', null, 'Nouveau lieu PC');
 
-        showToast(`Lieu "${name}" ajouté dans ${zoneAutomatique || 'A définir'} !`, "success");
+        // Si des photos sont associées à cette création
+        if (photos && photos.length > 0) {
+            showToast(`Ajout du lieu... Intégration de ${photos.length} photos...`, 'info');
+            await addPhotosToPoi(newFeature, photos);
+        } else {
+            showToast(`Lieu "${name}" ajouté dans ${zoneAutomatique || 'A définir'} !`, "success");
+        }
+
         modal.style.display = 'none';
     });
 
