@@ -105,28 +105,31 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     // --- TEMPLATE PC ---
     const pcHtml = `
-        <div class="panel-header editable-field" data-field-id="title">
-            <div class="header-top-row" style="display:flex; justify-content:space-between; align-items:start; width:100%; margin-bottom:10px;">
-                <div class="editable-content" style="flex:1;">
+        <div class="panel-header editable-field" data-field-id="title" style="display:flex; justify-content:space-between; align-items:flex-start;">
+
+            <div class="left-text-block" style="flex:1; margin-right: 10px; display:flex; flex-direction:column;">
+                 <div class="editable-content">
                     <h2 id="panel-title-display" title="${escapeXml(poiName)}">${escapeXml(poiName)}</h2>
                     <p class="panel-nom-arabe">${escapeXml(allProps['Nom du site arabe'] || '')}</p>
-                </div>
-                <div class="details-nav">
+                 </div>
+                 <input type="text" id="panel-title-input" class="editable-input header-input" style="display: none; width:100%; margin-top:5px;">
+                 ${categorySelectHtml}
+            </div>
+
+            <div class="right-icon-block" style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0;">
+                <div class="details-nav" style="display:flex; gap:4px;">
                     ${inCircuit ? `<button class="action-button" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
                                   <button class="action-button" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
                     <button class="action-button" id="close-details-button" title="${state.isSelectionModeActive ? 'Retour' : 'Fermer'}">${state.isSelectionModeActive ? ICONS.arrowLeftToLine : ICONS.x}</button>
                 </div>
-            </div>
-            
-            <input type="text" id="panel-title-input" class="editable-input header-input" style="display: none; width:100%;">
-            ${categorySelectHtml}
-            
-            <div class="edit-controls" style="display:flex; gap:5px; margin-top:5px; justify-content:flex-start;">
-                ${gmapsButtonHtml}
-                <button class="action-button edit-btn" title="Modifier le nom">${ICONS.pen}</button>
-                <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
-                <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
-                <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
+
+                <div class="edit-controls" style="display:flex; gap:5px; justify-content:flex-end;">
+                    ${gmapsButtonHtml}
+                    <button class="action-button edit-btn" title="Modifier le nom">${ICONS.pen}</button>
+                    <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
+                    <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
+                    <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
+                </div>
             </div>
         </div>
         <div class="panel-content">
