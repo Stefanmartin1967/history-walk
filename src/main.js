@@ -9,7 +9,6 @@ import {
     DOM,
     openCircuitsModal,
     closeCircuitsModal,
-    handleCircuitsListClick,
     populateZonesMenu,
     closeDetailsPanel,
     populateAddPoiModalCategories
@@ -19,8 +18,11 @@ import { showToast } from './toast.js';
 import {
     toggleSelectionMode,
     clearCircuit,
-    setupCircuitEventListeners
+    setupCircuitEventListeners,
+    loadCircuitById
 } from './circuit.js';
+
+import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-actions.js';
 
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
 import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } from './mobile.js';
@@ -236,6 +238,33 @@ function setupEventBusListeners() {
             populateZonesMenu();
         }
     });
+
+    // --- Circuit Events (Controller Logic) ---
+    eventBus.on('circuit:request-load', async (id) => {
+        await loadCircuitById(id);
+    });
+
+    eventBus.on('circuit:request-delete', async (id) => {
+        const result = await performCircuitDeletion(id);
+        if (result.success) {
+            showToast(result.message, 'success');
+            eventBus.emit('circuit:list-updated');
+        } else {
+            showToast(result.message, 'error');
+        }
+    });
+
+    eventBus.on('circuit:request-import', (id) => {
+        state.circuitIdToImportFor = id;
+        if(DOM.gpxImporter) DOM.gpxImporter.click();
+    });
+
+    eventBus.on('circuit:request-toggle-visited', async ({ id, isChecked }) => {
+        const result = await toggleCircuitVisitedStatus(id, isChecked);
+        if (result.success) {
+             eventBus.emit('circuit:list-updated');
+        }
+    });
 }
 
 async function initDesktopMode() {
@@ -366,11 +395,7 @@ function setupDesktopUIListeners() {
 
     setupTabs();
 
-    if (DOM.closeCircuitsModal) DOM.closeCircuitsModal.addEventListener('click', closeCircuitsModal);
-    if (DOM.circuitsModal) DOM.circuitsModal.addEventListener('click', (e) => {
-        if (e.target === DOM.circuitsModal) closeCircuitsModal();
-    });
-    if (DOM.circuitsListContainer) DOM.circuitsListContainer.addEventListener('click', handleCircuitsListClick);
+    // LISTENER REMOVED - handled by ui-circuit-list.js
 
     // Import Photos bouton Desktop
     const btnImportPhotos = document.getElementById('btn-import-photos');

@@ -2,15 +2,18 @@
 import { state, POI_CATEGORIES } from './state.js';
 import { getPoiId, getPoiName, applyFilters, updatePoiData } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
-import { loadCircuitById, clearCircuit, navigatePoiDetails } from './circuit.js';
+import { clearCircuit, navigatePoiDetails } from './circuit.js';
 import { map } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
-import { changePhoto, setCurrentPhotos, currentPhotoList, currentPhotoIndex, handlePhotoUpload, handlePhotoDeletion } from './photo-manager.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
-import { escapeXml } from './gpx.js';
-import { performCircuitDeletion, toggleCircuitVisitedStatus, getZonesData, calculateAdjustedTime } from './circuit-actions.js';
+import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
+import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
+import { initCircuitListUI } from './ui-circuit-list.js';
+
+// Re-exports for external use
+export { openCircuitsModal, closeCircuitsModal } from './ui-circuit-list.js';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
@@ -50,29 +53,9 @@ export function initializeDomReferences() {
         DOM.fullscreenEditor.style.display = 'none';
     });
 
-    const closeViewer = document.querySelector('.close-viewer');
-    if (closeViewer) {
-        closeViewer.addEventListener('click', () => {
-            DOM.photoViewer.style.display = 'none';
-        });
-    }
-    
-    if (DOM.photoViewer) {
-        DOM.photoViewer.addEventListener('click', (e) => {
-            if(e.target === DOM.photoViewer) DOM.photoViewer.style.display = 'none';
-        });
-    }
-    
-    if(DOM.viewerNext) DOM.viewerNext.addEventListener('click', (e) => { e.stopPropagation(); changePhoto(1); });
-    if(DOM.viewerPrev) DOM.viewerPrev.addEventListener('click', (e) => { e.stopPropagation(); changePhoto(-1); });
-    
-    document.addEventListener('keydown', (e) => {
-        if (DOM.photoViewer && DOM.photoViewer.style.display === 'block') {
-            if (e.key === 'ArrowRight') changePhoto(1);
-            if (e.key === 'ArrowLeft') changePhoto(-1);
-            if (e.key === 'Escape') DOM.photoViewer.style.display = 'none';
-        }
-    });
+    // Initialisation des sous-modules UI
+    initPhotoViewer();
+    initCircuitListUI();
 }
 
 // --- ÉDITION DE CONTENU ---
@@ -251,67 +234,8 @@ if (chkInc) {
         });
     }
 
-    // Gestion Photos
-    const photoInput = document.getElementById('panel-photo-input');
-    const photoBtn = document.querySelector('.photo-placeholder');
-    
-    if(photoBtn && photoInput) photoBtn.addEventListener('click', () => photoInput.click());
-
-    if(photoInput) {
-        photoInput.addEventListener('change', async (e) => {
-            const files = Array.from(e.target.files);
-            if(files.length === 0) return;
-            
-            showToast("Traitement des photos...", "info");
-            
-            // On demande au manager de gérer toute la corvée (compression + sauvegarde)
-            const result = await handlePhotoUpload(poiId, files);
-            
-            if (result.success) {
-                showToast(`${result.count} photo(s) ajoutée(s).`, "success");
-                // On rafraîchit le panneau pour voir les nouvelles photos
-                openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
-            }
-        });
-    }
-
-    // --- BLOC DE REMPLACEMENT POUR LES PHOTOS ---
-    document.querySelectorAll('.photo-item .img-preview').forEach(img => {
-        img.addEventListener('click', (e) => {
-            const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-            const photos = feature?.properties?.userData?.photos || [];
-            
-            const deleteBtn = e.target.closest('.photo-item').querySelector('.photo-delete-btn');
-            const photoIndex = parseInt(deleteBtn.dataset.index, 10);
-            
-            // On informe le manager de la photo actuelle
-            setCurrentPhotos(photos, photoIndex);
-            
-            // Affichage UI (le métier de ui.js)
-            if (DOM.viewerImg) DOM.viewerImg.src = photos[photoIndex];
-            if (DOM.photoViewer) DOM.photoViewer.style.display = 'flex';
-            
-            const displayNav = photos.length > 1 ? 'block' : 'none';
-            if(DOM.viewerNext) DOM.viewerNext.style.display = displayNav;
-            if(DOM.viewerPrev) DOM.viewerPrev.style.display = displayNav;
-        });
-    });
-
-    document.querySelectorAll('.photo-delete-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            if(!confirm("Supprimer cette photo ?")) return;
-            
-            const index = parseInt(e.target.dataset.index, 10);
-            
-            // On délègue la suppression technique au manager
-            const success = await handlePhotoDeletion(poiId, index);
-            
-            if (success) {
-                // On rafraîchit l'affichage
-                openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
-            }
-        });
-    });
+    // Gestion Photos DÉLÉGUÉE
+    setupPhotoPanelListeners(poiId);
 
     // Ajustement du temps
     document.getElementById('time-increment-btn')?.addEventListener('click', () => adjustTime(5));
@@ -499,114 +423,6 @@ export function populateZonesMenu() {
         };
         zonesMenu.appendChild(zoneBtn);
     });
-}
-
-// --- MODALES CIRCUITS ---
-
-export function openCircuitsModal() {
-    renderCircuitsList();
-    if(DOM.circuitsModal) DOM.circuitsModal.style.display = 'flex';
-}
-
-export function closeCircuitsModal() {
-    if(DOM.circuitsModal) DOM.circuitsModal.style.display = 'none';
-}
-
-function renderCircuitsList() {
-    if (!DOM.circuitsListContainer) return;
-
-    DOM.circuitsListContainer.innerHTML = (state.myCircuits.length === 0)
-        ? '<p class="empty-list-info">Aucun circuit sauvegardé pour cette carte.</p>'
-        : state.myCircuits.map(c => {
-            // Check si le circuit est "fait"
-            const existingFeatures = c.poiIds
-                .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
-                .filter(f => f); 
-
-            const allVisited = existingFeatures.length > 0 && existingFeatures.every(f => 
-                f.properties.userData && f.properties.userData.vu
-            );
-            
-            const checkState = allVisited ? 'checked' : '';
-            
-            return `
-            <div class="circuit-item" data-id="${c.id}">
-                <div style="flex:1;">
-                    <span class="circuit-item-name">${escapeXml(c.name)}</span>
-                </div>
-                
-                <div class="circuit-item-actions">
-                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer; margin-right:10px; font-size:14px; user-select:none;">
-                        <input type="checkbox" class="circuit-visited-checkbox" data-id="${c.id}" ${checkState} style="width:16px; height:16px; cursor:pointer;">
-                        <span>Fait</span>
-                    </label>
-                    <button class="btn-import" data-action="import" title="Importer un tracé réel">${ICONS.upload}</button>
-                    <button class="btn-load" data-action="load" title="Charger le circuit">${ICONS.play}</button>
-                    <button class="btn-delete" data-action="delete" title="Supprimer le circuit">${ICONS.trash}</button>
-                </div>
-            </div>`;
-        }).join('');
-    createIcons({ icons });
-}
-
-export async function handleCircuitsListClick(e) {
-    // 1. Boutons d'action
-    const button = e.target.closest('button');
-    if (button) {
-        const circuitItem = button.closest('.circuit-item');
-        if (!circuitItem) return;
-        
-        const circuitId = circuitItem.dataset.id;
-        const action = button.dataset.action;
-
-        if (action === 'load') {
-            await loadCircuitById(circuitId);
-            closeCircuitsModal();
-        } else if (action === 'delete') {
-            await deleteCircuit(circuitId);
-        } else if (action === 'import') {
-            state.circuitIdToImportFor = circuitId;
-            if(DOM.gpxImporter) DOM.gpxImporter.click();
-        }
-        return;
-    }
-
-    // 2. Checkbox "Fait"
-    const checkbox = e.target.closest('.circuit-visited-checkbox');
-    if (checkbox) {
-        const circuitId = checkbox.dataset.id;
-        const isChecked = checkbox.checked;
-        
-        const confirmMsg = isChecked 
-            ? "Marquer tous les lieux de ce circuit comme visités ?" 
-            : "Décocher tous les lieux (remettre à 'Non visité') ?";
-             
-        if (confirm(confirmMsg)) {
-            // On appelle notre nouveau spécialiste
-            await toggleCircuitVisitedStatus(circuitId, isChecked);
-            // On rafraîchit l'affichage pour que la case reste cochée
-            renderCircuitsList();
-        } else {
-            // Si l'utilisateur annule, on remet la case dans son état précédent
-            checkbox.checked = !isChecked;
-        }
-    }
-}
-
-async function deleteCircuit(id) {
-    // L'UI gère l'interaction humaine
-    if (!confirm("Supprimer ce circuit ?")) return;
-
-    // L'UI délègue la corvée au spécialiste
-    const result = await performCircuitDeletion(id);
-
-    if (result.success) {
-        // L'UI s'occupe de mettre à jour le visuel
-        renderCircuitsList();
-        showToast("Circuit supprimé.", 'success');
-    } else {
-        showToast("Erreur lors de la suppression.", 'error');
-    }
 }
 
 // --- NOTIFICATIONS (TOASTS) ---
