@@ -1552,8 +1552,9 @@ textarea.editable-input {
 }
 
 .title-names {
-    text-align: left;
+    text-align: right;
     min-width: 0;
+    flex: 1;
 }
 
 .title-names h2 {
