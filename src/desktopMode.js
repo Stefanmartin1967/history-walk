@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { saveAppState, savePoiData } from './database.js';
 import { logModification } from './logger.js';
 import { DOM, closeDetailsPanel, openDetailsPanel } from './ui.js';
-import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords, clusterByLocation, calculateBarycenter } from './utils.js';
+import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords, clusterByLocation, calculateBarycenter, filterOutliers } from './utils.js';
 import { showToast } from './toast.js';
 
 let desktopDraftMarker = null;
@@ -68,7 +68,22 @@ export async function handleDesktopPhotoImport(filesList) {
         let processedCount = 0;
 
         for (let i = 0; i < clusters.length; i++) {
-            const cluster = clusters[i];
+            let cluster = clusters[i];
+
+            // --- ETAPE 2b : DÉTECTION ET EXCLUSION DES OUTLIERS (Parasites) ---
+            const { main, outliers } = filterOutliers(cluster);
+
+            if (outliers.length > 0) {
+                console.log(`>>> Cluster ${i+1}: ${outliers.length} outliers détectés et séparés.`);
+                // On garde le noyau principal
+                cluster = main;
+                // On ajoute les outliers comme un nouveau groupe à traiter plus tard
+                // (Ils seront ajoutés à la fin du tableau 'clusters', donc la boucle les traitera)
+                clusters.push(outliers);
+
+                showToast(`${outliers.length} photos écartées du groupe principal (distance excessive).`, "info");
+            }
+
             const center = calculateBarycenter(cluster.map(c => c.coords));
 
             console.log(`>>> Traitement Cluster ${i+1}/${clusters.length} (${cluster.length} photos) à [${center.lat}, ${center.lng}]`);
