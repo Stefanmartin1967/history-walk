@@ -1,6 +1,6 @@
 // ui.js
 import { state, POI_CATEGORIES } from './state.js';
-import { getPoiId, getPoiName, applyFilters } from './data.js';
+import { getPoiId, getPoiName, applyFilters, updatePoiData } from './data.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { loadCircuitById, clearCircuit, navigatePoiDetails } from './circuit.js';
 import { map } from './map.js';
