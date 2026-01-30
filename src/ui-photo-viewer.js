@@ -90,7 +90,7 @@ export function setupPhotoPanelListeners(poiId) {
         btn.addEventListener('click', async (e) => {
             if(!confirm("Supprimer cette photo ?")) return;
 
-            const index = parseInt(e.target.dataset.index, 10);
+            const index = parseInt(e.currentTarget.dataset.index, 10);
 
             const success = await handlePhotoDeletion(poiId, index);
 
