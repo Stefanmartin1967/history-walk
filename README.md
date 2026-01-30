@@ -82,3 +82,19 @@ Cet outil permet de mettre à jour le fichier GeoJSON maître (`djerba.geojson`)
 *   `public/` : Ressources statiques (icônes, manifest).
 *   `index.html` : Page principale de l'application.
 *   `fusion.html` : Page de la console de fusion.
+
+## Gestion des Photos GPS (Desktop)
+
+L'importation de photos géolocalisées suit un algorithme spécifique pour garantir la cohérence des données :
+
+1.  **Extraction GPS** : L'application extrait les coordonnées GPS (EXIF) de toutes les photos importées.
+2.  **Clustering (Regroupement)** : Les photos sont regroupées en "clusters" basés sur la proximité géographique (seuil de 50m).
+    *   *Exemple :* Si vous importez 10 photos d'une mosquée et 3 photos d'un restaurant distant de 500m, l'application créera deux groupes distincts.
+3.  **Priorité à la Majorité** : Les groupes contenant le plus de photos sont traités en premier.
+4.  **Association Intelligente** :
+    *   Pour chaque groupe, le barycentre (moyenne des positions) est calculé.
+    *   L'application recherche le lieu (POI) le plus proche de ce barycentre.
+    *   Si un lieu est trouvé à proximité (< 100m), l'application propose d'ajouter les photos à ce lieu.
+    *   Sinon, elle propose de créer un **nouveau lieu** à la position du barycentre.
+5.  **Détection de Doublons** : Avant d'ajouter une photo, l'application vérifie si une image identique (basée sur son contenu compressé) existe déjà pour ce lieu, évitant ainsi les duplications.
+6.  **Traitement des "Parasites"** : Les photos isolées (outliers) sont traitées comme des petits groupes à la fin du processus, permettant de décider au cas par cas (ajout ou création).

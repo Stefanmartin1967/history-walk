@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { saveAppState, savePoiData } from './database.js';
 import { logModification } from './logger.js';
 import { DOM, closeDetailsPanel, openDetailsPanel } from './ui.js';
-import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords } from './utils.js';
+import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords, clusterByLocation, calculateBarycenter } from './utils.js';
 import { showToast } from './toast.js';
 
 let desktopDraftMarker = null;
@@ -22,167 +22,172 @@ export function enableDesktopCreationMode() {
     });
 }
 
-// --- FONCTION D'IMPORT AVEC MOUCHARDS ---
+// --- FONCTION D'IMPORT AVEC CLUSTERING ET DÉTECTION ---
 export async function handleDesktopPhotoImport(filesList) {
     console.log(">>> Démarrage Import Desktop. Fichiers reçus :", filesList);
 
-    // 1. Vérification immédiate
     const files = Array.from(filesList);
-    console.log(">>> Conversion tableau :", files.length, "fichiers.");
-
     if (!files || files.length === 0) {
-        console.warn(">>> ALERTE : Liste de fichiers vide !");
         showToast("Erreur : Aucun fichier reçu par le module.", "error");
         return;
     }
 
-    // Sécurité UI : On vérifie si DOM et loaderOverlay existent
     const loader = (DOM && DOM.loaderOverlay) ? DOM.loaderOverlay : null;
     if (loader) loader.style.display = 'flex';
 
     try {
-        // --- ETAPE 1 : ANALYSE (BARYCENTRE) ---
-        let validCoords = [];
-        const filesData = []; 
-
-        console.log(">>> Début lecture EXIF...");
+        // --- ETAPE 1 : EXTRACTION GPS ---
+        const filesData = [];
 
         for (let file of files) {
             try {
                 const coords = await getExifLocation(file);
-                // Log pour vérifier si on trouve des GPS
-                console.log(`Fichier ${file.name} : GPS trouvé ?`, !!coords); 
-                
-                if (coords) {
-                    validCoords.push(coords);
-                    filesData.push({ file, coords });
-                } else {
-                    filesData.push({ file, coords: null });
-                }
+                filesData.push({ file, coords, hasGps: true });
             } catch (e) {
-                console.warn(`Erreur EXIF sur ${file.name}:`, e);
-                filesData.push({ file, coords: null });
+                console.warn(`Pas de GPS pour ${file.name}`);
+                filesData.push({ file, coords: null, hasGps: false });
             }
         }
 
-        console.log(">>> Coordonnées valides trouvées :", validCoords.length);
+        const validItems = filesData.filter(f => f.hasGps);
+        if (validItems.length === 0) {
+             if (loader) loader.style.display = 'none';
+             return showToast("Aucune coordonnée GPS trouvée dans ces photos.", 'error');
+        }
 
-        if (validCoords.length === 0) throw new Error("GPS_MISSING");
+        // --- ETAPE 2 : CLUSTERING (Regroupement) ---
+        // On groupe les photos distantes de moins de 50m
+        const clusters = clusterByLocation(validItems, 50);
 
-        // Calcul Moyenne
-        const avgLat = validCoords.reduce((sum, c) => sum + c.lat, 0) / validCoords.length;
-        const avgLng = validCoords.reduce((sum, c) => sum + c.lng, 0) / validCoords.length;
+        // On trie par taille : Les plus gros groupes d'abord ("Majorité")
+        clusters.sort((a, b) => b.length - a.length);
 
-        console.log(">>> Barycentre calculé :", avgLat, avgLng);
+        console.log(`>>> ${clusters.length} clusters identifiés.`);
 
-        // Centrage Carte
-        if (map) map.flyTo([avgLat, avgLng], 18, { duration: 1.5 });
+        // --- ETAPE 3 : TRAITEMENT SÉQUENTIEL DES GROUPES ---
+        let processedCount = 0;
 
-        // --- ETAPE 2 : RADAR ---
-        let nearestPoi = null;
-        let minDistance = 100; 
+        for (let i = 0; i < clusters.length; i++) {
+            const cluster = clusters[i];
+            const center = calculateBarycenter(cluster.map(c => c.coords));
 
-        state.loadedFeatures.forEach(feature => {
-            if (feature.geometry && feature.geometry.coordinates) {
-                const [fLng, fLat] = feature.geometry.coordinates;
-                const dist = calculateDistance(avgLat, avgLng, fLat, fLng);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    nearestPoi = feature;
+            console.log(`>>> Traitement Cluster ${i+1}/${clusters.length} (${cluster.length} photos) à [${center.lat}, ${center.lng}]`);
+
+            // Centrage Carte
+            if (map) map.flyTo([center.lat, center.lng], 18, { duration: 1.0 });
+
+            // Recherche POI proche du BARYCENTRE de ce groupe
+            let nearestPoi = null;
+            let minDistance = 100; // Rayon de recherche 100m
+
+            state.loadedFeatures.forEach(feature => {
+                if (feature.geometry && feature.geometry.coordinates) {
+                    const [fLng, fLat] = feature.geometry.coordinates;
+                    const dist = calculateDistance(center.lat, center.lng, fLat, fLng);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        nearestPoi = feature;
+                    }
+                }
+            });
+
+            if (nearestPoi) {
+                // CAS A : POI EXISTANT TROUVÉ
+                const poiName = getPoiName(nearestPoi);
+                const confirmAdd = confirm(
+                    `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) détecté(es) près de "${poiName}" (${Math.round(minDistance)}m).\n\n` +
+                    `Voulez-vous les AJOUTER à ce lieu ?\n` +
+                    `(Annuler = Vérifier si création nécessaire)`
+                );
+
+                if (confirmAdd) {
+                    await addPhotosToPoi(nearestPoi, cluster);
+                    processedCount += cluster.length;
+                    continue; // On passe au cluster suivant
                 }
             }
-        });
 
-        console.log(">>> POI le plus proche :", nearestPoi ? getPoiName(nearestPoi) : "Aucun", "à", Math.round(minDistance), "m");
-
-        // --- ETAPE 3 : UI ---
-        if (nearestPoi) {
-            // Petite astuce pour récupérer le nom proprement
-            const poiName = nearestPoi.properties['Nom du site FR'] || nearestPoi.properties['name'] || "Lieu inconnu";
-
-            const userChoice = confirm(
-                `📍 Lieu existant détecté !\n` +
-                `Cible : "${poiName}" (à environ ${Math.round(minDistance)}m).\n\n` +
-                `OK = AJOUTER les photos à ce lieu.\n` +
-                `Annuler = Créer un NOUVEAU lieu.`
+            // CAS B : PAS DE POI PROCHE OU REFUS D'AJOUT -> PROPOSITION DE CRÉATION
+            // On vérifie une dernière fois avec l'utilisateur
+            const confirmCreate = confirm(
+                `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) à une position non rattachée.\n` +
+                `Aucun lieu correspondant accepté.\n\n` +
+                `Créer un NOUVEAU lieu ici ?`
             );
 
-            if (userChoice) {
-                // >>> CAS A : AJOUT <<<
-                let poiId = getPoiId(nearestPoi);
-                if (!poiId) {
-                    const [lng, lat] = nearestPoi.geometry.coordinates;
-                    poiId = `auto_${Math.round(lat*100000)}_${Math.round(lng*100000)}`;
-                    if (!nearestPoi.properties) nearestPoi.properties = {};
-                    nearestPoi.properties.HW_ID = poiId;
-                }
-
-                if (!state.userData[poiId]) state.userData[poiId] = {};
-                if (!state.userData[poiId].photos) state.userData[poiId].photos = [];
-
-                let addedCount = 0;
-                const [poiLng, poiLat] = nearestPoi.geometry.coordinates;
-
-                for (let item of filesData) {
-                    const file = item.file;
-                    const coords = item.coords;
-                    let shouldAdd = true;
-
-                    if (coords) {
-                        const dist = calculateDistance(coords.lat, coords.lng, poiLat, poiLng);
-                        if (dist > 130) {
-                            shouldAdd = confirm(`⚠️ Photo "${file.name}" est loin (${Math.round(dist)}m). Ajouter quand même ?`);
-                        }
-                    }
-
-                    if (shouldAdd) {
-                        try {
-                            const resizedBase64 = await resizeImage(file);
-                            state.userData[poiId].photos.push(resizedBase64);
-                            addedCount++;
-                        } catch (err) { console.error("Erreur Resize:", err); }
-                    }
-                }
-
-                await savePoiData(state.currentMapId, poiId, state.userData[poiId]);
-                
+            if (confirmCreate) {
                 if (loader) loader.style.display = 'none';
-                showToast(`${addedCount} photo(s) ajoutée(s).`, 'success');
+                // On lance la création
+                createDraftMarker(center.lat, center.lng, map);
 
-                closeDetailsPanel();
-                setTimeout(() => {
-                    const index = state.loadedFeatures.indexOf(nearestPoi);
-                    if (index > -1) openDetailsPanel(index);
-                }, 100);
-
-            } else {
-                // >>> CAS B : NOUVEAU <<<
-                if (loader) loader.style.display = 'none';
-                createDraftMarker(avgLat, avgLng, map);
-                showToast("Veuillez valider la position.", 'info');
+                showToast(`Placez le marqueur pour le groupe ${i+1}. L'import s'arrête ici.`, 'info');
+                // IMPORTANT : On doit arrêter la boucle ici car la création est manuelle
+                // L'utilisateur devra relancer l'import pour les autres groupes s'il y en a.
+                return;
             }
-
-        } else {
-            // >>> CAS C : RIEN TROUVÉ <<<
-            if (loader) loader.style.display = 'none';
-            createDraftMarker(avgLat, avgLng, map);
-            showToast("Aucun lieu proche. Nouveau lieu...", 'info');
+            // Si refus de création, on ignore ce groupe et on passe au suivant (boucle continue)
         }
+
+        if (loader) loader.style.display = 'none';
+        if (processedCount > 0) showToast(`${processedCount} photos importées au total.`, 'success');
 
     } catch (error) {
         if (loader) loader.style.display = 'none';
-        console.error(">>> ERREUR CRITIQUE IMPORT :", error); // C'est ici qu'on verra le bug
-        
-        if (error.message === "GPS_MISSING") {
-            showToast("Aucune coordonnée GPS trouvée dans ces photos.", 'error');
-        } else {
-            showToast("Erreur technique : " + error.message, 'error');
+        console.error(">>> ERREUR IMPORT :", error);
+        showToast("Erreur lors du traitement : " + error.message, 'error');
+    }
+}
+
+// Fonction utilitaire pour l'ajout effectif avec détection de doublons
+async function addPhotosToPoi(feature, clusterItems) {
+    let poiId = getPoiId(feature);
+
+    // Si c'est un POI "natif" sans ID user, on lui en crée un
+    if (!poiId) {
+        const [lng, lat] = feature.geometry.coordinates;
+        poiId = `auto_${Math.round(lat*100000)}_${Math.round(lng*100000)}`;
+        if (!feature.properties) feature.properties = {};
+        feature.properties.HW_ID = poiId;
+    }
+
+    if (!state.userData[poiId]) state.userData[poiId] = {};
+    if (!state.userData[poiId].photos) state.userData[poiId].photos = [];
+
+    let added = 0;
+    let duplicates = 0;
+
+    for (const item of clusterItems) {
+        try {
+            const resizedBase64 = await resizeImage(item.file);
+
+            // DÉTECTION DOUBLON (Bonus demandé)
+            if (state.userData[poiId].photos.includes(resizedBase64)) {
+                duplicates++;
+            } else {
+                state.userData[poiId].photos.push(resizedBase64);
+                added++;
+            }
+        } catch (err) {
+            console.error("Erreur compression:", err);
         }
+    }
+
+    if (added > 0) {
+        await savePoiData(state.currentMapId, poiId, state.userData[poiId]);
+        showToast(`${added} photos ajoutées (${duplicates} ignorées).`, 'success');
+        
+        // Refresh UI
+        closeDetailsPanel();
+        setTimeout(() => {
+            const index = state.loadedFeatures.indexOf(feature);
+            if (index > -1) openDetailsPanel(index);
+        }, 100);
+    } else if (duplicates > 0) {
+        showToast(`Toutes les photos existent déjà (${duplicates} doublons).`, 'warning');
     }
 }
 
 export function createDraftMarker(lat, lng, mapInstance) {
-    // Nettoyage préventif : on s'assure qu'il n'y a pas deux draft markers en même temps
     if (desktopDraftMarker) {
         mapInstance.removeLayer(desktopDraftMarker);
     }
@@ -192,7 +197,6 @@ export function createDraftMarker(lat, lng, mapInstance) {
         title: "Déplacez-moi pour ajuster"
     }).addTo(mapInstance);
 
-    // Création du DOM de la popup
     const popupContent = document.createElement('div');
     popupContent.style.textAlign = 'center';
     popupContent.innerHTML = `
@@ -203,21 +207,16 @@ export function createDraftMarker(lat, lng, mapInstance) {
         </button>
     `;
 
-    // --- CORRECTION ---
-    // On récupère le bouton DANS le conteneur créé, et on met l'event listener dessus.
-    // Plus besoin de passer par document.body.
     const validateBtn = popupContent.querySelector('#btn-validate-desktop-poi');
     
     validateBtn.addEventListener('click', () => {
         const finalLatLng = desktopDraftMarker.getLatLng();
         openDesktopAddModal(finalLatLng.lat, finalLatLng.lng);
         
-        // Nettoyage propre
         if (mapInstance && desktopDraftMarker) {
             mapInstance.removeLayer(desktopDraftMarker);
         }
         desktopDraftMarker = null;
-        // Pas besoin de removeEventListener ici car le bouton (et le marker) sont détruits
     });
 
     desktopDraftMarker.bindPopup(popupContent, { minWidth: 200 }).openPopup();
@@ -260,7 +259,6 @@ export function openDesktopAddModal(lat, lng) {
         const category = catSelect.value;
         if (!name) return showToast("Nom requis", "warning");
 
-        // 1. Calcul de la zone (Tu l'avais déjà, c'est bien !)
         const zoneAutomatique = getZoneFromCoords(lat, lng);
 
         const newPoiId = `HW-PC-${Date.now()}`;
@@ -270,17 +268,12 @@ export function openDesktopAddModal(lat, lng) {
             properties: {
                 "Nom du site FR": name,
                 "Catégorie": category,
-                // CORRECTION ICI 👇 :
-                // 1. On utilise ta variable zoneAutomatique
-                // 2. On met une sécurité (||) si jamais la zone n'est pas trouvée
-                // 3. J'ai mis "zone" en minuscule (standard) au cas où tes filtres sont stricts
                 "Zone": zoneAutomatique || "Non définie", 
                 "Description": "Ajouté depuis PC",
                 "HW_ID": newPoiId
             }
         };
 
-        // ... la suite reste identique
         addPoiFeature(newFeature);
         await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
         await logModification(newPoiId, 'Création PC', 'All', null, 'Nouveau lieu PC');
@@ -295,7 +288,6 @@ export function openDesktopAddModal(lat, lng) {
     newCloseBtn.addEventListener('click', closeHandler);
 }
 
-// Helper simple au cas où il manque dans l'import
 function getPoiName(feature) {
     return feature.properties['Nom du site FR'] || feature.properties['name'] || "Lieu inconnu";
 }
