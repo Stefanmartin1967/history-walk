@@ -159,10 +159,16 @@ export async function addPoiFeature(feature) {
     console.log("[Data] Ajout d'un nouveau lieu (Post-it)...");
 
     // 1. Ajout à la liste en mémoire vive (pour affichage immédiat)
+
+    // IMPORTANT : On s'assure que le lien userData est établi
+    const id = getPoiId(feature);
+    if (!state.userData[id]) state.userData[id] = {};
+    feature.properties.userData = state.userData[id];
+
     state.loadedFeatures.push(feature);
     
     if (!state.customFeatures) state.customFeatures = [];
-    const id = getPoiId(feature);
+    // ID déjà récupéré plus haut
     if (!state.customFeatures.find(f => getPoiId(f) === id)) {
         state.customFeatures.push(feature);
     }

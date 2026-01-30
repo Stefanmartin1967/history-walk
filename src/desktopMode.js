@@ -96,6 +96,10 @@ export async function handleDesktopPhotoImport(filesList) {
             let minDistance = 100; // Rayon de recherche 100m
 
             state.loadedFeatures.forEach(feature => {
+                // IGNORER LES POIS SUPPRIMÉS (Soft Delete)
+                const pId = getPoiId(feature);
+                if (state.hiddenPoiIds && state.hiddenPoiIds.includes(pId)) return;
+
                 if (feature.geometry && feature.geometry.coordinates) {
                     const [fLng, fLat] = feature.geometry.coordinates;
                     const dist = calculateDistance(center.lat, center.lng, fLat, fLng);
