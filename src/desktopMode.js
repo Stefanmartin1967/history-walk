@@ -6,6 +6,7 @@ import { logModification } from './logger.js';
 import { DOM, closeDetailsPanel, openDetailsPanel } from './ui.js';
 import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords, clusterByLocation, calculateBarycenter, filterOutliers } from './utils.js';
 import { showToast } from './toast.js';
+import { showConfirm } from './modal.js';
 
 let desktopDraftMarker = null;
 const BASE_CATEGORIES = ["Mosquée", "Site historique", "Curiosité", "Hôtel", "Restaurant", "Café", "Taxi", "Commerce"];
@@ -113,10 +114,13 @@ export async function handleDesktopPhotoImport(filesList) {
             if (nearestPoi) {
                 // CAS A : POI EXISTANT TROUVÉ
                 const poiName = getPoiName(nearestPoi);
-                const confirmAdd = confirm(
+                const confirmAdd = await showConfirm(
+                    "Ajout Photos",
                     `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) détecté(es) près de "${poiName}" (${Math.round(minDistance)}m).\n\n` +
                     `Voulez-vous les AJOUTER à ce lieu ?\n` +
-                    `(Annuler = Vérifier si création nécessaire)`
+                    `(Annuler = Vérifier si création nécessaire)`,
+                    "Ajouter",
+                    "Vérifier"
                 );
 
                 if (confirmAdd) {
@@ -128,10 +132,13 @@ export async function handleDesktopPhotoImport(filesList) {
 
             // CAS B : PAS DE POI PROCHE OU REFUS D'AJOUT -> PROPOSITION DE CRÉATION
             // On vérifie une dernière fois avec l'utilisateur
-            const confirmCreate = confirm(
+            const confirmCreate = await showConfirm(
+                "Nouveau Lieu ?",
                 `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) à une position non rattachée.\n` +
                 `Aucun lieu correspondant accepté.\n\n` +
-                `Créer un NOUVEAU lieu ici ?`
+                `Créer un NOUVEAU lieu ici ?`,
+                "Créer",
+                "Passer"
             );
 
             if (confirmCreate) {

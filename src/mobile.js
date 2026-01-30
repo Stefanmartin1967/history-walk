@@ -10,6 +10,7 @@ import { getIconForFeature } from './map.js';
 import { isPointInPolygon, escapeHtml } from './utils.js';
 import { zonesData } from './zones.js';
 import { showToast } from './toast.js';
+import { showConfirm } from './modal.js';
 
 let currentView = 'circuits'; 
 
@@ -114,7 +115,7 @@ export function switchMobileView(viewName) {
 }
 
 async function handleAddPoiClick() {
-    if (!confirm("Capturer votre position GPS actuelle pour créer un nouveau lieu ?")) {
+    if (!await showConfirm("Nouveau Lieu", "Capturer votre position GPS actuelle pour créer un nouveau lieu ?", "Capturer", "Annuler")) {
         switchMobileView('circuits');
         return;
     }
@@ -390,11 +391,11 @@ export function renderMobilePoiList(features) {
                 btnToggle.addEventListener('click', async () => {
                     const newState = !isAllVisited; 
                     if(newState) {
-                         if(confirm("Bravo ! Marquer tous les lieux de ce circuit comme visités ?")) {
+                         if(await showConfirm("Circuit Terminé", "Bravo ! Marquer tous les lieux de ce circuit comme visités ?", "Tout cocher", "Annuler")) {
                              await setCircuitVisitedState(state.activeCircuitId, true);
                          }
                     } else {
-                         if(confirm("Voulez-vous vraiment décocher tous les lieux (remettre à 'Non visité') ?")) {
+                         if(await showConfirm("Réinitialisation", "Voulez-vous vraiment décocher tous les lieux (remettre à 'Non visité') ?", "Tout décocher", "Annuler", true)) {
                              await setCircuitVisitedState(state.activeCircuitId, false);
                          }
                     }
@@ -542,7 +543,7 @@ export function renderMobileMenu() {
     document.getElementById('mob-action-save').addEventListener('click', () => saveUserData());
     document.getElementById('mob-action-geojson').addEventListener('click', () => DOM.geojsonLoader.click());
     document.getElementById('mob-action-reset').addEventListener('click', async () => {
-        if(confirm("ATTENTION : Cela va effacer toutes les données locales (caches, sauvegardes automatiques). Continuez ?")) {
+        if(await showConfirm("Danger Zone", "ATTENTION : Cela va effacer toutes les données locales (caches, sauvegardes automatiques). Continuez ?", "TOUT EFFACER", "Annuler", true)) {
             await deleteDatabase();
             location.reload();
         }

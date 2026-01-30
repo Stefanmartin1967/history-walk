@@ -1,5 +1,7 @@
 // database.js
 const DB_NAME = 'HistoryWalkDB';
+import { showAlert } from './modal.js';
+
 const DB_VERSION = 5;
 let db; // Variable locale au module pour garder la connexion ouverte
 
@@ -241,11 +243,11 @@ export function deleteDatabase() {
             reject("Impossible de supprimer la base de données.");
         };
 
-        request.onblocked = () => {
+        request.onblocked = async () => {
             console.warn("Suppression bloquée. Fermeture forcée de la connexion et réessai...");
             // Si bloqué, c'est souvent qu'une autre instance (onglet) est ouverte.
             // On ne peut pas forcer la fermeture des autres onglets via JS.
-            alert("Veuillez fermer les autres onglets de l'application pour permettre la réinitialisation complète.");
+            await showAlert("Base de données verrouillée", "Veuillez fermer les autres onglets de l'application pour permettre la réinitialisation complète.");
         };
     });
 }
