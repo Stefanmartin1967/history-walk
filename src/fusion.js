@@ -1,3 +1,5 @@
+import { escapeHtml } from './utils.js';
+
 // fusion.js - Version avec Dictionnaire de Données et Support Arabe
 
 const DOM = {
@@ -172,7 +174,7 @@ function renderDashboard() {
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px;">
                     <div>
                         <label style="font-size:11px; color:#64748B;">Nom FR</label>
-                        <input type="text" class="new-poi-input" id="name-new-${idx}" value="${item.proposedName}">
+                        <input type="text" class="new-poi-input" id="name-new-${idx}" value="${escapeHtml(item.proposedName)}">
                     </div>
                     <div>
                         <label style="font-size:11px; color:#64748B;">Nom AR (Optionnel)</label>
@@ -180,7 +182,7 @@ function renderDashboard() {
                     </div>
                 </div>
 
-                ${item.proposedDesc ? `<div class="change-detail"><span style="font-style:italic">Note mobile : ${item.proposedDesc}</span></div>` : ''}
+                ${item.proposedDesc ? `<div class="change-detail"><span style="font-style:italic">Note mobile : ${escapeHtml(item.proposedDesc)}</span></div>` : ''}
             </div>
         </div>`);
 
@@ -189,7 +191,7 @@ function renderDashboard() {
         <div class="change-item">
             <div class="checkbox-wrapper"><input type="checkbox" checked id="gps-${idx}"></div>
             <div class="change-content">
-                <div class="poi-name">${item.name}</div>
+                <div class="poi-name">${escapeHtml(item.name)}</div>
                 <div class="change-detail">
                     <span class="badge badge-gps">${item.distance}m</span>
                     <span class="old-val">[${item.oldCoords[1].toFixed(5)}, ${item.oldCoords[0].toFixed(5)}]</span>
@@ -203,13 +205,13 @@ function renderDashboard() {
     renderSection(DOM.listContent, 'Mises à jour Contenu', 'badge-content', pendingChanges.contentUpdates, (item, idx) => {
         const details = item.changes.map(c => `
             <div class="change-detail">
-                <span class="badge badge-content">${c.type}</span>
-                <span class="new-val">${c.new}</span>
+                <span class="badge badge-content">${escapeHtml(c.type)}</span>
+                <span class="new-val">${escapeHtml(c.new)}</span>
             </div>`).join('');
         return `
             <div class="change-item">
                 <div class="checkbox-wrapper"><input type="checkbox" checked id="content-${idx}"></div>
-                <div class="change-content"><div class="poi-name">${item.name}</div>${details}</div>
+                <div class="change-content"><div class="poi-name">${escapeHtml(item.name)}</div>${details}</div>
             </div>`;
     });
     
