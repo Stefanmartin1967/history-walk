@@ -7,7 +7,7 @@ import { createIcons, icons } from 'lucide';
 import { saveUserData } from './fileManager.js'; 
 import { deleteDatabase, saveAppState } from './database.js';
 import { getIconForFeature } from './map.js';
-import { isPointInPolygon } from './utils.js';
+import { isPointInPolygon, escapeHtml } from './utils.js';
 import { zonesData } from './zones.js';
 import { showToast } from './toast.js';
 
@@ -237,7 +237,7 @@ export function renderMobileCircuitsList() {
                 <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" style="justify-content: space-between;">
                     <div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;">
                         <i data-lucide="route" style="color:var(--brand); margin-right:10px; flex-shrink:0;"></i>
-                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${circuit.name}</span>
+                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(circuit.name)}</span>
                     </div>
                     
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -324,7 +324,7 @@ export function renderMobilePoiList(features) {
     headerDiv.innerHTML = `
         <div style="display:flex; align-items:center;">
             ${isCircuit ? '<button id="mobile-back-btn" style="margin-right:10px;"><i data-lucide="arrow-left"></i></button>' : ''}
-            <h1 style="margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">${pageTitle}</h1>
+            <h1 style="margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">${escapeHtml(pageTitle)}</h1>
         </div>
         ${reverseBtnHtml}
     `;
@@ -350,7 +350,7 @@ export function renderMobilePoiList(features) {
             <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between; ${opacityStyle}">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <i data-lucide="${icon}" style="color:${isVisited ? 'var(--ok)' : 'var(--brand)'};"></i>
-                    <span>${name}</span>
+                    <span>${escapeHtml(name)}</span>
                 </div>
                 ${checkIcon}
             </button>
@@ -480,7 +480,7 @@ export function renderMobileSearch() {
             html += `
                 <button class="mobile-list-item result-item" data-id="${getPoiId(f)}">
                     <i data-lucide="${icon}"></i>
-                    <span>${getPoiName(f)}</span>
+                    <span>${escapeHtml(getPoiName(f))}</span>
                 </button>
             `;
         });
