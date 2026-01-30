@@ -2043,3 +2043,109 @@ input[type=range] {
     stroke: #4B5563 !important;
     filter: none !important;
 }
+/* ========================================================= */
+/* === SYSTÈME DE MODALES (Architecture) === */
+/* ========================================================= */
+
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(13, 59, 102, 0.6); /* Teinte bleu nuit légère */
+    backdrop-filter: blur(2px);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+.custom-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-modal-box {
+    background: var(--surface);
+    border-radius: 16px;
+    width: 85%;
+    max-width: 380px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    padding: 24px;
+    text-align: center;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid var(--line);
+}
+
+.custom-modal-overlay.active .custom-modal-box {
+    transform: scale(1) translateY(0);
+}
+
+.custom-modal-title {
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+}
+
+.custom-modal-message {
+    margin: 0 0 24px 0;
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.custom-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.custom-modal-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s, filter 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.custom-modal-btn:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+.custom-modal-btn:active {
+    transform: translateY(1px);
+}
+
+.custom-modal-btn.primary {
+    background-color: var(--brand);
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.custom-modal-btn.danger {
+    background-color: var(--danger);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.custom-modal-btn.secondary {
+    background-color: var(--surface-muted);
+    color: var(--ink);
+    border: 1px solid var(--line);
+}

@@ -3,6 +3,7 @@ import { changePhoto, setCurrentPhotos, handlePhotoUpload, handlePhotoDeletion }
 import { getPoiId } from './data.js';
 import { showToast } from './toast.js';
 import { openDetailsPanel } from './ui.js';
+import { showConfirm } from './modal.js';
 
 const els = {};
 function getEl(id) {
@@ -88,7 +89,7 @@ export function setupPhotoPanelListeners(poiId) {
 
     document.querySelectorAll('.photo-delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            if(!confirm("Supprimer cette photo ?")) return;
+            if(!await showConfirm("Suppression", "Voulez-vous vraiment supprimer cette photo ?", "Supprimer", "Conserver", true)) return;
 
             const index = parseInt(e.currentTarget.dataset.index, 10);
 

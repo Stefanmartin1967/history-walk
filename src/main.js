@@ -30,6 +30,7 @@ import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } f
 import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile } from './fileManager.js';
 import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode } from './desktopMode.js';
+import { showConfirm } from './modal.js';
 
 // --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
 function setSaveButtonsState(enabled) {
@@ -207,7 +208,7 @@ async function initializeApp() {
         if (btnClose) {
             btnClose.addEventListener('click', async () => {
                 if (state.currentCircuit.length > 0) {
-                    if (confirm("Voulez-vous vraiment fermer et effacer le brouillon du circuit ?")) {
+                    if (await showConfirm("Fermeture", "Voulez-vous vraiment fermer et effacer le brouillon du circuit ?", "Fermer", "Annuler", true)) {
                         await clearCircuit(false);
                         toggleSelectionMode(false); // On force le mode OFF
                     }
@@ -425,7 +426,7 @@ window.requestSoftDelete = async function (idOrIndex) {
         ? `ATTENTION !\n\nVoulez-vous vraiment placer "${poiName}" dans la corbeille ?`
         : `ATTENTION !\n\nVoulez-vous vraiment signaler "${poiName}" pour suppression ?`;
 
-    if (confirm(msg)) {
+    if (await showConfirm("Suppression", msg, "Supprimer", "Garder", true)) {
         if (!state.hiddenPoiIds) state.hiddenPoiIds = [];
         if (!state.hiddenPoiIds.includes(poiId)) {
             state.hiddenPoiIds.push(poiId);

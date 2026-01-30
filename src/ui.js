@@ -11,6 +11,7 @@ import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
 import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
 import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
 import { initCircuitListUI } from './ui-circuit-list.js';
+import { showConfirm } from './modal.js';
 
 // Re-exports for external use
 export { openCircuitsModal, closeCircuitsModal } from './ui-circuit-list.js';
@@ -246,7 +247,7 @@ if (chkInc) {
         const moveBtn = document.getElementById('mobile-move-poi-btn');
         if (moveBtn) {
             moveBtn.addEventListener('click', async () => {
-                if (confirm("Mettre à jour avec votre position GPS actuelle ?")) {
+                if (await showConfirm("Mise à jour GPS", "Mettre à jour avec votre position GPS actuelle ?", "Mettre à jour", "Annuler")) {
                     // On délègue la mise à jour et on affiche le toast
                     await updatePoiPosition(poiId);
                     showToast("Position mise à jour", "success");

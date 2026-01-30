@@ -4,6 +4,7 @@ import { ICONS } from './templates.js';
 import { escapeXml } from './gpx.js';
 import { createIcons, icons } from 'lucide';
 import { eventBus } from './events.js';
+import { showConfirm } from './modal.js';
 
 const getEl = (id) => document.getElementById(id);
 
@@ -92,7 +93,7 @@ async function handleCircuitsListClick(e) {
             eventBus.emit('circuit:request-load', circuitId);
             closeCircuitsModal();
         } else if (action === 'delete') {
-            if (confirm("Supprimer ce circuit ?")) {
+            if (await showConfirm("Suppression du circuit", "Voulez-vous vraiment effacer ce parcours ?", "Supprimer", "Garder", true)) {
                  eventBus.emit('circuit:request-delete', circuitId);
             }
         } else if (action === 'import') {
@@ -110,7 +111,7 @@ async function handleCircuitsListClick(e) {
             ? "Marquer tous les lieux de ce circuit comme visités ?"
             : "Décocher tous les lieux (remettre à 'Non visité') ?";
 
-        if (confirm(confirmMsg)) {
+        if (await showConfirm("Marquer Circuit", confirmMsg, isChecked ? "Tout cocher" : "Tout décocher", "Annuler")) {
              eventBus.emit('circuit:request-toggle-visited', { id: circuitId, isChecked });
         } else {
             checkbox.checked = !isChecked;

@@ -9,6 +9,7 @@ import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './data
 import { isMobileView, renderMobilePoiList } from './mobile.js';
 import * as View from './circuit-view.js';
 import { showToast } from './toast.js';
+import { showConfirm } from './modal.js';
 
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
@@ -294,7 +295,7 @@ export async function clearCircuit(withConfirmation = true) {
     // CAS 2 : On est en mode Brouillon (Modification en cours)
     const hasPoints = state.currentCircuit.length > 0;
     if (withConfirmation && hasPoints) {
-        if (!confirm("Voulez-vous vraiment réinitialiser ce brouillon ?")) return;
+        if (!await showConfirm("Réinitialiser", "Voulez-vous vraiment réinitialiser ce brouillon ?", "Réinitialiser", "Annuler", true)) return;
     }
 
     // Reset de la donnée
