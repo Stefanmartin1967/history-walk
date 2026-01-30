@@ -1557,6 +1557,12 @@ textarea.editable-input {
     flex: 1;
 }
 
+@media (max-width: 768px) {
+    .title-names {
+        text-align: left;
+    }
+}
+
 .title-names h2 {
     font-size: 22px;
     margin: 0;
