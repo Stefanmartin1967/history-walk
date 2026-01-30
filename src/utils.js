@@ -131,3 +131,51 @@ export function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+// --- CLUSTERING PHOTOS GPS ---
+
+export function calculateBarycenter(coordsList) {
+    if (!coordsList || coordsList.length === 0) return null;
+    const avgLat = coordsList.reduce((sum, c) => sum + c.lat, 0) / coordsList.length;
+    const avgLng = coordsList.reduce((sum, c) => sum + c.lng, 0) / coordsList.length;
+    return { lat: avgLat, lng: avgLng };
+}
+
+export function clusterByLocation(items, distanceThreshold = 50) {
+    // items doit être un tableau d'objets contenant { coords: { lat, lng }, ... }
+    const validItems = items.filter(i => i.coords && i.coords.lat && i.coords.lng);
+    const clusters = [];
+    const visited = new Set(); // Stocke les index des items traités
+
+    for (let i = 0; i < validItems.length; i++) {
+        if (visited.has(i)) continue;
+
+        const cluster = [];
+        const queue = [i];
+        visited.add(i);
+
+        while (queue.length > 0) {
+            const currentIndex = queue.shift();
+            const currentItem = validItems[currentIndex];
+            cluster.push(currentItem);
+
+            // On cherche tous les voisins proches de cet élément (Transitive clustering)
+            for (let j = 0; j < validItems.length; j++) {
+                if (visited.has(j)) continue;
+
+                const otherItem = validItems[j];
+                const dist = calculateDistance(
+                    currentItem.coords.lat, currentItem.coords.lng,
+                    otherItem.coords.lat, otherItem.coords.lng
+                );
+
+                if (dist <= distanceThreshold) {
+                    visited.add(j);
+                    queue.push(j);
+                }
+            }
+        }
+        clusters.push(cluster);
+    }
+    return clusters;
+}
