@@ -586,7 +586,8 @@ async function handleScanClick() {
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 } },
             async (decodedText, decodedResult) => {
-                if (decodedText.startsWith('hw:')) {
+                // Supporte l'ancien format (hw:) et le nouveau (URL)
+                if (decodedText.startsWith('hw:') || decodedText.includes('import=')) {
                     await closeScanner();
                     loadCircuitFromIds(decodedText);
                 }
