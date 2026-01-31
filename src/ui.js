@@ -5,7 +5,7 @@ import { restoreCircuit } from './database.js';
 import { escapeXml } from './gpx.js';
 import { eventBus } from './events.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
-import { clearCircuit, navigatePoiDetails } from './circuit.js';
+import { clearCircuit, navigatePoiDetails, toggleSelectionMode } from './circuit.js';
 import { map } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
 import { createIcons, icons } from 'lucide';
@@ -36,7 +36,7 @@ export function initializeDomReferences() {
         'photo-viewer', 'viewer-img', 'viewer-next', 'viewer-prev',
         'backup-modal', 'btn-backup-full', 'btn-backup-lite', 'btn-backup-cancel',
         'btn-loop-circuit',
-        'btn-clear-circuit',
+        'btn-clear-circuit', 'close-circuit-panel-btn',
         'btn-categories', 'btn-legend'
     ];
     
@@ -57,6 +57,10 @@ export function initializeDomReferences() {
         if (currentEditor.callback) currentEditor.callback(DOM.editorTextarea.value);
         DOM.fullscreenEditor.style.display = 'none';
     });
+
+    if (DOM.closeCircuitPanelBtn) {
+        DOM.closeCircuitPanelBtn.addEventListener('click', () => toggleSelectionMode(false));
+    }
 
     // Initialisation des sous-modules UI
     initPhotoViewer();
@@ -362,13 +366,27 @@ export function setupTabs() {
     DOM.tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const tabName = button.dataset.tab;
-            if (tabName === 'details' && state.currentFeatureId !== null) {
-                // Si on revient sur l'onglet détails, on essaie de garder le contexte
-                const currentFeature = state.loadedFeatures[state.currentFeatureId];
-                if (currentFeature) {
-                    const id = getPoiId(currentFeature);
-                    const circuitIndex = state.currentCircuit ? state.currentCircuit.findIndex(f => getPoiId(f) === id) : -1;
-                    openDetailsPanel(state.currentFeatureId, circuitIndex !== -1 ? circuitIndex : null);
+            if (tabName === 'details') {
+                if (state.currentFeatureId !== null) {
+                    // Si on revient sur l'onglet détails, on essaie de garder le contexte
+                    const currentFeature = state.loadedFeatures[state.currentFeatureId];
+                    if (currentFeature) {
+                        const id = getPoiId(currentFeature);
+                        const circuitIndex = state.currentCircuit ? state.currentCircuit.findIndex(f => getPoiId(f) === id) : -1;
+                        openDetailsPanel(state.currentFeatureId, circuitIndex !== -1 ? circuitIndex : null);
+                    }
+                } else if (state.currentCircuit && state.currentCircuit.length > 0) {
+                    // Si on ouvre l'onglet détails alors qu'un circuit est en cours mais qu'aucun POI n'est sélectionné,
+                    // on ouvre le premier POI du circuit.
+                    const firstFeature = state.currentCircuit[0];
+                    const featureId = state.loadedFeatures.indexOf(firstFeature);
+                    if (featureId > -1) {
+                        openDetailsPanel(featureId, 0);
+                    } else {
+                        switchSidebarTab(tabName);
+                    }
+                } else {
+                    switchSidebarTab(tabName);
                 }
             } else {
                 switchSidebarTab(tabName);

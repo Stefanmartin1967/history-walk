@@ -128,6 +128,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                     <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
                     <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
                     <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
+                    <button class="action-button" id="close-details-button" title="Fermer">${ICONS.x}</button>
                 </div>
             </div>
         </div>

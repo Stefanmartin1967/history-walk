@@ -39,7 +39,7 @@ export function showConfirm(titleText, messageText, confirmLabel = "Oui", cancel
 
         // Contenu
         title.textContent = titleText;
-        message.textContent = messageText;
+        message.innerHTML = messageText;
 
         // Nettoyage boutons
         actions.innerHTML = '';
@@ -89,7 +89,7 @@ export function showAlert(titleText, messageText, okLabel = "OK") {
         activeResolve = resolve;
 
         title.textContent = titleText;
-        message.textContent = messageText;
+        message.innerHTML = messageText;
         actions.innerHTML = '';
 
         const btnOk = document.createElement('button');

@@ -3,6 +3,7 @@ import { state } from './state.js';
 import { addPoiToCircuit } from './circuit.js';
 import { openDetailsPanel } from './ui.js'; // <-- Ajouter l'import de l'UI
 import { showToast } from './toast.js';
+import { getPoiId } from './data.js';
 
 export let map;
 
@@ -143,6 +144,16 @@ export function handleMarkerClick(feature) {
     // L'AIGUILLAGE STRICT
     if (state.isSelectionModeActive) {
         // --- MODE SELECTION (ON) ---
+        const poiId = getPoiId(feature);
+        const isInCircuit = state.currentCircuit.some(f => getPoiId(f) === poiId);
+
+        if (isInCircuit) {
+             const globalIndex = state.loadedFeatures.findIndex(f => f.properties.HW_ID === feature.properties.HW_ID);
+             const circuitIndex = state.currentCircuit.findIndex(f => getPoiId(f) === poiId);
+             openDetailsPanel(globalIndex, circuitIndex);
+             return;
+        }
+
         if (state.currentCircuit.length >= 15) {
             showToast("Circuit plein (15 points max) !", "warning");
             return;
