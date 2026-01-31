@@ -2,10 +2,11 @@
 import { state } from './state.js';
 import { DOM, openDetailsPanel } from './ui.js';
 import { getPoiId, getPoiName, addPoiFeature } from './data.js';
-import { loadCircuitById, clearCircuit, setCircuitVisitedState } from './circuit.js'; 
+import { loadCircuitById, clearCircuit, setCircuitVisitedState, loadCircuitFromIds } from './circuit.js';
 import { createIcons, icons } from 'lucide';
 import { saveUserData } from './fileManager.js'; 
 import { deleteDatabase, saveAppState } from './database.js';
+import { Html5Qrcode } from 'html5-qrcode';
 import { getIconForFeature } from './map.js';
 import { isPointInPolygon, escapeHtml } from './utils.js';
 import { zonesData } from './zones.js';
@@ -511,6 +512,10 @@ export function renderMobileMenu() {
             <h1>Menu</h1>
         </div>
         <div class="mobile-list actions-list" style="padding: 16px;">
+            <button class="mobile-list-item" id="mob-action-scan">
+                <i data-lucide="qr-code"></i>
+                <span>Scanner un Circuit</span>
+            </button>
             <button class="mobile-list-item" id="mob-action-restore">
                 <i data-lucide="folder-down"></i>
                 <span>Restaurer les données</span>
@@ -539,6 +544,7 @@ export function renderMobileMenu() {
         </div>
     `;
 
+    document.getElementById('mob-action-scan').addEventListener('click', handleScanClick);
     document.getElementById('mob-action-restore').addEventListener('click', () => DOM.restoreLoader.click());
     document.getElementById('mob-action-save').addEventListener('click', () => saveUserData());
     document.getElementById('mob-action-geojson').addEventListener('click', () => DOM.geojsonLoader.click());
@@ -552,6 +558,48 @@ export function renderMobileMenu() {
         document.getElementById('btn-theme-selector').click(); 
         showToast("Thème changé", "success");
     });
+}
+
+async function handleScanClick() {
+    const overlay = document.createElement('div');
+    overlay.id = 'qr-scanner-overlay';
+
+    overlay.innerHTML = `
+        <div id="qr-reader"></div>
+        <button id="close-scanner-btn">×</button>
+    `;
+    document.body.appendChild(overlay);
+
+    const html5QrCode = new Html5Qrcode("qr-reader");
+
+    const closeScanner = async () => {
+        try {
+            if(html5QrCode.isScanning) await html5QrCode.stop();
+        } catch (e) { console.warn(e); }
+        if(document.body.contains(overlay)) document.body.removeChild(overlay);
+    };
+
+    document.getElementById('close-scanner-btn').addEventListener('click', closeScanner);
+
+    try {
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            async (decodedText, decodedResult) => {
+                if (decodedText.startsWith('hw:')) {
+                    await closeScanner();
+                    loadCircuitFromIds(decodedText);
+                }
+            },
+            (errorMessage) => {
+                // Ignore parse errors
+            }
+        );
+    } catch (err) {
+        console.error(err);
+        showToast("Impossible d'accéder à la caméra ou annulé.", "error");
+        closeScanner();
+    }
 }
 
 export function updatePoiPosition(poiId) {

@@ -96,14 +96,18 @@ export function updateControlButtons(uiState) {
     const btnImport = document.getElementById('btn-import-gpx');
     const btnClear = document.getElementById('btn-clear-circuit');
     const btnLoop = document.getElementById('btn-loop-circuit');
+    const btnShare = document.getElementById('btn-share-circuit');
 
     if (btnLoop) {
         btnLoop.style.display = uiState.isActive ? 'none' : 'flex';
     }
 
-    // EXPORT : Actif seulement si le circuit n'est pas vide
+    // EXPORT / PARTAGE : Actif seulement si le circuit n'est pas vide
     if (btnExport) {
         btnExport.disabled = uiState.isEmpty; 
+    }
+    if (btnShare) {
+        btnShare.disabled = uiState.isEmpty;
     }
 
     // IMPORT / MODIFIER : Toujours actif (vu précédemment)
