@@ -107,14 +107,24 @@ export function getFilteredFeatures() {
         // A. Lieux cachés par l'utilisateur
         if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) return false; 
         
-        // B. Les incontournables passent TOUJOURS
-        if (props.incontournable) return true;
-
-        // C. Les Filtres choisis
+        // B. Les Filtres Structurels (Zone, Catégorie)
+        // Ceux-ci s'appliquent TOUT LE TEMPS, même aux VIPs
         if (state.activeFilters.zone && props.Zone !== state.activeFilters.zone) return false;
         if (state.activeFilters.restaurants && props.Catégorie !== 'Restaurant') return false;
-        if (state.activeFilters.vus && props.vu) return false;
-        if (state.activeFilters.planifies && (props.planifieCounter || 0) > 0) return false;
+
+        // C. Les incontournables passent TOUJOURS (Exception Majeure pour le statut)
+        if (props.incontournable) return true;
+
+        // D. Gestion Visité / Planifié (Différente selon le mode)
+        if (state.isSelectionModeActive) {
+             // MODE SÉLECTION : Filtres stricts définis par le Wizard
+             if (state.selectionModeFilters?.hideVisited && props.vu) return false;
+             if (state.selectionModeFilters?.hidePlanned && (props.planifieCounter || 0) > 0) return false;
+        } else {
+             // MODE STANDARD : Filtres toggles de la barre
+             if (state.activeFilters.vus && props.vu) return false;
+             if (state.activeFilters.planifies && (props.planifieCounter || 0) > 0) return false;
+        }
         
         return true;
     });

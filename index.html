@@ -43,52 +43,12 @@
     <div class="topbar">
         <div class="topbar-left">
             <h1 class="app-title" id="app-title">History Walk</h1>
-        </div>
-        <div class="topbar-center">
+
             <div class="search-container">
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="search" id="search-input" placeholder="Rechercher un lieu...">
                 <div class="search-results" id="search-results" style="display: none;"></div>
             </div>
-        </div>
-        <a href="fusion.html" target="_blank" class="btn" title="Ouvrir la Console de Fusion"
-            style="text-decoration: none; display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="combine"></i><span>Fusion</span>
-        </a>
-        <div class="topbar-right">
-
-            <button class="btn" id="btn-open-geojson" title="Ouvrir une carte"><i
-                    data-lucide="folder-open"></i><span>Ouvrir</span></button>
-            <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
-
-            <button class="btn" id="btn-import-photos" title="Importation Photos GPS (PC)"><i
-                    data-lucide="camera"></i><span>Photos GPS</span></button>
-            <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
-
-            <button class="btn" id="btn-save-mobile" title="Sauvegarde Mobile (Sans photos)" disabled><i
-                    data-lucide="save"></i><span>Mobile</span></button>
-
-            <button class="btn" id="btn-save-full" title="Sauvegarde PC (Avec photos)" disabled><i
-                    data-lucide="save-all"></i><span>PC</span></button>
-
-            <button class="btn" id="btn-restore-data" title="Restaurer une sauvegarde" disabled><i
-                    data-lucide="folder-down"></i><span>Restaurer</span></button>
-            <input type="file" id="restore-loader" accept=".json,.geojson,.txt,application/json,text/plain,*/*"
-                style="display:none;">
-
-            <div class="separator"></div>
-
-            <button class="btn" id="btn-mode-selection" title="Mode Sélection (Édition/Circuits)"><i
-                    data-lucide="mouse-pointer-click"></i><span>Sélection</span></button>
-
-            <button class="btn" id="btn-filter-restaurants" title="Restaurants uniquement"><i
-                    data-lucide="utensils-crossed"></i><span>Restaurants</span></button>
-
-            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les lieux visités"><i
-                    data-lucide="eye"></i><span>Visités</span></button>
-
-            <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i
-                    data-lucide="calendar-check"></i><span>Planifiés</span></button>
 
             <div class="zones-container">
                 <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span
@@ -96,16 +56,73 @@
                 <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
             </div>
 
-            <button class="btn" id="btn-my-circuits" title="Gérer mes circuits"><i
-                    data-lucide="route"></i><span>Circuits</span></button>
+            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les lieux visités"><i
+                    data-lucide="eye"></i><span>Visités</span></button>
 
-            <div class="separator"></div>
+            <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i
+                    data-lucide="calendar-check"></i><span>Planifiés</span></button>
+        </div>
 
-            <button class="btn" id="btn-export-pdf" title="Exporter en PDF (Bientôt)" disabled><i
-                    data-lucide="file-down"></i><span>PDF</span></button>
+        <div class="topbar-right">
 
-            <button class="btn" id="btn-theme-selector" title="Changer le thème"><i
-                    data-lucide="palette"></i><span>Thème</span></button>
+            <button class="btn" id="btn-mode-selection" title="Mode Sélection (Édition/Circuits)"><i
+                    data-lucide="mouse-pointer-click"></i><span>Sélection</span></button>
+
+            <div class="tools-dropdown-container">
+                <button class="btn" id="btn-tools-menu" title="Menu Outils"><i
+                        data-lucide="settings"></i><span>Outils</span></button>
+                <div class="tools-menu" id="tools-menu-content">
+
+                    <a href="fusion.html" target="_blank" class="tools-menu-item" style="text-decoration: none;">
+                        <i data-lucide="combine"></i> Console Fusion
+                    </a>
+
+                    <button class="tools-menu-item" id="btn-open-geojson">
+                        <i data-lucide="folder-open"></i> Ouvrir Carte
+                    </button>
+
+                    <button class="tools-menu-item" id="btn-import-photos">
+                        <i data-lucide="camera"></i> Photos GPS
+                    </button>
+
+                    <button class="tools-menu-item" id="btn-restore-data" disabled>
+                        <i data-lucide="folder-down"></i> Restaurer
+                    </button>
+
+                    <button class="tools-menu-item" id="btn-save-full" disabled>
+                        <i data-lucide="save-all"></i> Sauvegarde PC
+                    </button>
+
+                    <button class="tools-menu-item" id="btn-save-mobile" disabled>
+                        <i data-lucide="save"></i> Sauvegarde Mobile
+                    </button>
+
+                    <div style="height:1px; width:100%; background:var(--line); margin:5px 0;"></div>
+
+                    <button class="tools-menu-item" id="btn-my-circuits">
+                        <i data-lucide="route"></i> Mes Circuits
+                    </button>
+
+                    <button class="tools-menu-item" id="btn-filter-restaurants">
+                        <i data-lucide="utensils-crossed"></i> Restaurants
+                    </button>
+
+                    <button class="tools-menu-item" id="btn-theme-selector">
+                        <i data-lucide="palette"></i> Thème
+                    </button>
+
+                    <button class="tools-menu-item" id="btn-export-pdf" disabled>
+                        <i data-lucide="file-down"></i> PDF (Bientôt)
+                    </button>
+                </div>
+            </div>
+
+            <!-- HIDDEN LOADERS (Keep them for logic) -->
+            <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
+            <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
+            <input type="file" id="restore-loader" accept=".json,.geojson,.txt,application/json,text/plain,*/*"
+                style="display:none;">
+
         </div>
     </div>
 
@@ -310,6 +327,40 @@
         data-id="history_walk" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FFDD00"
         data-position="Left" data-x_margin="18" data-y_margin="18"></script>
 
+    <div id="selection-wizard-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content wizard-content">
+            <div class="modal-header">
+                <h2>Mode Sélection</h2>
+                <button id="close-wizard-modal" class="header-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Configurez votre session de création :</p>
+
+                <div class="wizard-options">
+                    <div class="wizard-select-container">
+                        <label>Zone de travail :</label>
+                        <select id="wizard-zone-select">
+                            <option value="">Toute l'île</option>
+                        </select>
+                    </div>
+
+                    <label class="wizard-option">
+                        <input type="checkbox" id="wizard-check-visited" checked>
+                        Masquer les lieux visités
+                    </label>
+
+                    <label class="wizard-option">
+                        <input type="checkbox" id="wizard-check-planned" checked>
+                        Masquer les lieux déjà planifiés
+                    </label>
+                </div>
+
+                <button id="btn-wizard-start" class="action-btn-large">
+                    <i data-lucide="play"></i> Commencer
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

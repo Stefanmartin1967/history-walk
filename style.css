@@ -2020,28 +2020,175 @@ input[type=range] {
     }
 }
 
-/* --- LE STYLE DES INCONTOURNABLES (Version Pastel Champagne) --- */
+/* --- LE STYLE DES INCONTOURNABLES (Version Étoile VIP) --- */
 
 .leaflet-marker-icon.marker-vip {
-    /* Un jaune pastel doux et chaud (Couleur Champagne) */
-    background: #FDE68A !important; 
-    
-    
-    /* Un halo lumineux très subtil, presque transparent */
-    box-shadow: 0 0 8px rgba(253, 230, 138, 0.5) !important;
-    
-    /* Taille légèrement augmentée pour le mettre en valeur */
-    transform: scale(1.1); 
-    transition: all 0.3s ease;
-    z-index: 1000 !important; 
+    background: #FFD700 !important; /* Or pur */
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    border-radius: 0 !important;
+    border: none !important;
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    box-shadow: none !important;
+    z-index: 1000 !important;
 }
 
-/* L'icône à l'intérieur dans un gris doux (presque noir) pour rester lisible mais élégant */
 .leaflet-marker-icon.marker-vip svg,
 .leaflet-marker-icon.marker-vip i {
-    color: #4B5563 !important; 
-    stroke: #4B5563 !important;
-    filter: none !important;
+    color: #000 !important;
+    width: 20px !important;
+    height: 20px !important;
+    z-index: 2;
+    transform: translateY(1px); /* Correction optique */
+}
+
+/* --- ETATS DES MARQUEURS --- */
+
+.leaflet-marker-icon.marker-visited:not(.marker-vip) {
+    border: 3px solid #10B981 !important; /* Vert */
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.leaflet-marker-icon.marker-planned:not(.marker-vip) {
+    border: 3px solid #F97316 !important; /* Orange */
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+}
+
+/* Si VIP est visité ou planifié, on change subtilement la couleur de l'étoile ou l'icône */
+.leaflet-marker-icon.marker-vip.marker-visited {
+    background: #10B981 !important; /* Étoile verte */
+}
+.leaflet-marker-icon.marker-vip.marker-planned {
+    background: #F97316 !important; /* Étoile orange */
+}
+
+/* --- HEADER REORGANISE --- */
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-grow: 1; /* Prend la place pour la recherche */
+}
+
+.topbar-center {
+    display: none !important; /* On supprime le centre pour fusionner */
+}
+
+.topbar-right {
+    gap: 12px;
+}
+
+/* Ajustement Recherche pour Header Gauche */
+.search-container {
+    max-width: 300px;
+    margin-left: 16px;
+}
+
+/* --- WIZARD SELECTION MODE --- */
+.wizard-content {
+    text-align: left;
+    max-width: 450px;
+}
+
+.wizard-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+    background: var(--surface-muted);
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.wizard-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.wizard-option input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--brand);
+    cursor: pointer;
+}
+
+.wizard-select-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wizard-select-container select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 15px;
+    color: var(--ink);
+}
+
+/* --- TOOLS DROPDOWN --- */
+.tools-dropdown-container {
+    position: relative;
+}
+
+.tools-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border: 1px solid var(--line);
+    width: 220px;
+    overflow: hidden;
+    z-index: 2000;
+}
+
+.tools-menu.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.tools-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    color: var(--ink);
+    font-size: 14px;
+    border-bottom: 1px solid var(--surface-muted);
+}
+
+.tools-menu-item:last-child {
+    border-bottom: none;
+}
+
+.tools-menu-item:hover {
+    background: var(--surface-muted);
+}
+
+.tools-menu-item svg {
+    width: 18px;
+    height: 18px;
+    color: var(--ink-soft);
+}
+
+.tools-menu-item:hover svg {
+    color: var(--brand);
 }
 /* ========================================================= */
 /* === SYSTÈME DE MODALES (Architecture) === */
