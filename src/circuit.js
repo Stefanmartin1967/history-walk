@@ -1,6 +1,6 @@
 // circuit.js
 import { state, MAX_CIRCUIT_POINTS, setSelectionMode, addPoiToCurrentCircuit, resetCurrentCircuit } from './state.js';
-import { DOM, openDetailsPanel, switchSidebarTab } from './ui.js';
+import { DOM, openDetailsPanel, switchSidebarTab, updateSelectionModeButton } from './ui.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { drawLineOnMap, clearMapLines, getRealDistance, getOrthodromicDistance, map } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';
@@ -135,6 +135,7 @@ export function toggleSelectionMode(forceValue) {
     // 2. Mise à jour du bouton
     if (DOM.btnModeSelection) {
         DOM.btnModeSelection.classList.toggle('active', state.isSelectionModeActive);
+        updateSelectionModeButton(state.isSelectionModeActive);
     }
 
     // 3. Gestion de l'Interface (Panneaux et Lignes)

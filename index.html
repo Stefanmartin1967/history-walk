@@ -56,6 +56,13 @@
                 <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
             </div>
 
+            <button class="btn" id="btn-my-circuits" title="Mes Circuits"><i data-lucide="route"></i><span>Mes Circuits</span></button>
+
+            <div class="zones-container">
+                <button class="btn" id="btn-categories" title="Filtrer par catégorie"><i data-lucide="list"></i> <span>Catégories</span></button>
+                <div class="zones-menu" id="categoriesMenu" style="display: none;"></div>
+            </div>
+
             <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les lieux visités"><i
                     data-lucide="eye"></i><span>Visités</span></button>
 
@@ -99,12 +106,8 @@
 
                     <div style="height:1px; width:100%; background:var(--line); margin:5px 0;"></div>
 
-                    <button class="tools-menu-item" id="btn-my-circuits">
-                        <i data-lucide="route"></i> Mes Circuits
-                    </button>
-
-                    <button class="tools-menu-item" id="btn-filter-restaurants">
-                        <i data-lucide="utensils-crossed"></i> Restaurants
+                    <button class="tools-menu-item" id="btn-legend">
+                        <i data-lucide="info"></i> Légende
                     </button>
 
                     <button class="tools-menu-item" id="btn-theme-selector">
@@ -154,8 +157,6 @@
                         <i id="distance-icon" data-lucide="bird" title="Distance à vol d'oiseau"></i>
                     </div>
                     <div class="controls-group">
-                        <button class="header-btn" id="close-circuit-panel-button" title="Fermer"><i
-                                data-lucide="x"></i></button>
                     </div>
                 </div>
                 <div class="transport-info">

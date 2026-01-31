@@ -1998,27 +1998,7 @@ input[type=range] {
 }
 
 /* --- RESPONSIVE TOPBAR (Adaptation PC Portable) --- */
-
-/* En dessous de 2000px de large (PC Portable standard) */
-@media (max-width: 2000px) {
-
-    /* On cache le texte (span) à l'intérieur des boutons .btn */
-    .topbar-right .btn span,
-    .topbar-right .zones-container .btn span {
-        display: none;
-    }
-
-    /* On ajuste un peu les marges pour que les icônes soient jolies */
-    .topbar-right .btn {
-        padding: 8px 10px;
-        /* Plus compact */
-    }
-
-    /* Cas particulier pour le bouton Zone qui a un ID dynamique */
-    #zonesLabel {
-        display: none;
-    }
-}
+/* Règle 2000px supprimée pour toujours afficher les labels */
 
 /* --- LE STYLE DES INCONTOURNABLES (Version Étoile VIP) --- */
 

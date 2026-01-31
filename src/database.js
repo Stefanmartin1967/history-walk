@@ -67,6 +67,50 @@ export async function getAppState(key) {
     });
 }
 
+export async function softDeleteCircuit(id) {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('savedCircuits', 'readwrite');
+        const store = transaction.objectStore('savedCircuits');
+
+        const getRequest = store.get(id);
+        getRequest.onsuccess = () => {
+            const circuit = getRequest.result;
+            if (circuit) {
+                circuit.isDeleted = true;
+                const putRequest = store.put(circuit);
+                putRequest.onsuccess = () => resolve();
+                putRequest.onerror = (e) => reject(e.target.error);
+            } else {
+                resolve();
+            }
+        };
+        getRequest.onerror = (e) => reject(e.target.error);
+    });
+}
+
+export async function restoreCircuit(id) {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('savedCircuits', 'readwrite');
+        const store = transaction.objectStore('savedCircuits');
+
+        const getRequest = store.get(id);
+        getRequest.onsuccess = () => {
+            const circuit = getRequest.result;
+            if (circuit) {
+                circuit.isDeleted = false;
+                const putRequest = store.put(circuit);
+                putRequest.onsuccess = () => resolve();
+                putRequest.onerror = (e) => reject(e.target.error);
+            } else {
+                resolve();
+            }
+        };
+        getRequest.onerror = (e) => reject(e.target.error);
+    });
+}
+
 export async function saveAppState(key, value) {
     const db = await initDB();
     return new Promise((resolve, reject) => {

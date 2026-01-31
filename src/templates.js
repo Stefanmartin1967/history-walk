@@ -120,7 +120,6 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 <div class="details-nav" style="display:flex; gap:4px;">
                     ${inCircuit ? `<button class="action-button" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
                                   <button class="action-button" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
-                    <button class="action-button" id="close-details-button" title="${state.isSelectionModeActive ? 'Retour' : 'Fermer'}">${state.isSelectionModeActive ? ICONS.arrowLeftToLine : ICONS.x}</button>
                 </div>
 
                 <div class="edit-controls" style="display:flex; gap:5px; justify-content:flex-end;">
@@ -167,7 +166,6 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 <div class="content checkbox-group">
                   <label class="checkbox-label"><input type="checkbox" id="panel-chk-vu" ${isVuChecked}> Visité</label>
                   <label class="checkbox-label"><input type="checkbox" id="panel-chk-incontournable" ${isIncontournableChecked}> Incontournable</label>
-                  <label class="checkbox-label"><input type="checkbox" id="panel-chk-verified" ${isVerifiedChecked}> Vérifié</label>
                 </div>
             </div>
             <div class="detail-section editable-field notes-section" data-field-id="notes">
@@ -260,7 +258,6 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 <div class="content checkbox-group">
                   <label class="checkbox-label"><input type="checkbox" id="panel-chk-vu" ${isVuChecked}> Visité</label>
                   <label class="checkbox-label"><input type="checkbox" id="panel-chk-incontournable" ${isIncontournableChecked}> Incontournable</label>
-                  <label class="checkbox-label"><input type="checkbox" id="panel-chk-verified" ${isVerifiedChecked}> Vérifié</label>
                 </div>
             </div>
             <div class="detail-section editable-field notes-section" data-field-id="notes">

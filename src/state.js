@@ -32,6 +32,7 @@ export const state = {
         hidePlanned: true
     },
     activeFilters: {
+        categories: [],
         restaurants: false,
         vus: false,
         planifies: false,

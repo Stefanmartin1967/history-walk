@@ -47,9 +47,11 @@ function renderCircuitsList() {
     const container = getEl('circuits-list-container');
     if (!container) return;
 
-    container.innerHTML = (state.myCircuits.length === 0)
+    const visibleCircuits = state.myCircuits.filter(c => !c.isDeleted);
+
+    container.innerHTML = (visibleCircuits.length === 0)
         ? '<p class="empty-list-info">Aucun circuit sauvegardé pour cette carte.</p>'
-        : state.myCircuits.map(c => {
+        : visibleCircuits.map(c => {
             const existingFeatures = c.poiIds
                 .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
                 .filter(f => f);

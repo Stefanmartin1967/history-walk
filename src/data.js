@@ -110,7 +110,11 @@ export function getFilteredFeatures() {
         // B. Les Filtres Structurels (Zone, Catégorie)
         // Ceux-ci s'appliquent TOUT LE TEMPS, même aux VIPs
         if (state.activeFilters.zone && props.Zone !== state.activeFilters.zone) return false;
-        if (state.activeFilters.restaurants && props.Catégorie !== 'Restaurant') return false;
+
+        // Filtre Catégories (Multi-sélection)
+        if (state.activeFilters.categories && state.activeFilters.categories.length > 0) {
+            if (!state.activeFilters.categories.includes(props['Catégorie'])) return false;
+        }
 
         // C. Les incontournables passent TOUJOURS (Exception Majeure pour le statut)
         if (props.incontournable) return true;

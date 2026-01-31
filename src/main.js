@@ -10,8 +10,12 @@ import {
     openCircuitsModal,
     closeCircuitsModal,
     populateZonesMenu,
+    populateCategoriesMenu,
     closeDetailsPanel,
-    populateAddPoiModalCategories
+    populateAddPoiModalCategories,
+    showLegendModal,
+    openRestoreModal,
+    updateSelectionModeButton
 } from './ui.js';
 import { showToast } from './toast.js';
 
@@ -276,6 +280,7 @@ async function initDesktopMode() {
         setupSmartSearch();
     }
     setupDesktopUIListeners(); // Listeners spécifiques UI Desktop
+    updateSelectionModeButton(state.isSelectionModeActive);
 }
 
 // --- NOUVEAU : Listeners pour Fichiers (Actifs Mobile & Desktop) ---
@@ -287,10 +292,10 @@ function setupFileListeners() {
         DOM.restoreLoader.addEventListener('change', handleRestoreFile);
     }
 
-    // Bouton Menu Restauration
+    // Bouton Menu Restauration (Corbeille)
     if (DOM.btnRestoreData) {
         DOM.btnRestoreData.addEventListener('click', () => {
-            if (!DOM.btnRestoreData.disabled) DOM.restoreLoader.click();
+            if (!DOM.btnRestoreData.disabled) openRestoreModal();
         });
     }
 
@@ -341,11 +346,19 @@ function setupDesktopUIListeners() {
     // Note: btnModeSelection est géré par setupDesktopTools pour le Wizard
     if (DOM.btnMyCircuits) DOM.btnMyCircuits.addEventListener('click', openCircuitsModal);
 
-    // Filtres : Gestion du bouton Restaurant
-    document.getElementById('btn-filter-restaurants')?.addEventListener('click', (e) => {
-        const isActive = e.currentTarget.classList.toggle('active');
-        state.activeFilters.restaurants = isActive;
-        applyFilters();
+    // Filtres : Gestion du bouton Catégories
+    document.getElementById('btn-categories')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cMenu = document.getElementById('categoriesMenu');
+        if (cMenu) cMenu.style.display = cMenu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Initialisation du menu
+    populateCategoriesMenu();
+
+    // Légende
+    document.getElementById('btn-legend')?.addEventListener('click', () => {
+        showLegendModal();
     });
 
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {
@@ -367,9 +380,15 @@ function setupDesktopUIListeners() {
     });
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.zones-container')) {
+        // Fermeture Zones
+        if (!e.target.closest('#btn-filter-zones') && !e.target.closest('#zonesMenu')) {
             const zonesMenu = document.getElementById('zonesMenu');
             if (zonesMenu) zonesMenu.style.display = 'none';
+        }
+        // Fermeture Catégories
+        if (!e.target.closest('#btn-categories') && !e.target.closest('#categoriesMenu')) {
+            const cMenu = document.getElementById('categoriesMenu');
+            if (cMenu) cMenu.style.display = 'none';
         }
     });
 
