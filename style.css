@@ -89,7 +89,7 @@ body {
     padding: 0 16px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 16px;
     color: #fff;
     background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
@@ -102,16 +102,11 @@ body {
 }
 
 .topbar-center {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
+    display: none;
 }
 
 .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    display: none;
 }
 
 .app-title {
@@ -2051,15 +2046,24 @@ input[type=range] {
     display: flex;
     align-items: center;
     gap: 16px;
-    flex-grow: 1; /* Prend la place pour la recherche */
+    flex-grow: 0;
 }
 
 .topbar-center {
-    display: none !important; /* On supprime le centre pour fusionner */
+    display: none !important;
 }
 
 .topbar-right {
-    gap: 12px;
+    display: none;
+}
+
+/* --- ICON ONLY BUTTONS --- */
+#btn-categories span,
+#btn-filter-vus span,
+#btn-filter-planifies span,
+#btn-mode-selection span,
+#btn-tools-menu span {
+    display: none !important;
 }
 
 /* Ajustement Recherche pour Header Gauche */
@@ -2123,7 +2127,8 @@ input[type=range] {
     display: none;
     position: absolute;
     top: calc(100% + 10px);
-    right: 0;
+    left: 0;
+    right: auto;
     background: var(--surface);
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);

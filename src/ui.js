@@ -504,7 +504,7 @@ export function updateSelectionModeButton(isActive) {
         btn.innerHTML = `<i data-lucide="map-pin-plus"></i><span>Créer circuit</span>`;
         btn.title = "Mode création activé";
     } else {
-        btn.innerHTML = `<i data-lucide="book-search"></i><span>Explorer</span>`;
+        btn.innerHTML = `<i data-lucide="map-pin-off"></i><span>Explorer</span>`;
         btn.title = "Mode consultation";
     }
     createIcons({ icons });

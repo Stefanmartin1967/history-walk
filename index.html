@@ -63,17 +63,14 @@
                 <div class="zones-menu" id="categoriesMenu" style="display: none;"></div>
             </div>
 
-            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les lieux visités"><i
+            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les visités"><i
                     data-lucide="eye"></i><span>Visités</span></button>
 
             <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i
                     data-lucide="calendar-check"></i><span>Planifiés</span></button>
-        </div>
 
-        <div class="topbar-right">
-
-            <button class="btn" id="btn-mode-selection" title="Mode Sélection (Édition/Circuits)"><i
-                    data-lucide="mouse-pointer-click"></i><span>Sélection</span></button>
+            <button class="btn" id="btn-mode-selection" title="Mode consultation"><i
+                    data-lucide="map-pin-off"></i><span>Sélection</span></button>
 
             <div class="tools-dropdown-container">
                 <button class="btn" id="btn-tools-menu" title="Menu Outils"><i
@@ -119,13 +116,14 @@
                     </button>
                 </div>
             </div>
+        </div>
 
+        <div class="topbar-right">
             <!-- HIDDEN LOADERS (Keep them for logic) -->
             <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
             <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
             <input type="file" id="restore-loader" accept=".json,.geojson,.txt,application/json,text/plain,*/*"
                 style="display:none;">
-
         </div>
     </div>
 
