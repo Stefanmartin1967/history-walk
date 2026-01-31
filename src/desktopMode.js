@@ -117,6 +117,9 @@ export async function handleDesktopPhotoImport(filesList) {
             if (nearestPoi) {
                 // CAS A : POI EXISTANT TROUVÉ
                 const poiName = getPoiName(nearestPoi);
+
+                if (loader) loader.style.display = 'none';
+
                 const confirmAdd = await showConfirm(
                     "Ajout Photos",
                     `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) détecté(es) près de "${poiName}" (${Math.round(minDistance)}m).\n\n` +
@@ -127,6 +130,7 @@ export async function handleDesktopPhotoImport(filesList) {
                 );
 
                 if (confirmAdd) {
+                    if (loader) loader.style.display = 'flex';
                     await addPhotosToPoi(nearestPoi, cluster);
                     processedCount += cluster.length;
                     continue; // On passe au cluster suivant
@@ -135,6 +139,8 @@ export async function handleDesktopPhotoImport(filesList) {
 
             // CAS B : PAS DE POI PROCHE OU REFUS D'AJOUT -> PROPOSITION DE CRÉATION
             // On vérifie une dernière fois avec l'utilisateur
+            if (loader) loader.style.display = 'none';
+
             const confirmCreate = await showConfirm(
                 "Nouveau Lieu ?",
                 `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) à une position non rattachée.\n` +
