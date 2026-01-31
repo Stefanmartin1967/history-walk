@@ -10,6 +10,8 @@ import { isMobileView, renderMobilePoiList } from './mobile.js';
 import * as View from './circuit-view.js';
 import { showToast } from './toast.js';
 import { showConfirm } from './modal.js';
+import { performCircuitDeletion } from './circuit-actions.js';
+import { eventBus } from './events.js';
 
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
@@ -219,7 +221,7 @@ export function updateCircuitMetadata(updateTitle = true) {
     const title = generateCircuitName();
 
     // 2. ENVOI À LA VUE (On ne touche plus au DOM ici)
-    View.updateStatsUI({
+    View.updateCircuitHeader({
         countText: `${state.currentCircuit.length}/${MAX_CIRCUIT_POINTS}`,
         distanceText: (totalDistance / 1000).toFixed(1) + ' km',
         title: title,
@@ -478,5 +480,24 @@ export function setupCircuitEventListeners() {
     // 4. Description (Input texte)
     if (DOM.circuitDescription) {
         DOM.circuitDescription.addEventListener('input', saveCircuitDraft);
+    }
+
+    // 5. Bouton SUPPRIMER (Poubelle active)
+    const btnDelete = document.getElementById('btn-delete-active-circuit');
+    if (btnDelete) {
+        btnDelete.addEventListener('click', async () => {
+             if (await showConfirm("Suppression", "Voulez-vous vraiment supprimer ce circuit ?", "Supprimer", "Annuler", true)) {
+                 if (state.activeCircuitId) {
+                     const result = await performCircuitDeletion(state.activeCircuitId);
+                     if (result.success) {
+                         showToast(result.message, 'success');
+                         await clearCircuit(false);
+                         eventBus.emit('circuit:list-updated');
+                     } else {
+                         showToast(result.message, 'error');
+                     }
+                 }
+             }
+        });
     }
 }
