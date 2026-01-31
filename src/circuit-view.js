@@ -1,6 +1,7 @@
 // circuit-view.js
 import { DOM, openDetailsPanel, switchSidebarTab } from './ui.js';
 import { getPoiName, getPoiId } from './data.js';
+import { state } from './state.js';
 
 /**
  * Génère le HTML pour une étape du circuit
@@ -62,7 +63,7 @@ export function renderCircuitList(points, callbacks) {
 /**
  * Mise à jour des compteurs et textes
  */
-export function updateStatsUI(data) {
+export function updateCircuitHeader(data) {
     if (DOM.circuitPoiCount) DOM.circuitPoiCount.textContent = data.countText;
     if (DOM.circuitDistance) DOM.circuitDistance.textContent = data.distanceText;
     if (DOM.circuitTitleText) {
@@ -75,6 +76,11 @@ export function updateStatsUI(data) {
         distIcon.setAttribute('data-lucide', data.iconType);
         distIcon.title = data.iconTitle;
         if (window.lucide) window.lucide.createIcons();
+    }
+
+    const btnDelete = document.getElementById('btn-delete-active-circuit');
+    if (btnDelete) {
+        btnDelete.style.display = state.activeCircuitId ? 'flex' : 'none';
     }
 }
 

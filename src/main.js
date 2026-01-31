@@ -15,7 +15,8 @@ import {
     populateAddPoiModalCategories,
     showLegendModal,
     openRestoreModal,
-    updateSelectionModeButton
+    updateSelectionModeButton,
+    populateCircuitsMenu
 } from './ui.js';
 import { showToast } from './toast.js';
 
@@ -270,6 +271,10 @@ function setupEventBusListeners() {
              eventBus.emit('circuit:list-updated');
         }
     });
+
+    eventBus.on('circuit:list-updated', () => {
+        populateCircuitsMenu();
+    });
 }
 
 async function initDesktopMode() {
@@ -344,7 +349,7 @@ function setupFileListeners() {
 // --- Listeners spécifiques Desktop (Carte, Tabs, Filtres visuels) ---
 function setupDesktopUIListeners() {
     // Note: btnModeSelection est géré par setupDesktopTools pour le Wizard
-    if (DOM.btnMyCircuits) DOM.btnMyCircuits.addEventListener('click', openCircuitsModal);
+    // if (DOM.btnMyCircuits) DOM.btnMyCircuits.addEventListener('click', openCircuitsModal); // REMPLACÉ PAR MENU DÉROULANT (ui.js)
 
     // Filtres : Gestion du bouton Catégories
     document.getElementById('btn-categories')?.addEventListener('click', (e) => {

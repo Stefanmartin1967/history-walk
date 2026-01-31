@@ -56,7 +56,10 @@
                 <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
             </div>
 
-            <button class="btn" id="btn-my-circuits" title="Mes Circuits"><i data-lucide="route"></i><span>Mes Circuits</span></button>
+            <div class="zones-container" id="circuits-dropdown-container">
+                <button class="btn" id="btn-my-circuits" title="Mes Circuits"><i data-lucide="route"></i><span>Mes Circuits</span></button>
+                <div class="zones-menu" id="circuitsMenu" style="display: none;"></div>
+            </div>
 
             <div class="zones-container">
                 <button class="btn" id="btn-categories" title="Filtrer par catégorie"><i data-lucide="list"></i> <span>Catégories</span></button>
@@ -156,6 +159,7 @@
                         <i id="distance-icon" data-lucide="bird" title="Distance à vol d'oiseau"></i>
                     </div>
                     <div class="controls-group">
+                        <button id="btn-delete-active-circuit" class="header-btn" title="Supprimer ce circuit" style="display:none; color:var(--danger);"><i data-lucide="trash-2"></i></button>
                     </div>
                 </div>
                 <div class="transport-info">

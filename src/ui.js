@@ -5,7 +5,7 @@ import { restoreCircuit } from './database.js';
 import { escapeXml } from './gpx.js';
 import { eventBus } from './events.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
-import { clearCircuit, navigatePoiDetails, toggleSelectionMode } from './circuit.js';
+import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';
 import { map } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
 import { createIcons, icons } from 'lucide';
@@ -60,6 +60,17 @@ export function initializeDomReferences() {
 
     if (DOM.closeCircuitPanelBtn) {
         DOM.closeCircuitPanelBtn.addEventListener('click', () => toggleSelectionMode(false));
+    }
+
+    if (DOM.btnMyCircuits) {
+        DOM.btnMyCircuits.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const menu = document.getElementById('circuitsMenu');
+            if (menu) {
+                populateCircuitsMenu();
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }
+        });
     }
 
     // Initialisation des sous-modules UI
@@ -456,6 +467,30 @@ export function populateZonesMenu() {
             applyFilters();
         };
         zonesMenu.appendChild(zoneBtn);
+    });
+}
+
+export function populateCircuitsMenu() {
+    const circuitsMenu = document.getElementById('circuitsMenu');
+    if (!circuitsMenu) return;
+
+    circuitsMenu.innerHTML = '';
+    const visibleCircuits = state.myCircuits.filter(c => !c.isDeleted);
+
+    if (visibleCircuits.length === 0) {
+        circuitsMenu.innerHTML = '<button disabled>Aucun circuit</button>';
+        return;
+    }
+
+    visibleCircuits.forEach(circuit => {
+        const btn = document.createElement('button');
+        btn.textContent = escapeXml(circuit.name);
+        btn.onclick = () => {
+            loadCircuitById(circuit.id);
+            switchSidebarTab('circuit');
+            circuitsMenu.style.display = 'none';
+        };
+        circuitsMenu.appendChild(btn);
     });
 }
 
