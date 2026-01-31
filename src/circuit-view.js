@@ -89,6 +89,11 @@ export function updateControlButtons(uiState) {
     const btnExport = document.getElementById('btn-export-gpx');
     const btnImport = document.getElementById('btn-import-gpx');
     const btnClear = document.getElementById('btn-clear-circuit');
+    const btnLoop = document.getElementById('btn-loop-circuit');
+
+    if (btnLoop) {
+        btnLoop.style.display = uiState.isActive ? 'none' : 'flex';
+    }
 
     // EXPORT : Actif seulement si le circuit n'est pas vide
     if (btnExport) {

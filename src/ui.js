@@ -1,6 +1,9 @@
 // ui.js
 import { state, POI_CATEGORIES } from './state.js';
 import { getPoiId, getPoiName, applyFilters, updatePoiData } from './data.js';
+import { restoreCircuit } from './database.js';
+import { escapeXml } from './gpx.js';
+import { eventBus } from './events.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { clearCircuit, navigatePoiDetails } from './circuit.js';
 import { map } from './map.js';
@@ -33,7 +36,8 @@ export function initializeDomReferences() {
         'photo-viewer', 'viewer-img', 'viewer-next', 'viewer-prev',
         'backup-modal', 'btn-backup-full', 'btn-backup-lite', 'btn-backup-cancel',
         'btn-loop-circuit',
-        'btn-clear-circuit'
+        'btn-clear-circuit',
+        'btn-categories', 'btn-legend'
     ];
     
     // Récupération sécurisée des éléments
@@ -180,7 +184,18 @@ function setupDetailsEventListeners(poiId) {
     if (chkVu) {
         chkVu.addEventListener('change', (e) => {
             updatePoiData(poiId, 'vu', e.target.checked);
-            if (state.activeFilters.vus && !isMobileView()) applyFilters();
+
+            if (!isMobileView()) {
+                import('./data.js').then(dataModule => {
+                    import('./map.js').then(mapModule => {
+                        if (mapModule.refreshMapMarkers && dataModule.getFilteredFeatures) {
+                            mapModule.refreshMapMarkers(dataModule.getFilteredFeatures());
+                        }
+                    });
+                });
+
+                if (state.activeFilters.vus) applyFilters();
+            }
         });
     }
 
@@ -437,4 +452,132 @@ export function populateAddPoiModalCategories() {
     ).join('');
     
     select.value = "A définir";
+}
+
+export function populateCategoriesMenu() {
+    const menu = document.getElementById('categoriesMenu');
+    if (!menu) return;
+
+    menu.innerHTML = '';
+
+    POI_CATEGORIES.forEach(cat => {
+        const wrapper = document.createElement('label');
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.padding = '8px 16px';
+        wrapper.style.cursor = 'pointer';
+        wrapper.style.userSelect = 'none';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = cat;
+        cb.style.marginRight = '10px';
+
+        if (state.activeFilters.categories.includes(cat)) {
+            cb.checked = true;
+        }
+
+        cb.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                state.activeFilters.categories.push(cat);
+            } else {
+                state.activeFilters.categories = state.activeFilters.categories.filter(c => c !== cat);
+            }
+            applyFilters();
+        });
+
+        wrapper.appendChild(cb);
+        wrapper.appendChild(document.createTextNode(cat));
+
+        wrapper.addEventListener('mouseenter', () => wrapper.style.backgroundColor = 'var(--surface-muted)');
+        wrapper.addEventListener('mouseleave', () => wrapper.style.backgroundColor = 'transparent');
+
+        menu.appendChild(wrapper);
+    });
+}
+
+export function updateSelectionModeButton(isActive) {
+    const btn = document.getElementById('btn-mode-selection');
+    if (!btn) return;
+
+    if (isActive) {
+        btn.innerHTML = `<i data-lucide="map-pin-plus"></i><span>Créer circuit</span>`;
+        btn.title = "Mode création activé";
+    } else {
+        btn.innerHTML = `<i data-lucide="book-search"></i><span>Explorer</span>`;
+        btn.title = "Mode consultation";
+    }
+    createIcons({ icons });
+}
+
+export function showLegendModal() {
+    const title = "Légende des Marqueurs";
+    const message = `
+    <div style="text-align: left; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #10B981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);"></div>
+            <span><strong>Visité</strong> (Lieu marqué comme vu)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #F97316; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);"></div>
+            <span><strong>Planifié</strong> (Ajouté à un circuit)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 24px; height: 24px; background: #FFD700; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+            <span><strong>Incontournable</strong> (Lieu VIP à ne pas manquer)</span>
+        </div>
+    </div>`;
+
+    showConfirm(title, message, "Fermer", null, false).catch(() => {});
+}
+
+export function openRestoreModal() {
+    const deletedCircuits = state.myCircuits.filter(c => c.isDeleted);
+
+    if (deletedCircuits.length === 0) {
+        showToast("Corbeille vide.", "info");
+        return;
+    }
+
+    const html = `
+        <div style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;">
+            ${deletedCircuits.map(c => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--surface-muted); border-radius: 8px;">
+                    <span style="font-weight: 500; color: var(--ink); text-align: left;">${escapeXml(c.name)}</span>
+                    <button class="restore-btn" data-id="${c.id}" style="background: transparent; color: var(--ok); border: 1px solid var(--ok); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600;">
+                        Restaurer
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    const modal = document.getElementById('custom-modal-overlay');
+    const titleEl = document.getElementById('custom-modal-title');
+    const msgEl = document.getElementById('custom-modal-message');
+    const actionsEl = document.getElementById('custom-modal-actions');
+
+    if (!modal) return;
+
+    titleEl.textContent = "Corbeille";
+    msgEl.innerHTML = html;
+    actionsEl.innerHTML = `<button class="custom-modal-btn secondary" id="btn-close-restore">Fermer</button>`;
+
+    modal.classList.add('active');
+
+    const closeBtn = document.getElementById('btn-close-restore');
+    if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
+
+    msgEl.querySelectorAll('.restore-btn').forEach(btn => {
+        btn.onclick = async (e) => {
+            const id = e.currentTarget.dataset.id;
+            await restoreCircuit(id);
+            const c = state.myCircuits.find(cir => cir.id === id);
+            if(c) c.isDeleted = false;
+
+            showToast("Circuit restauré", "success");
+            modal.classList.remove('active');
+            eventBus.emit('circuit:list-updated');
+        };
+    });
 }

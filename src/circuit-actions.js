@@ -1,6 +1,6 @@
 // circuit-actions.js
 import { state } from './state.js';
-import { deleteCircuitById } from './database.js';
+import { deleteCircuitById, softDeleteCircuit } from './database.js';
 import { clearCircuit, setCircuitVisitedState } from './circuit.js';
 import { recalculatePlannedCountersForMap } from './gpx.js';
 import { applyFilters } from './data.js';
@@ -16,11 +16,12 @@ import { isMobileView } from './mobile.js';
  */
 export async function performCircuitDeletion(id) {
     try {
-        // 1. Suppression physique dans la base de données
-        await deleteCircuitById(id);
+        // 1. Suppression logique (Corbeille)
+        await softDeleteCircuit(id);
         
         // 2. Mise à jour de la mémoire (state)
-        state.myCircuits = state.myCircuits.filter(c => c.id !== id);
+        const circuit = state.myCircuits.find(c => c.id === id);
+        if (circuit) circuit.isDeleted = true;
         
         // 3. Si c'était le circuit actif, on nettoie l'affichage
         if (state.activeCircuitId === id) {
@@ -38,7 +39,7 @@ export async function performCircuitDeletion(id) {
         // 6. Succès : On renvoie l'info ET le texte à afficher
         return { 
             success: true, 
-            message: "Le circuit a été définitivement supprimé." 
+            message: "Le circuit a été déplacé dans la corbeille."
         };
 
     } catch (error) {
