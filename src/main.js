@@ -229,6 +229,26 @@ async function initializeApp() {
 
     // 5. Relancer les icônes à la toute fin
     if (typeof createIcons === 'function') createIcons();
+
+    // --- GESTION DE L'IMPORT URL (QR Code Universel) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const importIds = urlParams.get('import');
+
+    if (importIds) {
+        console.log("Import circuit détecté via URL:", importIds);
+
+        // Nettoyage de l'URL pour éviter le rechargement en boucle
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+
+        // On attend un peu que tout soit chargé (Events, DB, Map/Mobile view)
+        setTimeout(() => {
+             import('./circuit.js').then(module => {
+                 // On passe directement les IDs bruts, la fonction gère le fallback
+                 module.loadCircuitFromIds(importIds);
+             });
+        }, 500);
+    }
 }
 
 function setupEventBusListeners() {

@@ -428,18 +428,21 @@ export async function generateCircuitQR() {
 
     // 1. Extraction
     const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
-    const dataString = `hw:${ids.join(',')}`;
 
-    // 2. Generation QR
+    // 2. Generation URL (Compatible Scanners Externes & App)
+    const baseUrl = window.location.origin + window.location.pathname;
+    const dataString = `${baseUrl}?import=${ids.join(',')}`;
+
+    // 3. Generation QR
     try {
         const url = await QRCode.toDataURL(dataString, { width: 300, margin: 2 });
 
-        // 3. Affichage
+        // 4. Affichage
         const html = `
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
                 <img src="${url}" style="width:250px; height:250px; border-radius:10px; border:1px solid var(--line);">
                 <p style="text-align:center; color:var(--ink-soft); font-size:14px;">
-                    Faites scanner ce code par un autre appareil<br>pour transférer le circuit.
+                    Scannez ce code avec l'application ou votre appareil photo<br>pour ouvrir le circuit.
                 </p>
             </div>
         `;
@@ -452,32 +455,84 @@ export async function generateCircuitQR() {
     }
 }
 
-export async function loadCircuitFromIds(idString) {
-    if (!idString || !idString.startsWith('hw:')) {
-        showToast("Format de circuit invalide (Préfixe manquant)", "error");
-        return;
+export async function loadCircuitFromIds(inputString) {
+    if (!inputString) return;
+
+    let idsStr = '';
+
+    // 1. Parsing intelligent (URL vs Legacy hw:)
+    if (inputString.includes('import=')) {
+        // Format URL : http://.../?import=ID1,ID2
+        try {
+            // Astuce : on utilise une base fictive si l'URL est relative ou partielle, juste pour parser les params
+            const urlObj = new URL(inputString.startsWith('http') ? inputString : 'https://dummy/' + inputString);
+            idsStr = urlObj.searchParams.get('import');
+        } catch (e) {
+            // Fallback manuel si l'URL est malformée
+            const match = inputString.match(/import=([^&]*)/);
+            if (match) idsStr = match[1];
+        }
+    } else if (inputString.startsWith('hw:')) {
+        // Format Legacy : hw:ID1,ID2
+        idsStr = inputString.replace('hw:', '');
+    } else {
+        // Format Brut (Fallback)
+        idsStr = inputString;
     }
 
-    const idsStr = idString.replace('hw:', '');
     if (!idsStr) {
-        showToast("Circuit vide", "warning");
+        showToast("Format de circuit invalide", "error");
         return;
     }
 
     const ids = idsStr.split(',').filter(Boolean);
+    if (ids.length === 0) {
+        showToast("Données de circuit vides", "warning");
+        return;
+    }
 
-    // Nettoyage préalable
-    await clearCircuit(false);
-
-    // Reconstruction
+    // 2. Reconstruction et Résolution des POIs
     let foundCount = 0;
-    state.currentCircuit = ids.map(id => {
+    const resolvedFeatures = ids.map(id => {
         const feature = state.loadedFeatures.find(f => getPoiId(f) === id);
         if (feature) foundCount++;
         return feature;
     }).filter(Boolean);
 
-    // UI Updates
+    if (resolvedFeatures.length === 0) {
+        showToast("Aucune étape correspondante trouvée dans la base", "warning");
+        return;
+    }
+
+    // 3. SAUVEGARDE EN BASE (Persistence)
+    // On crée un vrai objet Circuit pour qu'il apparaisse dans la liste
+    const newCircuitId = `circuit-${Date.now()}`;
+    const newCircuit = {
+        id: newCircuitId,
+        name: `Circuit Importé (${new Date().toLocaleDateString()})`,
+        description: "Circuit importé via QR Code",
+        poiIds: resolvedFeatures.map(getPoiId),
+        realTrack: null,
+        transport: { allerTemps: '', allerCout: '', retourTemps: '', retourCout: '' }
+    };
+
+    try {
+        await saveCircuit(newCircuit);
+        state.myCircuits.push(newCircuit); // Mise à jour mémoire
+        eventBus.emit('circuit:list-updated'); // Mise à jour UI
+    } catch (err) {
+        console.error("Erreur sauvegarde circuit importé:", err);
+        showToast("Erreur lors de la sauvegarde du circuit", "error");
+        return;
+    }
+
+    // 4. CHARGEMENT (Activer le circuit nouvellement créé)
+    await clearCircuit(false);
+
+    state.activeCircuitId = newCircuitId;
+    state.currentCircuit = resolvedFeatures;
+
+    // 5. Mise à jour de l'affichage
     if (isMobileView()) {
         renderMobilePoiList(state.currentCircuit);
         import('./mobile.js').then(m => m.switchMobileView('circuits'));
@@ -486,18 +541,17 @@ export async function loadCircuitFromIds(idString) {
         if (!state.isSelectionModeActive) {
             toggleSelectionMode(true);
         }
+        applyFilters();
+
+        if (typeof map !== 'undefined' && map && state.currentCircuit.length > 0) {
+            const points = state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+            const bounds = L.latLngBounds(points);
+            map.flyToBounds(bounds, { padding: [50, 50] });
+        }
     }
 
     notifyCircuitChanged();
-
-    // Zoomer sur le circuit (si PC)
-    if (typeof map !== 'undefined' && map && state.currentCircuit.length > 0) {
-        const points = state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
-        const bounds = L.latLngBounds(points);
-        map.flyToBounds(bounds, { padding: [50, 50] });
-    }
-
-    showToast(`Circuit chargé : ${foundCount} étapes retrouvées`, "success");
+    showToast(`Circuit importé et sauvegardé : ${foundCount} étapes`, "success");
 }
 
 export function setupCircuitEventListeners() {
