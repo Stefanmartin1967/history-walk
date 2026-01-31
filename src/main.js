@@ -29,7 +29,7 @@ import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } f
 
 import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile } from './fileManager.js';
 import { setupSearch, setupSmartSearch } from './searchManager.js';
-import { enableDesktopCreationMode } from './desktopMode.js';
+import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
 
 // --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
@@ -272,6 +272,7 @@ async function initDesktopMode() {
     initMap(); // Leaflet
     if (typeof map !== 'undefined') {
         enableDesktopCreationMode();
+        setupDesktopTools();
         setupSmartSearch();
     }
     setupDesktopUIListeners(); // Listeners spécifiques UI Desktop
@@ -337,7 +338,7 @@ function setupFileListeners() {
 
 // --- Listeners spécifiques Desktop (Carte, Tabs, Filtres visuels) ---
 function setupDesktopUIListeners() {
-    if (DOM.btnModeSelection) DOM.btnModeSelection.addEventListener('click', toggleSelectionMode);
+    // Note: btnModeSelection est géré par setupDesktopTools pour le Wizard
     if (DOM.btnMyCircuits) DOM.btnMyCircuits.addEventListener('click', openCircuitsModal);
 
     // Filtres : Gestion du bouton Restaurant

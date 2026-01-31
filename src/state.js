@@ -27,6 +27,10 @@ export const state = {
     orthodromicPolyline: null,
     realTrackPolyline: null,
     filterCompleted: false,
+    selectionModeFilters: {
+        hideVisited: true,
+        hidePlanned: true
+    },
     activeFilters: {
         restaurants: false,
         vus: false,

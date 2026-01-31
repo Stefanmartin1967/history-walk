@@ -1,3 +1,6 @@
+import { getZonesData } from './circuit-actions.js';
+import { applyFilters } from './data.js';
+import { toggleSelectionMode } from './circuit.js';
 import { map } from './map.js';
 import { addPoiFeature, getPoiId } from './data.js';
 import { state } from './state.js';
@@ -323,4 +326,101 @@ export function openDesktopAddModal(lat, lng, photos = []) {
 
 function getPoiName(feature) {
     return feature.properties['Nom du site FR'] || feature.properties['name'] || "Lieu inconnu";
+}
+
+// --- LOGIQUE WIZARD & OUTILS ---
+
+export function setupDesktopTools() {
+    // 1. Bouton "Mode Sélection" avec Interception pour Wizard
+    const btnSelect = document.getElementById('btn-mode-selection');
+    if (btnSelect) {
+        // On clone le bouton pour supprimer les anciens écouteurs (toggle simple)
+        const newBtn = btnSelect.cloneNode(true);
+        btnSelect.parentNode.replaceChild(newBtn, btnSelect);
+
+        newBtn.addEventListener('click', () => {
+             if (state.isSelectionModeActive) {
+                 toggleSelectionMode(false);
+             } else {
+                 openSelectionWizard();
+             }
+        });
+    }
+
+    // 2. Menu Outils (Dropdown)
+    const btnTools = document.getElementById('btn-tools-menu');
+    const toolsMenu = document.getElementById('tools-menu-content');
+
+    if (btnTools && toolsMenu) {
+        btnTools.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toolsMenu.classList.toggle('active');
+        });
+
+        // Fermeture au clic ailleurs
+        document.addEventListener('click', (e) => {
+            if (!toolsMenu.contains(e.target) && !btnTools.contains(e.target)) {
+                toolsMenu.classList.remove('active');
+            }
+        });
+    }
+
+    // 3. Initialisation du Wizard
+    const btnStart = document.getElementById('btn-wizard-start');
+    const btnClose = document.getElementById('close-wizard-modal');
+    if (btnStart) btnStart.addEventListener('click', handleWizardStart);
+    if (btnClose) btnClose.addEventListener('click', () => {
+        document.getElementById('selection-wizard-modal').style.display = 'none';
+    });
+}
+
+function openSelectionWizard() {
+    const modal = document.getElementById('selection-wizard-modal');
+    if (!modal) return;
+
+    // Remplissage de la liste des zones
+    const zoneSelect = document.getElementById('wizard-zone-select');
+    if (zoneSelect) {
+        // On garde "Toute l'île"
+        zoneSelect.innerHTML = '<option value="">Toute l\'île</option>';
+        const data = getZonesData();
+        if (data && data.sortedZones) {
+             data.sortedZones.forEach(zone => {
+                 const option = document.createElement('option');
+                 option.value = zone;
+                 option.textContent = `${zone} (${data.zoneCounts[zone]})`;
+                 zoneSelect.appendChild(option);
+             });
+        }
+    }
+
+    modal.style.display = 'flex';
+}
+
+function handleWizardStart() {
+    // 1. Récupération des choix
+    const zoneSelect = document.getElementById('wizard-zone-select');
+    const checkVisited = document.getElementById('wizard-check-visited');
+    const checkPlanned = document.getElementById('wizard-check-planned');
+
+    const selectedZone = zoneSelect ? zoneSelect.value : "";
+    const hideVisited = checkVisited ? checkVisited.checked : true;
+    const hidePlanned = checkPlanned ? checkPlanned.checked : true;
+
+    // 2. Mise à jour de l'état
+    state.selectionModeFilters = {
+        hideVisited: hideVisited,
+        hidePlanned: hidePlanned
+    };
+
+    // On met à jour le filtre Zone global car il est partagé
+    state.activeFilters.zone = selectedZone || null;
+
+    // 3. Lancement du mode
+    toggleSelectionMode(true);
+    applyFilters(); // Force le rafraîchissement avec les nouvelles règles
+
+    // 4. Fermeture du Wizard
+    document.getElementById('selection-wizard-modal').style.display = 'none';
+    showToast("Mode Sélection Configuré", "success");
 }

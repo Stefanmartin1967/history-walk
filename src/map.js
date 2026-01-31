@@ -282,10 +282,22 @@ export function refreshMapMarkers(visibleFeatures) {
             const category = feature.properties.Catégorie || 'default'; 
             const icon = createHistoryWalkIcon(category);
 
-            // ---> C'EST ICI LE BON ENDROIT POUR LE VIP <---
-            // Si le lieu est incontournable, on ajoute la classe CSS dorée à l'icône
-            if (feature.properties.userData?.incontournable === true) {
+            // ---> LOGIQUE DES MARQUEURS ET STATUTS <---
+            const props = feature.properties.userData || {};
+
+            // 1. VIP (Incontournable) -> Étoile Dorée
+            if (props.incontournable === true) {
                 icon.options.className += ' marker-vip'; 
+            }
+
+            // 2. Visité -> Bordure Verte
+            if (props.vu === true) {
+                icon.options.className += ' marker-visited';
+            }
+
+            // 3. Planifié -> Bordure Orange
+            if ((props.planifieCounter || 0) > 0) {
+                icon.options.className += ' marker-planned';
             }
             // ----------------------------------------------
 
