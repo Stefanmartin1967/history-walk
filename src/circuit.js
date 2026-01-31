@@ -9,9 +9,10 @@ import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './data
 import { isMobileView, renderMobilePoiList } from './mobile.js';
 import * as View from './circuit-view.js';
 import { showToast } from './toast.js';
-import { showConfirm } from './modal.js';
+import { showConfirm, showAlert } from './modal.js';
 import { performCircuitDeletion } from './circuit-actions.js';
 import { eventBus } from './events.js';
+import QRCode from 'qrcode';
 
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
@@ -422,8 +423,91 @@ export async function loadCircuitById(id) {
 
 // --- À AJOUTER À LA FIN DE circuit.js ---
 
+export async function generateCircuitQR() {
+    if (state.currentCircuit.length === 0) return;
+
+    // 1. Extraction
+    const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
+    const dataString = `hw:${ids.join(',')}`;
+
+    // 2. Generation QR
+    try {
+        const url = await QRCode.toDataURL(dataString, { width: 300, margin: 2 });
+
+        // 3. Affichage
+        const html = `
+            <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+                <img src="${url}" style="width:250px; height:250px; border-radius:10px; border:1px solid var(--line);">
+                <p style="text-align:center; color:var(--ink-soft); font-size:14px;">
+                    Faites scanner ce code par un autre appareil<br>pour transférer le circuit.
+                </p>
+            </div>
+        `;
+
+        await showAlert("Partager le circuit", html, "Fermer");
+
+    } catch (err) {
+        console.error(err);
+        showToast("Erreur lors de la génération du QR Code", "error");
+    }
+}
+
+export async function loadCircuitFromIds(idString) {
+    if (!idString || !idString.startsWith('hw:')) {
+        showToast("Format de circuit invalide (Préfixe manquant)", "error");
+        return;
+    }
+
+    const idsStr = idString.replace('hw:', '');
+    if (!idsStr) {
+        showToast("Circuit vide", "warning");
+        return;
+    }
+
+    const ids = idsStr.split(',').filter(Boolean);
+
+    // Nettoyage préalable
+    await clearCircuit(false);
+
+    // Reconstruction
+    let foundCount = 0;
+    state.currentCircuit = ids.map(id => {
+        const feature = state.loadedFeatures.find(f => getPoiId(f) === id);
+        if (feature) foundCount++;
+        return feature;
+    }).filter(Boolean);
+
+    // UI Updates
+    if (isMobileView()) {
+        renderMobilePoiList(state.currentCircuit);
+        import('./mobile.js').then(m => m.switchMobileView('circuits'));
+    } else {
+        renderCircuitPanel();
+        if (!state.isSelectionModeActive) {
+            toggleSelectionMode(true);
+        }
+    }
+
+    notifyCircuitChanged();
+
+    // Zoomer sur le circuit (si PC)
+    if (typeof map !== 'undefined' && map && state.currentCircuit.length > 0) {
+        const points = state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+        const bounds = L.latLngBounds(points);
+        map.flyToBounds(bounds, { padding: [50, 50] });
+    }
+
+    showToast(`Circuit chargé : ${foundCount} étapes retrouvées`, "success");
+}
+
 export function setupCircuitEventListeners() {
     console.log("⚡ Démarrage des écouteurs du Circuit...");
+
+    // 0. Bouton PARTAGER
+    const btnShare = document.getElementById('btn-share-circuit');
+    if (btnShare) {
+        btnShare.addEventListener('click', generateCircuitQR);
+    }
 
     // 1. Bouton EXPORTER GPX
     // On vérifie DOM.btnExportGpx (généré automatiquement par ton ui.js)
