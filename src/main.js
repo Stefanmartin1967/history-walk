@@ -233,6 +233,7 @@ async function initializeApp() {
     // --- GESTION DE L'IMPORT URL (QR Code Universel) ---
     const urlParams = new URLSearchParams(window.location.search);
     const importIds = urlParams.get('import');
+    const importName = urlParams.get('name');
 
     if (importIds) {
         console.log("Import circuit détecté via URL:", importIds);
@@ -245,7 +246,7 @@ async function initializeApp() {
         setTimeout(() => {
              import('./circuit.js').then(module => {
                  // On passe directement les IDs bruts, la fonction gère le fallback
-                 module.loadCircuitFromIds(importIds);
+                 module.loadCircuitFromIds(importIds, importName);
              });
         }, 500);
     }
