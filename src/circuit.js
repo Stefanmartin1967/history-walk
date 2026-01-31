@@ -219,7 +219,10 @@ export function updateCircuitMetadata(updateTitle = true) {
         totalDistance = getOrthodromicDistance(state.currentCircuit);
     }
 
-    const title = generateCircuitName();
+    let title = generateCircuitName();
+    if (activeCircuitData && activeCircuitData.name && !activeCircuitData.name.startsWith("Nouveau Circuit")) {
+        title = activeCircuitData.name;
+    }
 
     // 2. ENVOI À LA VUE (On ne touche plus au DOM ici)
     View.updateCircuitHeader({
@@ -430,8 +433,11 @@ export async function generateCircuitQR() {
     const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
 
     // 2. Generation URL (Compatible Scanners Externes & App)
+    const activeCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
+    const circuitName = activeCircuit ? activeCircuit.name : generateCircuitName();
+
     const baseUrl = window.location.origin + window.location.pathname;
-    const dataString = `${baseUrl}?import=${ids.join(',')}`;
+    const dataString = `${baseUrl}?import=${ids.join(',')}&name=${encodeURIComponent(circuitName)}`;
 
     // 3. Generation QR
     try {
@@ -455,7 +461,7 @@ export async function generateCircuitQR() {
     }
 }
 
-export async function loadCircuitFromIds(inputString) {
+export async function loadCircuitFromIds(inputString, importedName = null) {
     if (!inputString) return;
 
     let idsStr = '';
@@ -467,6 +473,11 @@ export async function loadCircuitFromIds(inputString) {
             // Astuce : on utilise une base fictive si l'URL est relative ou partielle, juste pour parser les params
             const urlObj = new URL(inputString.startsWith('http') ? inputString : 'https://dummy/' + inputString);
             idsStr = urlObj.searchParams.get('import');
+
+            // Si le nom n'a pas été passé explicitement, on tente de le récupérer dans l'URL
+            if (!importedName && urlObj.searchParams.has('name')) {
+                importedName = urlObj.searchParams.get('name');
+            }
         } catch (e) {
             // Fallback manuel si l'URL est malformée
             const match = inputString.match(/import=([^&]*)/);
@@ -509,7 +520,8 @@ export async function loadCircuitFromIds(inputString) {
     const newCircuitId = `circuit-${Date.now()}`;
     const newCircuit = {
         id: newCircuitId,
-        name: `Circuit Importé (${new Date().toLocaleDateString()})`,
+        mapId: state.currentMapId || 'djerba',
+        name: importedName ? decodeURIComponent(importedName) : `Circuit Importé (${new Date().toLocaleDateString()})`,
         description: "Circuit importé via QR Code",
         poiIds: resolvedFeatures.map(getPoiId),
         realTrack: null,
