@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="History Walk" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Djerba Hood - L'Essentiel</name>
+    <desc>Le parcours classique des street-arts.</desc>
+  </metadata>
+  <trk>
+    <name>Djerba Hood - L'Essentiel</name>
+    <trkseg>
+      <trkpt lat="33.861" lon="10.860"></trkpt>
+      <trkpt lat="33.862" lon="10.861"></trkpt>
+      <trkpt lat="33.863" lon="10.862"></trkpt>
+    </trkseg>
+  </trk>
+</gpx>
