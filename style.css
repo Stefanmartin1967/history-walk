@@ -377,7 +377,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    gap: 12px;
+    gap: 8px;
 }
 
 .detail-section {
@@ -739,8 +739,8 @@ textarea.editable-input {
     font-size: 16px;
     font-weight: 500;
     color: var(--ink);
-    background: var(--surface-muted);
-    border: 1px solid var(--line);
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 8px;
     padding: 6px 12px;
     cursor: pointer;
@@ -752,7 +752,7 @@ textarea.editable-input {
 }
 
 .duration-picker-trigger:hover {
-    border-color: var(--brand);
+    background: var(--surface-muted);
 }
 
 #circuit-panel .circuit-header {

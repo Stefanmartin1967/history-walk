@@ -105,7 +105,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     // --- TEMPLATE PC ---
     const pcHtml = `
-        <div class="panel-header editable-field" data-field-id="title" style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div class="panel-header editable-field" data-field-id="title" style="display:flex; justify-content:space-between; align-items:center;">
 
             <div class="left-text-block" style="flex:1; margin-right: 10px; display:flex; flex-direction:column;">
                  <div class="editable-content">
@@ -120,6 +120,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 <div class="details-nav" style="display:flex; gap:4px;">
                     ${inCircuit ? `<button class="action-button" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
                                   <button class="action-button" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
+                    <button class="action-button" id="close-details-button" title="Fermer">${ICONS.x}</button>
                 </div>
 
                 <div class="edit-controls" style="display:flex; gap:5px; justify-content:flex-end;">
@@ -128,7 +129,6 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                     <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
                     <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
                     <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
-                    <button class="action-button" id="close-details-button" title="Fermer">${ICONS.x}</button>
                 </div>
             </div>
         </div>

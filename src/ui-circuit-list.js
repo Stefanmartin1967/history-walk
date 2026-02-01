@@ -5,6 +5,8 @@ import { escapeXml } from './gpx.js';
 import { createIcons, icons } from 'lucide';
 import { eventBus } from './events.js';
 import { showConfirm } from './modal.js';
+import { getZoneFromCoords } from './utils.js';
+import { getOrthodromicDistance, getRealDistance } from './map.js';
 
 const getEl = (id) => document.getElementById(id);
 
@@ -65,11 +67,33 @@ export function renderExplorerList() {
             const displayName = c.name.split(' via ')[0];
             const poiCount = c.poiIds ? c.poiIds.length : 0;
 
+            // Resolve POIs to calculate distance/zone
+            const circuitFeatures = c.poiIds
+                .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
+                .filter(Boolean);
+
+            // Distance
+            let distance = 0;
+            if (c.realTrack) {
+                distance = getRealDistance(c);
+            } else {
+                distance = getOrthodromicDistance(circuitFeatures);
+            }
+            const distKm = (distance / 1000).toFixed(1);
+
+            // Zone
+            let zoneName = "Inconnue";
+            if (circuitFeatures.length > 0) {
+                 const firstPoi = circuitFeatures[0];
+                 const [lng, lat] = firstPoi.geometry.coordinates;
+                 zoneName = getZoneFromCoords(lat, lng);
+            }
+
             return `
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
                     <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}</div>
-                    <div class="explorer-item-meta">${poiCount} étapes</div>
+                    <div class="explorer-item-meta">${poiCount} POI • ${distKm} km • ${zoneName}</div>
                 </div>
                 <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
                     <i data-lucide="trash-2"></i>
