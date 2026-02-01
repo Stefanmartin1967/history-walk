@@ -88,10 +88,12 @@ export function renderExplorerList() {
             }
 
             let distDisplay;
-            if (c.distance && isNaN(parseFloat(c.distance))) {
-                 // Si distance est une chaîne texte (ex: "3.5 km" dans le JSON officiel)
+            // Si c'est un circuit officiel avec une distance pré-remplie (ex: "3.5 km")
+            if (c.isOfficial && c.distance) {
                  distDisplay = c.distance;
-            } else {
+            }
+            // Sinon on calcule
+            else {
                  distDisplay = (distance / 1000).toFixed(1) + ' km';
             }
 
@@ -105,32 +107,27 @@ export function renderExplorerList() {
 
             const iconName = c.realTrack ? 'footprints' : 'bird';
 
-            // LOGIQUE OFFICIEL
+            // LOGIQUE OFFICIEL (Nettoyée sur PC)
             const isOfficial = c.isOfficial;
-            const badge = isOfficial ? '<span style="color:var(--primary); margin-left:5px; font-size: 0.9em;" title="Circuit Officiel">⭐</span>' : '';
 
-            // Actions Buttons
+            // Sur PC, on retire le badge et le bouton download comme demandé
+            // On garde juste le bouton Supprimer SI ce n'est PAS officiel
             let actionsHtml = '';
 
-            if (isOfficial) {
-                // Download Button
-                const downloadUrl = c.file ? `./circuits/${c.file}` : '#';
-                actionsHtml += `
-                <a href="${downloadUrl}" download class="explorer-item-action" title="Télécharger GPX" style="display:flex; align-items:center; justify-content:center; color:var(--ink-soft); width:30px; height:30px;">
-                    <i data-lucide="download"></i>
-                </a>`;
-            } else {
-                // Delete Button
+            if (!isOfficial) {
                 actionsHtml += `
                 <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
                     <i data-lucide="trash-2"></i>
                 </button>`;
+            } else {
+                // Pour les officiels sur PC, on met un espace vide ou rien pour garder l'alignement si besoin
+                // Ici on laisse vide, ce qui rend l'item non supprimable
             }
 
             return `
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
-                    <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}${badge}</div>
+                    <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}</div>
                     <div class="explorer-item-meta">
                         ${poiCount} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${zoneName}
                     </div>

@@ -184,10 +184,18 @@ async function handleAddPoiClick() {
 export function renderMobileCircuitsList() {
     const container = document.getElementById('mobile-main-container');
     
-    let circuitsToDisplay = state.myCircuits;
+    // 1. Fusion des listes (Officiels + Locaux)
+    const officialCircuits = state.officialCircuits || [];
+    const localCircuits = state.myCircuits || [];
 
+    // On combine : Officiels d'abord
+    let allCircuits = [...officialCircuits, ...localCircuits];
+
+    let circuitsToDisplay = allCircuits;
+
+    // 2. Filtrage "A faire"
     if (state.filterCompleted) {
-        circuitsToDisplay = state.myCircuits.filter(c => {
+        circuitsToDisplay = allCircuits.filter(c => {
             const existingFeatures = c.poiIds
                 .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
                 .filter(f => f); 
@@ -209,7 +217,7 @@ export function renderMobileCircuitsList() {
         <div class="panel-content" style="padding: 10px;">
     `;
 
-    if (state.myCircuits.length === 0) {
+    if (allCircuits.length === 0) {
         html += `<p style="text-align:center; color:var(--ink-soft); margin-top:20px;">
             Aucun circuit enregistré.<br>
             Utilisez le menu <b>Menu > Restaurer</b> pour charger une sauvegarde.
@@ -234,19 +242,37 @@ export function renderMobileCircuitsList() {
                 ? `<i data-lucide="check-circle" style="color:var(--ok); width:16px;"></i>`
                 : `<span style="font-size:11px; color:var(--ink-soft); font-weight:500;">${done}/${total}</span>`;
 
+            // Badge Officiel
+            const badgeHtml = circuit.isOfficial
+                ? '<i data-lucide="star" style="color:var(--primary); width:14px; height:14px; margin-left:5px; fill:var(--primary);"></i>'
+                : '';
+
+            // Bouton de téléchargement GPX (Seulement pour les officiels)
+            let downloadAction = '';
+            if (circuit.isOfficial && circuit.file) {
+                downloadAction = `
+                <a href="./circuits/${circuit.file}" download class="mobile-download-btn" title="Télécharger GPX" style="color:var(--ink-soft); margin-right:5px; display:flex; align-items:center;">
+                    <i data-lucide="download" style="width:18px; height:18px;"></i>
+                </a>`;
+            }
+
             // CORRECTION DESIGN : Utilisation de Flexbox pour coller le compteur à droite
             html += `
-                <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" style="justify-content: space-between;">
-                    <div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;">
-                        <i data-lucide="route" style="color:var(--brand); margin-right:10px; flex-shrink:0;"></i>
-                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(circuit.name)}</span>
-                    </div>
-                    
-                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                        ${statusIcon}
-                        <i data-lucide="chevron-right" style="opacity:0.5;"></i>
-                    </div>
-                </button>
+                <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px;">
+                    <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" style="justify-content: space-between; flex:1;">
+                        <div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;">
+                            <i data-lucide="route" style="color:var(--brand); margin-right:10px; flex-shrink:0;"></i>
+                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(circuit.name)}</span>
+                            ${badgeHtml}
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                            ${statusIcon}
+                            <i data-lucide="chevron-right" style="opacity:0.5;"></i>
+                        </div>
+                    </button>
+                    ${downloadAction}
+                </div>
             `;
         });
         html += `</div>`;
