@@ -2,6 +2,7 @@
 import { DOM, openDetailsPanel, switchSidebarTab } from './ui.js';
 import { getPoiName, getPoiId } from './data.js';
 import { state } from './state.js';
+import { showToast } from './toast.js';
 
 /**
  * Génère le HTML pour une étape du circuit
@@ -93,10 +94,6 @@ export function updateCircuitHeader(data) {
 /**
  * Gestion de l'état visuel des boutons de contrôle
  */
-// circuit-view.js
-
-// circuit-view.js
-
 export function updateControlButtons(uiState) {
     const btnExport = document.getElementById('btn-export-gpx');
     const btnImport = document.getElementById('btn-import-gpx');
@@ -120,17 +117,23 @@ export function updateControlButtons(uiState) {
     if (btnImport) {
         btnImport.disabled = false; 
         if (uiState.isActive) {
-            btnImport.innerHTML = '<i data-lucide="edit-3"></i> Modifier';
+            btnImport.innerHTML = '<i data-lucide="edit-3"></i>';
+            btnImport.title = "Modifier le tracé";
         } else {
-            btnImport.innerHTML = '<i data-lucide="file-up"></i> Importer';
+            btnImport.innerHTML = '<i data-lucide="upload-cloud"></i>';
+            btnImport.title = "Importer un GPX";
         }
     }
 
     // VIDER / FERMER
     if (btnClear) {
-        btnClear.innerHTML = uiState.isActive ? 
-            '<i data-lucide="x"></i> Fermer' : 
-            '<i data-lucide="trash-2"></i> Réinitialiser';
+        if (uiState.isActive) {
+             btnClear.innerHTML = '<i data-lucide="x"></i>';
+             btnClear.title = "Fermer le circuit";
+        } else {
+             btnClear.innerHTML = '<i data-lucide="trash-2"></i>';
+             btnClear.title = "Vider le circuit";
+        }
     }
 
     if (window.lucide) window.lucide.createIcons();
@@ -163,7 +166,10 @@ export function convertToDraft() {
     // On informe l'utilisateur
     showToast("Mode édition activé. La trace réelle est remplacée par le tracé prévisionnel.", "info");
     
-    // On rafraîchit tout : le bouton redeviendra "Importer" et la ligne redeviendra bleue
-    renderCircuitPanel();
-    notifyCircuitChanged();
+    // On force le re-rendu (cela appellera updateControlButtons)
+    // Note: C'est un peu circulaire, mais le state ayant changé, l'UI suivra
+    const event = new CustomEvent('circuit:updated', {
+        detail: { points: state.currentCircuit, activeId: null }
+    });
+    window.dispatchEvent(event);
 }
