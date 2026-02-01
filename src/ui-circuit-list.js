@@ -74,13 +74,13 @@ function renderExplorerHeader() {
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Circuits';
 
     header.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-right: 10px;">
-            <h2 style="margin:0; font-size:18px;">${mapName}</h2>
-            <div style="position:relative;">
+        <div style="display:flex; align-items:center; width:100%; padding: 0 10px; position: relative; height: 100%;">
+            <!-- LEFT: Filter & Menu -->
+            <div style="position:relative; z-index: 10;">
                 <button id="btn-explorer-filter" class="header-btn" title="Trier et Filtrer">
                     <i data-lucide="list-filter"></i>
                 </button>
-                <div id="explorer-filter-menu" class="tools-menu" style="display:none; top:35px; right:0; min-width:200px; z-index: 2000;">
+                <div id="explorer-filter-menu" class="tools-menu" style="display:none; top:40px; left:0; min-width:200px; z-index: 2000;">
                     <div style="padding:8px; font-weight:600; color:var(--ink-soft); font-size:12px;">TRIER PAR</div>
                     <button class="tools-menu-item ${explorerSort === 'recent' ? 'active' : ''}" data-sort="recent">
                         <i data-lucide="clock"></i> Plus récents
@@ -102,6 +102,11 @@ function renderExplorerHeader() {
                         <i data-lucide="x"></i> Aucun filtre
                     </button>
                 </div>
+            </div>
+
+            <!-- CENTER: Title -->
+            <div style="position:absolute; left:0; width:100%; text-align:center; pointer-events:none; z-index: 1;">
+                <h2 style="margin:0; font-size:18px;">${mapName}</h2>
             </div>
         </div>
     `;
@@ -216,12 +221,7 @@ export function renderExplorerList() {
         : processedCircuits.map(c => {
             const displayName = c.name.split(' via ')[0];
 
-            let distDisplay;
-            if (c.isOfficial && c.distance) {
-                 distDisplay = c.distance;
-            } else {
-                 distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
-            }
+            const distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
 
             const iconName = c.realTrack ? 'footprints' : 'bird';
 
