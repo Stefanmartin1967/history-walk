@@ -590,7 +590,9 @@ export function showLegendModal() {
             <span><strong>Planifié</strong> (Ajouté à un circuit)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 18px; height: 18px; background: #FFD700; transform: rotate(45deg); border: 2px solid #e6c200; border-radius: 3px; margin: 5px;"></div>
+            <div style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+                <i data-lucide="gem" style="color: #FFD700; fill: #FFD700; width: 20px; height: 20px;"></i>
+            </div>
             <span><strong>Incontournable</strong> (Lieu VIP à ne pas manquer)</span>
         </div>
     </div>`;

@@ -119,6 +119,12 @@ export function getFilteredFeatures() {
         // C. Les incontournables passent TOUJOURS (Exception Majeure pour le statut)
         if (props.incontournable) return true;
 
+        // C.bis. Les lieux du circuit ACTIF passent TOUJOURS (Même si visités ou planifiés ailleurs)
+        // Cela permet de voir tout le tracé d'un circuit en cours de consultation, indépendamment des filtres.
+        if (state.activeCircuitId && state.currentCircuit && state.currentCircuit.some(f => getPoiId(f) === poiId)) {
+            return true;
+        }
+
         // D. Gestion Visité / Planifié (Différente selon le mode)
         if (state.isSelectionModeActive) {
              // MODE SÉLECTION : Filtres stricts définis par le Wizard

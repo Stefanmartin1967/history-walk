@@ -52,6 +52,19 @@ function setSaveButtonsState(enabled) {
     if (btnRestore) btnRestore.disabled = false;
 }
 
+// --- PROTECTION CONTRE LA PERTE DE DONNÉES (WORKFLOW) ---
+function setupUnsavedChangesWarning() {
+    window.addEventListener('beforeunload', (e) => {
+        // On vérifie si state.hasUnexportedChanges existe et est vrai
+        if (state.hasUnexportedChanges) {
+            // Le message standard n'est plus affiché par les navigateurs modernes,
+            // mais setting returnValue déclenche la modale native.
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+}
+
 // --- INITIALISATION ---
 
 async function loadDefaultMap() {
@@ -124,13 +137,35 @@ async function initializeApp() {
     const versionEl = document.getElementById('app-version');
     if (versionEl) versionEl.textContent = APP_VERSION;
 
-    // Chargement des circuits officiels
+    // Chargement des circuits officiels (Merge into myCircuits as local editable copies)
     try {
         const response = await fetch('./circuits/circuits.json');
         if (response.ok) {
-            state.officialCircuits = await response.json();
-            console.log(`[Main] ${state.officialCircuits.length} circuits officiels chargés.`);
-            // On signale que la liste a changé pour mettre à jour l'UI
+            const officials = await response.json();
+            state.officialCircuits = []; // On ne stocke plus séparément
+
+            // Fusion intelligente : on n'ajoute que ceux qui n'existent pas déjà (basé sur le nom)
+            // car l'utilisateur a pu les modifier ou les supprimer localement.
+            // Note: C'est un comportement "First Run" ou "Reset".
+
+            // Pour l'instant, on les charge dans myCircuits s'ils sont vides,
+            // ou on les ajoute à la liste s'ils n'y sont pas.
+
+            // Simplification demandée : Tout est local.
+            if (!state.myCircuits) state.myCircuits = [];
+
+            officials.forEach(off => {
+                // On vérifie si un circuit avec ce nom existe déjà (pour éviter les doublons à chaque reload)
+                // C'est une heuristique simple.
+                const exists = state.myCircuits.some(c => c.name === off.name);
+                if (!exists) {
+                     // On le convertit en format local
+                     const localCopy = { ...off, id: `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, isOfficial: false };
+                     state.myCircuits.push(localCopy);
+                }
+            });
+
+            console.log(`[Main] Circuits officiels fusionnés dans les circuits locaux.`);
             import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
         }
     } catch (e) {
@@ -240,6 +275,7 @@ async function initializeApp() {
 
     // On allume la tour de contrôle
     setupGlobalEventListeners();
+    setupUnsavedChangesWarning(); // <--- AJOUT DE LA PROTECTION
 
     // 5. Relancer les icônes à la toute fin
     if (typeof createIcons === 'function') createIcons();

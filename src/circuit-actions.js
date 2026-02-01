@@ -23,6 +23,9 @@ export async function performCircuitDeletion(id) {
         const circuit = state.myCircuits.find(c => c.id === id);
         if (circuit) circuit.isDeleted = true;
         
+        // FLAG CHANGEMENT
+        state.hasUnexportedChanges = true;
+
         // 3. Si c'était le circuit actif, on nettoie l'affichage
         if (state.activeCircuitId === id) {
             await clearCircuit(false);
