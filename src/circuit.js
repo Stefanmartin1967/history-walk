@@ -378,7 +378,15 @@ export function convertToDraft() {
 }
 
 export async function loadCircuitById(id) {
-    const circuitToLoad = state.myCircuits.find(c => c.id === id);
+    let circuitToLoad = state.myCircuits.find(c => c.id === id);
+    if (!circuitToLoad && state.officialCircuits) {
+        circuitToLoad = state.officialCircuits.find(c => c.id === id);
+        // Protection contre la mutation de la liste officielle
+        if (circuitToLoad) {
+            circuitToLoad = { ...circuitToLoad };
+        }
+    }
+
     if (!circuitToLoad) return;
 
     // 1. Nettoyage de l'ancien état (sans confirmation)

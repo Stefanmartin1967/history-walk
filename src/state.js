@@ -14,6 +14,7 @@ export const state = {
     currentMapId: null,
     userData: {},
     myCircuits: [],
+    officialCircuits: [],
     geojsonLayer: null,
     loadedFeatures: [],
     currentFeatureId: null,

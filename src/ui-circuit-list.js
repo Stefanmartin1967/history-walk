@@ -54,16 +54,22 @@ export function renderExplorerList() {
     const listContainer = document.getElementById('explorer-list');
     if (!listContainer) return;
 
-    // Sort by recent (assuming order in array implies creation order, reverse for new first)
+    // 1. Circuits Officiels
+    const officialCircuits = state.officialCircuits || [];
+
+    // 2. Circuits Locaux (Triés par récent)
     // Note: state.myCircuits is usually appended to, so reverse gives newest first.
-    const visibleCircuits = state.myCircuits
+    const localCircuits = state.myCircuits
         .filter(c => !c.isDeleted)
         .slice()
         .reverse();
 
-    listContainer.innerHTML = (visibleCircuits.length === 0)
+    // Fusion : Officiels en premier
+    const allCircuits = [...officialCircuits, ...localCircuits];
+
+    listContainer.innerHTML = (allCircuits.length === 0)
         ? '<div style="padding:20px; text-align:center; color:var(--ink-soft);">Aucun circuit.</div>'
-        : visibleCircuits.map(c => {
+        : allCircuits.map(c => {
             const displayName = c.name.split(' via ')[0];
             const ids = c.poiIds || [];
             const poiCount = ids.length;
@@ -80,7 +86,14 @@ export function renderExplorerList() {
             } else {
                 distance = getOrthodromicDistance(circuitFeatures);
             }
-            const distKm = (distance / 1000).toFixed(1);
+
+            let distDisplay;
+            if (c.distance && isNaN(parseFloat(c.distance))) {
+                 // Si distance est une chaîne texte (ex: "3.5 km" dans le JSON officiel)
+                 distDisplay = c.distance;
+            } else {
+                 distDisplay = (distance / 1000).toFixed(1) + ' km';
+            }
 
             // Zone
             let zoneName = "Inconnue";
@@ -92,27 +105,48 @@ export function renderExplorerList() {
 
             const iconName = c.realTrack ? 'footprints' : 'bird';
 
+            // LOGIQUE OFFICIEL
+            const isOfficial = c.isOfficial;
+            const badge = isOfficial ? '<span style="color:var(--primary); margin-left:5px; font-size: 0.9em;" title="Circuit Officiel">⭐</span>' : '';
+
+            // Actions Buttons
+            let actionsHtml = '';
+
+            if (isOfficial) {
+                // Download Button
+                const downloadUrl = c.file ? `./circuits/${c.file}` : '#';
+                actionsHtml += `
+                <a href="${downloadUrl}" download class="explorer-item-action" title="Télécharger GPX" style="display:flex; align-items:center; justify-content:center; color:var(--ink-soft); width:30px; height:30px;">
+                    <i data-lucide="download"></i>
+                </a>`;
+            } else {
+                // Delete Button
+                actionsHtml += `
+                <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
+                    <i data-lucide="trash-2"></i>
+                </button>`;
+            }
+
             return `
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
-                    <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}</div>
+                    <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}${badge}</div>
                     <div class="explorer-item-meta">
-                        ${poiCount} POI • ${distKm} km <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${zoneName}
+                        ${poiCount} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${zoneName}
                     </div>
                 </div>
-                <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
-                    <i data-lucide="trash-2"></i>
-                </button>
+                ${actionsHtml}
             </div>
             `;
         }).join('');
 
     createIcons({ icons });
 
-    // Event Listeners
+    // Event Listeners (Load)
     listContainer.querySelectorAll('.explorer-item').forEach(item => {
         item.addEventListener('click', (e) => {
-            if (e.target.closest('.explorer-item-delete')) return;
+            // Prevent if clicking action buttons (delete button or download link)
+            if (e.target.closest('.explorer-item-delete') || e.target.closest('a')) return;
 
             const id = item.dataset.id;
             eventBus.emit('circuit:request-load', id);
@@ -120,6 +154,7 @@ export function renderExplorerList() {
         });
     });
 
+    // Event Listeners (Delete) - Only for local ones
     listContainer.querySelectorAll('.explorer-item-delete').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();

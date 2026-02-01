@@ -124,6 +124,19 @@ async function initializeApp() {
     const versionEl = document.getElementById('app-version');
     if (versionEl) versionEl.textContent = APP_VERSION;
 
+    // Chargement des circuits officiels
+    try {
+        const response = await fetch('./circuits/circuits.json');
+        if (response.ok) {
+            state.officialCircuits = await response.json();
+            console.log(`[Main] ${state.officialCircuits.length} circuits officiels chargés.`);
+            // On signale que la liste a changé pour mettre à jour l'UI
+            import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
+        }
+    } catch (e) {
+        console.warn("[Main] Impossible de charger les circuits officiels :", e);
+    }
+
     initializeDomReferences();
     setupCircuitEventListeners();
     setupEventBusListeners(); // <--- LISTENER EVENT BUS
