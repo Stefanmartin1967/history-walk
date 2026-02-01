@@ -1,0 +1,12 @@
+
+> version-suppression-poi-douce@1.0.0 dev
+> vite
+
+
+  VITE v7.3.1  ready in 359 ms
+
+  ➜  Local:   http://localhost:5173/history-walk/
+  ➜  Network: use --host to expose
+1:45:25 PM [vite] (client) page reload index.html
+1:45:37 PM [vite] (client) page reload src/ui.js
+1:47:50 PM [vite] (client) page reload index.html
