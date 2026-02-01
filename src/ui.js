@@ -13,7 +13,7 @@ import { showToast } from './toast.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
 import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
 import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
-import { initCircuitListUI } from './ui-circuit-list.js';
+import { initCircuitListUI, renderExplorerList } from './ui-circuit-list.js';
 import { showConfirm } from './modal.js';
 
 // Re-exports for external use
@@ -29,7 +29,7 @@ export function initializeDomReferences() {
         'geojson-loader', 'search-input', 'search-results', 'btn-mode-selection', 'right-sidebar', 'sidebar-tabs', 
         'details-panel', 'circuit-panel', 'circuit-steps-list', 'circuit-title-text', 'circuit-title-input', 
         'circuit-description', 'edit-circuit-title-button', 'circuit-poi-count', 'circuit-distance', 'circuits-modal', 
-        'close-circuits-modal', 'circuits-list-container', 'gpx-importer', 'btn-my-circuits', 'btn-export-gpx', 
+        'close-circuits-modal', 'circuits-list-container', 'gpx-importer', 'btn-export-gpx',
         'btn-import-gpx', 'loader-overlay', 'btn-save-data', 'btn-restore-data', 'restore-loader', 'btn-open-geojson', 
         'mobile-container', 'mobile-main-container', 'mobile-nav', 'fullscreen-editor', 'editor-title', 
         'editor-cancel-btn', 'editor-save-btn', 'editor-textarea', 'destination-loader',
@@ -37,7 +37,8 @@ export function initializeDomReferences() {
         'backup-modal', 'btn-backup-full', 'btn-backup-lite', 'btn-backup-cancel',
         'btn-loop-circuit',
         'btn-clear-circuit', 'close-circuit-panel-btn',
-        'btn-categories', 'btn-legend'
+        'btn-categories', 'btn-legend',
+        'explorer-list'
     ];
     
     // Récupération sécurisée des éléments
@@ -62,20 +63,14 @@ export function initializeDomReferences() {
         DOM.closeCircuitPanelBtn.addEventListener('click', () => toggleSelectionMode(false));
     }
 
-    if (DOM.btnMyCircuits) {
-        DOM.btnMyCircuits.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const menu = document.getElementById('circuitsMenu');
-            if (menu) {
-                populateCircuitsMenu();
-                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-            }
-        });
-    }
-
     // Initialisation des sous-modules UI
     initPhotoViewer();
     initCircuitListUI();
+
+    // Listen for tab change requests from other modules
+    eventBus.on('ui:request-tab-change', (tabName) => {
+        switchSidebarTab(tabName);
+    });
 }
 
 // --- ÉDITION DE CONTENU ---
@@ -353,7 +348,9 @@ export function closeDetailsPanel(goBackToList = false) {
         if (state.isSelectionModeActive) {
             switchSidebarTab('circuit');
         } else {
-            DOM.rightSidebar.style.display = 'none';
+            // Default to explorer when closing details
+            renderExplorerList();
+            switchSidebarTab('explorer');
             state.currentFeatureId = null;
         }
     }
@@ -377,7 +374,10 @@ export function setupTabs() {
     DOM.tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const tabName = button.dataset.tab;
-            if (tabName === 'details') {
+            if (tabName === 'explorer') {
+                renderExplorerList();
+                switchSidebarTab('explorer');
+            } else if (tabName === 'details') {
                 if (state.currentFeatureId !== null) {
                     // Si on revient sur l'onglet détails, on essaie de garder le contexte
                     const currentFeature = state.loadedFeatures[state.currentFeatureId];

@@ -56,11 +56,6 @@
                 <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
             </div>
 
-            <div class="zones-container" id="circuits-dropdown-container">
-                <button class="btn" id="btn-my-circuits" title="Mes Circuits"><i data-lucide="route"></i><span>Mes Circuits</span></button>
-                <div class="zones-menu" id="circuitsMenu" style="display: none;"></div>
-            </div>
-
             <div class="zones-container">
                 <button class="btn" id="btn-categories" title="Filtrer par catégorie"><i data-lucide="list"></i> <span>Catégories</span></button>
                 <div class="zones-menu" id="categoriesMenu" style="display: none;"></div>
@@ -133,10 +128,20 @@
     <div id="map"></div>
     <div id="app-version"></div>
 
-    <div class="right-sidebar" id="right-sidebar" style="display: none;">
+    <div class="right-sidebar" id="right-sidebar">
         <div class="sidebar-tabs" id="sidebar-tabs">
+            <button class="tab-button" data-tab="explorer" title="Mes Circuits"><i data-lucide="folder-open"></i> <span>Mes Circuits</span></button>
             <button class="tab-button active" data-tab="circuit">Circuit</button>
             <button class="tab-button" data-tab="details">Détails</button>
+        </div>
+
+        <div class="sidebar-panel" id="panel-explorer" data-panel="explorer">
+            <div class="panel-header explorer-header">
+                <!-- Reserved -->
+            </div>
+            <div class="explorer-list" id="explorer-list">
+                <!-- List content -->
+            </div>
         </div>
 
         <div class="sidebar-panel active" id="circuit-panel" data-panel="circuit">

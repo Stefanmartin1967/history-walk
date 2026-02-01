@@ -37,9 +37,68 @@ export function initCircuitListUI() {
     }
 
     eventBus.on('circuit:list-updated', () => {
+        const modal = getEl('circuits-modal');
         if (modal && modal.style.display !== 'none') {
             renderCircuitsList();
         }
+        // Also refresh explorer list if it exists
+        if (document.getElementById('explorer-list')) {
+            renderExplorerList();
+        }
+    });
+}
+
+export function renderExplorerList() {
+    const listContainer = document.getElementById('explorer-list');
+    if (!listContainer) return;
+
+    // Sort by recent (assuming order in array implies creation order, reverse for new first)
+    // Note: state.myCircuits is usually appended to, so reverse gives newest first.
+    const visibleCircuits = state.myCircuits
+        .filter(c => !c.isDeleted)
+        .slice()
+        .reverse();
+
+    listContainer.innerHTML = (visibleCircuits.length === 0)
+        ? '<div style="padding:20px; text-align:center; color:var(--ink-soft);">Aucun circuit.</div>'
+        : visibleCircuits.map(c => {
+            const displayName = c.name.split(' via ')[0];
+            const poiCount = c.poiIds ? c.poiIds.length : 0;
+
+            return `
+            <div class="explorer-item" data-id="${c.id}">
+                <div class="explorer-item-content">
+                    <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}</div>
+                    <div class="explorer-item-meta">${poiCount} étapes</div>
+                </div>
+                <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+            `;
+        }).join('');
+
+    createIcons({ icons });
+
+    // Event Listeners
+    listContainer.querySelectorAll('.explorer-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.explorer-item-delete')) return;
+
+            const id = item.dataset.id;
+            eventBus.emit('circuit:request-load', id);
+            eventBus.emit('ui:request-tab-change', 'circuit');
+        });
+    });
+
+    listContainer.querySelectorAll('.explorer-item-delete').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            if (await showConfirm("Suppression", "Voulez-vous vraiment supprimer ce circuit ?", "Supprimer", "Annuler", true)) {
+                eventBus.emit('circuit:request-delete', id);
+            }
+        });
     });
 }
 
