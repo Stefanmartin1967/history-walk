@@ -94,7 +94,7 @@ body {
     color: #fff;
     background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
     box-shadow: var(--shadow);
-    z-index: 1001;
+    z-index: 1005;
 }
 
 .topbar-left {
@@ -2026,29 +2026,48 @@ input[type=range] {
 /* --- RESPONSIVE TOPBAR (Adaptation PC Portable) --- */
 /* Règle 2000px supprimée pour toujours afficher les labels */
 
-/* --- LE STYLE DES INCONTOURNABLES (Version Étoile VIP) --- */
+/* --- LE STYLE DES INCONTOURNABLES (Version Diamant VIP) --- */
 
+/* 1. On nettoie le conteneur racine pour qu'il soit transparent et géré par Leaflet */
 .leaflet-marker-icon.marker-vip {
-    background: #FFD700 !important; /* Or pur */
-    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-    border-radius: 0 !important;
+    background: transparent !important;
     border: none !important;
-    width: 44px !important;
-    height: 44px !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    /* On laisse le transform de Leaflet tranquille ! */
+    width: 36px !important;
+    height: 36px !important;
+    margin-left: -18px !important;
+    margin-top: -44px !important;
+    z-index: 1000 !important;
     display: flex !important;
     justify-content: center;
     align-items: center;
-    box-shadow: none !important;
-    z-index: 1000 !important;
+    overflow: visible !important;
 }
 
+/* 2. On applique le style Diamant au wrapper interne */
+.leaflet-marker-icon.marker-vip .hw-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    background: #FFD700; /* Or pur */
+    border: 2px solid #e6c200;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    transform: rotate(45deg); /* C'est lui qui tourne ! */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 3. On contre-pivote l'icône pour qu'elle reste droite */
 .leaflet-marker-icon.marker-vip svg,
 .leaflet-marker-icon.marker-vip i {
     color: #000 !important;
     width: 20px !important;
     height: 20px !important;
     z-index: 2;
-    transform: translateY(1px); /* Correction optique */
+    transform: rotate(-45deg); /* Contre-rotation */
 }
 
 /* --- ETATS DES MARQUEURS --- */
@@ -2063,12 +2082,14 @@ input[type=range] {
     box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
 }
 
-/* Si VIP est visité ou planifié, on change subtilement la couleur de l'étoile ou l'icône */
-.leaflet-marker-icon.marker-vip.marker-visited {
-    background: #10B981 !important; /* Étoile verte */
+/* Si VIP est visité ou planifié : On cible le wrapper interne */
+.leaflet-marker-icon.marker-vip.marker-visited .hw-icon-wrapper {
+    background: #FFD700 !important;
+    border: 3px solid #10B981 !important; /* Bordure Verte */
 }
-.leaflet-marker-icon.marker-vip.marker-planned {
-    background: #F97316 !important; /* Étoile orange */
+.leaflet-marker-icon.marker-vip.marker-planned .hw-icon-wrapper {
+    background: #FFD700 !important;
+    border: 3px solid #F97316 !important; /* Bordure Orange */
 }
 
 /* --- HEADER REORGANISE --- */

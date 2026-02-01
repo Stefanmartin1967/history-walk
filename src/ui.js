@@ -38,7 +38,8 @@ export function initializeDomReferences() {
         'btn-loop-circuit',
         'btn-clear-circuit', 'close-circuit-panel-btn',
         'btn-categories', 'btn-legend',
-        'explorer-list'
+        'explorer-list', 'btn-open-my-circuits',
+        'btn-bmc'
     ];
     
     // Récupération sécurisée des éléments
@@ -47,6 +48,19 @@ export function initializeDomReferences() {
         const el = document.getElementById(id);
         if (el) DOM[camelCaseId] = el;
     });
+
+    if (DOM.btnOpenMyCircuits) {
+        DOM.btnOpenMyCircuits.addEventListener('click', () => {
+            renderExplorerList();
+            switchSidebarTab('explorer');
+        });
+    }
+
+    if (DOM.btnBmc) {
+        DOM.btnBmc.addEventListener('click', () => {
+            window.open('https://www.buymeacoffee.com/history_walk', '_blank');
+        });
+    }
 
     DOM.tabButtons = document.querySelectorAll('.tab-button');
     DOM.sidebarPanels = document.querySelectorAll('.sidebar-panel');
@@ -576,7 +590,7 @@ export function showLegendModal() {
             <span><strong>Planifié</strong> (Ajouté à un circuit)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 24px; height: 24px; background: #FFD700; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+            <div style="width: 18px; height: 18px; background: #FFD700; transform: rotate(45deg); border: 2px solid #e6c200; border-radius: 3px; margin: 5px;"></div>
             <span><strong>Incontournable</strong> (Lieu VIP à ne pas manquer)</span>
         </div>
     </div>`;

@@ -36,7 +36,8 @@ export function initMap() {
         zoomSnap: 0.25,
         zoomDelta: 0.25,
         wheelPxPerZoomLevel: 180,
-        attributionControl: false
+        attributionControl: false,
+        preferCanvas: true
     }).setView([33.8076, 10.8451], 11);
 
     // 1. Couche "Plan" (OpenStreetMap) - Très léger
