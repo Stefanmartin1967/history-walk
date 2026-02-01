@@ -73,8 +73,14 @@ export function updateCircuitHeader(data) {
 
     const distIcon = document.getElementById('distance-icon');
     if (distIcon) {
-        distIcon.setAttribute('data-lucide', data.iconType);
-        distIcon.title = data.iconTitle;
+        // On remplace l'élément pour garantir que Lucide le re-génère correctement
+        const newIcon = document.createElement('i');
+        newIcon.id = 'distance-icon';
+        newIcon.setAttribute('data-lucide', data.iconType);
+        newIcon.title = data.iconTitle;
+
+        distIcon.replaceWith(newIcon);
+
         if (window.lucide) window.lucide.createIcons();
     }
 
