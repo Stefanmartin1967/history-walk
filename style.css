@@ -1017,71 +1017,72 @@ textarea.editable-input {
 .panel-footer {
     background: var(--surface-muted);
     border-top: 1px solid var(--line);
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 8px;
-    padding: 8px;
-}
-
-.footer-btn.pill {
-    height: 40px;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 14px;
-    border: 1px solid transparent;
     display: flex;
+    justify-content: space-evenly;
     align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    min-height: 56px;
+}
+
+.footer-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-soft);
+    border-radius: 12px;
+    padding: 0;
+    display: flex;
     justify-content: center;
-    gap: 10px;
+    align-items: center;
+    transition: all 0.2s;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
 }
 
-#btn-loop-circuit {
-    background-color: #E0E7FF;
-    color: #3730A3;
+.footer-btn:hover:not(:disabled) {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transform: translateY(-1px);
 }
 
-#btn-loop-circuit:hover:not(:disabled) {
-    background-color: #4F46E5;
-    color: #fff;
+.footer-btn.active {
+    color: var(--brand);
+    background: var(--brand-soft);
 }
 
-#btn-clear-circuit {
-    background-color: #FECACA;
-    color: #991B1B;
-}
-
-#btn-clear-circuit:hover {
-    background-color: #B91C1C;
-    color: #fff;
-}
-
-#btn-import-gpx {
-    background-color: #D1FAE5;
-    color: #065F46;
-}
-
-#btn-import-gpx:hover:not(:disabled) {
-    background-color: var(--ok);
-    color: #fff;
-}
-
-#btn-export-gpx {
-    background-color: #FEF3C7;
-    color: #B45309;
-}
-
-#btn-export-gpx:hover:not(:disabled) {
-    background-color: var(--warn);
-    color: #fff;
-}
-
-.footer-btn.pill:disabled {
-    opacity: 0.6 !important;
-    background-color: var(--surface-muted) !important;
-    color: var(--ink-soft) !important;
-    border-color: var(--line) !important;
+.footer-btn:disabled {
+    opacity: 0.3;
     cursor: not-allowed;
+    filter: grayscale(100%);
 }
+
+.footer-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.separator-vertical {
+    width: 1px;
+    height: 20px;
+    background: var(--line);
+    margin: 0 2px;
+}
+
+/* Suppression des styles spécifiques colorés pour uniformiser */
+.footer-btn.pill {
+    /* On garde la classe pour compatibilité HTML mais on reset */
+    height: 42px;
+    width: 42px;
+    border-radius: 12px;
+}
+
+/* Couleurs au survol spécifiques (Optionnel - On garde pour feedback visuel mais plus subtil) */
+#btn-clear-circuit:hover { color: var(--danger); background: #FEE2E2; }
+#btn-import-gpx:hover { color: var(--ok); background: #D1FAE5; }
+#btn-loop-circuit:hover { color: var(--brand); background: #DBEAFE; }
 
 .circuit-polyline {
     stroke: var(--brand);

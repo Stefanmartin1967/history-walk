@@ -297,9 +297,9 @@ export function refreshMapMarkers(visibleFeatures) {
             // ---> LOGIQUE DES MARQUEURS ET STATUTS <---
             const props = feature.properties.userData || {};
 
-            // 1. VIP (Incontournable) -> Icône "Gem"
+            // 1. VIP (Incontournable) -> Icône Catégorie + Style VIP
             if (props.incontournable === true) {
-                icon.options.html = `<div class="hw-icon-wrapper"><i data-lucide="gem" class="marker-vip-icon"></i></div>`;
+                // On garde l'icône de catégorie mais on applique le style VIP (Pentagone Jaune)
                 icon.options.className += ' marker-vip'; 
             }
 

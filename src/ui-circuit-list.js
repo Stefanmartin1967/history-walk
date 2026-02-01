@@ -2,7 +2,6 @@ import { state } from './state.js';
 import { getPoiId } from './data.js';
 import { ICONS } from './templates.js';
 import { escapeXml } from './gpx.js';
-import { createIcons, icons } from 'lucide';
 import { eventBus } from './events.js';
 import { showConfirm } from './modal.js';
 import { getZoneFromCoords } from './utils.js';
@@ -11,8 +10,10 @@ import { getOrthodromicDistance, getRealDistance } from './map.js';
 const getEl = (id) => document.getElementById(id);
 
 // --- LOCAL STATE ---
-let explorerSort = 'recent'; // 'recent', 'dist_asc', 'dist_desc'
-let explorerFilter = 'none'; // 'none', 'restaurant'
+// Sort: 'date_desc' (Recents first), 'date_asc', 'dist_asc' (Shortest first), 'dist_desc'
+let currentSort = 'date_desc';
+let filterRestaurant = false;
+let filterTodo = false; // true = Show only circuits with unvisited points
 
 export function openCircuitsModal() {
     renderCircuitsList();
@@ -53,109 +54,132 @@ export function initCircuitListUI() {
         }
     });
 
-    // Initial render of header
+    // Initial render of header and toolbar
     renderExplorerHeader();
-
-    // Global listener for closing menu (Fixed memory leak)
-    document.addEventListener('click', (e) => {
-        const header = document.querySelector('.explorer-header');
-        const menu = document.getElementById('explorer-filter-menu');
-        if (header && menu && !header.contains(e.target)) {
-             menu.style.display = 'none';
-        }
-    });
+    renderExplorerToolbar();
 }
 
-// --- EXPLORER HEADER (NEW) ---
+// --- EXPLORER HEADER (SIMPLIFIED) ---
 function renderExplorerHeader() {
     const header = document.querySelector('.explorer-header');
     if (!header) return;
 
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Circuits';
 
+    // Simple Header with Title
     header.innerHTML = `
-        <div style="display:flex; align-items:center; width:100%; padding: 0 10px; position: relative; height: 100%;">
-            <!-- LEFT: Filter & Menu -->
-            <div style="position:relative; z-index: 10;">
-                <button id="btn-explorer-filter" class="header-btn" title="Trier et Filtrer">
-                    <i data-lucide="list-filter"></i>
-                </button>
-                <div id="explorer-filter-menu" class="tools-menu" style="display:none; top:40px; left:0; min-width:200px; z-index: 2000;">
-                    <div style="padding:8px; font-weight:600; color:var(--ink-soft); font-size:12px;">TRIER PAR</div>
-                    <button class="tools-menu-item ${explorerSort === 'recent' ? 'active' : ''}" data-sort="recent">
-                        <i data-lucide="clock"></i> Plus récents
-                    </button>
-                    <button class="tools-menu-item ${explorerSort === 'dist_desc' ? 'active' : ''}" data-sort="dist_desc">
-                        <i data-lucide="arrow-down-0-1"></i> Distance (Long -> Court)
-                    </button>
-                    <button class="tools-menu-item ${explorerSort === 'dist_asc' ? 'active' : ''}" data-sort="dist_asc">
-                        <i data-lucide="arrow-up-0-1"></i> Distance (Court -> Long)
-                    </button>
-
-                    <div style="height:1px; background:var(--line); margin:5px 0;"></div>
-
-                    <div style="padding:8px; font-weight:600; color:var(--ink-soft); font-size:12px;">FILTRER</div>
-                    <button class="tools-menu-item ${explorerFilter === 'restaurant' ? 'active' : ''}" data-filter="restaurant">
-                        <i data-lucide="utensils"></i> Avec Restaurant
-                    </button>
-                    <button class="tools-menu-item ${explorerFilter === 'none' ? 'active' : ''}" data-filter="none">
-                        <i data-lucide="x"></i> Aucun filtre
-                    </button>
-                </div>
-            </div>
-
-            <!-- CENTER: Title -->
-            <div style="position:absolute; left:0; width:100%; text-align:center; pointer-events:none; z-index: 1;">
-                <h2 style="margin:0; font-size:18px;">${mapName}</h2>
-            </div>
+        <div style="display:flex; align-items:center; justify-content:center; width:100%; height: 100%;">
+            <h2 style="margin:0; font-size:18px;">${mapName}</h2>
         </div>
     `;
+}
 
-    createIcons({ icons });
+// --- EXPLORER TOOLBAR (NEW) ---
+function renderExplorerToolbar() {
+    const panel = document.getElementById('panel-explorer');
+    if (!panel) return;
+
+    // Check if footer already exists
+    let footer = panel.querySelector('.explorer-footer');
+    if (!footer) {
+        footer = document.createElement('div');
+        footer.className = 'explorer-footer panel-footer'; // Reuse panel-footer style base
+        // Specific styling override will be in CSS, but structure is here
+        panel.appendChild(footer);
+    }
+
+    // Determine Icons based on state
+    const dateIcon = currentSort.startsWith('date')
+        ? (currentSort === 'date_asc' ? 'calendar-arrow-up' : 'calendar-arrow-down')
+        : 'calendar';
+
+    const distIcon = currentSort.startsWith('dist')
+        ? (currentSort === 'dist_desc' ? 'arrow-up-1-0' : 'arrow-down-0-1') // 1-0 = Long to Short? No.
+        // Lucide: arrow-down-0-1 means 0 at top, 1 at bottom (Ascending).
+        // We want: Shortest first (Ascending) -> arrow-down-0-1
+        // Longest first (Descending) -> arrow-up-1-0
+        : 'ruler';
+
+    footer.innerHTML = `
+        <button id="btn-sort-date" class="footer-btn icon-only ${currentSort.startsWith('date') ? 'active' : ''}" title="Trier par date">
+            <i data-lucide="${dateIcon}"></i>
+        </button>
+        <button id="btn-sort-dist" class="footer-btn icon-only ${currentSort.startsWith('dist') ? 'active' : ''}" title="Trier par distance">
+            <i data-lucide="${distIcon}"></i>
+        </button>
+
+        <div class="separator-vertical"></div>
+
+        <button id="btn-filter-resto" class="footer-btn icon-only ${filterRestaurant ? 'active' : ''}" title="Avec Restaurant">
+            <i data-lucide="utensils"></i>
+        </button>
+        <button id="btn-filter-todo" class="footer-btn icon-only ${filterTodo ? 'active' : ''}" title="A faire">
+            <i data-lucide="${filterTodo ? 'list-todo' : 'list-checks'}"></i>
+        </button>
+
+        <div class="separator-vertical"></div>
+
+        <button id="btn-reset-filters" class="footer-btn icon-only" title="Réinitialiser">
+            <i data-lucide="rotate-ccw"></i>
+        </button>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
 
     // Event Listeners
-    const btnFilter = header.querySelector('#btn-explorer-filter');
-    const menu = header.querySelector('#explorer-filter-menu');
+    footer.querySelector('#btn-sort-date').addEventListener('click', () => {
+        if (currentSort === 'date_desc') currentSort = 'date_asc';
+        else currentSort = 'date_desc';
+        refreshExplorer();
+    });
 
-    if (btnFilter && menu) {
-        btnFilter.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isVisible = menu.style.display === 'block';
-            menu.style.display = isVisible ? 'none' : 'block';
-        });
+    footer.querySelector('#btn-sort-dist').addEventListener('click', () => {
+        if (currentSort === 'dist_asc') currentSort = 'dist_desc';
+        else currentSort = 'dist_asc';
+        refreshExplorer();
+    });
 
-        // Menu items
-        menu.querySelectorAll('.tools-menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const sort = item.dataset.sort;
-                const filter = item.dataset.filter;
+    footer.querySelector('#btn-filter-resto').addEventListener('click', () => {
+        filterRestaurant = !filterRestaurant;
+        refreshExplorer();
+    });
 
-                if (sort) explorerSort = sort;
-                if (filter) explorerFilter = filter;
+    footer.querySelector('#btn-filter-todo').addEventListener('click', () => {
+        filterTodo = !filterTodo;
+        refreshExplorer();
+    });
 
-                renderExplorerHeader(); // Re-render to update 'active' class
-                renderExplorerList(); // Re-render list
-                menu.style.display = 'none';
-            });
-        });
-    }
+    footer.querySelector('#btn-reset-filters').addEventListener('click', () => {
+        currentSort = 'date_desc';
+        filterRestaurant = false;
+        filterTodo = false;
+        refreshExplorer();
+    });
+}
+
+function refreshExplorer() {
+    renderExplorerToolbar(); // Update icons/states
+    renderExplorerList(); // Update list
 }
 
 export function renderExplorerList() {
-    // Need to call header render in case mapId wasn't ready at init
+    // Ensure header/toolbar are up to date (e.g. Map Name loaded late)
     const headerTitle = document.querySelector('.explorer-header h2');
     if (headerTitle && state.currentMapId && !headerTitle.textContent.includes(state.currentMapId.charAt(0).toUpperCase())) {
          renderExplorerHeader();
+    }
+    // Ensure toolbar exists
+    if (!document.querySelector('.explorer-footer')) {
+        renderExplorerToolbar();
     }
 
     const listContainer = document.getElementById('explorer-list');
     if (!listContainer) return;
 
-    // 1. Data Prep (Unified - No Official Distinction in UI)
-    // We only show state.myCircuits because we now merge everything there on load
+    // 1. Data Prep
     const visibleCircuits = (state.myCircuits || []).filter(c => !c.isDeleted);
 
-    // 2. Pre-calculation (Distance / Features) for Sorting/Filtering
+    // 2. Enrichment
     const enrichedCircuits = visibleCircuits.map(c => {
         const ids = c.poiIds || [];
         const features = ids
@@ -169,8 +193,8 @@ export function renderExplorerList() {
             distance = getOrthodromicDistance(features);
         }
 
+        // Legacy distance fix
         let sortDistance = distance;
-        // Legacy check for string distance if imported from old json
         if (c.distance && typeof c.distance === 'string') {
             const parsed = parseFloat(c.distance.replace(',', '.'));
             if (!isNaN(parsed)) sortDistance = parsed * 1000;
@@ -180,6 +204,11 @@ export function renderExplorerList() {
             const cat = f.properties['Catégorie'] || f.properties.userData?.Catégorie;
             return cat === 'Restaurant';
         });
+
+        // Check if all visited
+        const allVisited = features.length > 0 && features.every(f =>
+            f.properties.userData && f.properties.userData.vu
+        );
 
         // Zone
         let zoneName = "Inconnue";
@@ -194,24 +223,37 @@ export function renderExplorerList() {
             features,
             distVal: sortDistance,
             hasRestaurant,
+            allVisited,
             zoneName,
-            poiCount: ids.length
+            poiCount: ids.length,
+            created: c.created || 0 // Assuming 'created' timestamp exists or we treat as old
         };
     });
 
     // 3. Filter
     let processedCircuits = enrichedCircuits;
-    if (explorerFilter === 'restaurant') {
-        processedCircuits = enrichedCircuits.filter(c => c.hasRestaurant);
+
+    if (filterRestaurant) {
+        processedCircuits = processedCircuits.filter(c => c.hasRestaurant);
+    }
+
+    if (filterTodo) {
+        // Show only those NOT all visited (at least one unvisited)
+        processedCircuits = processedCircuits.filter(c => !c.allVisited);
     }
 
     // 4. Sort
-    if (explorerSort === 'recent') {
-        // Just reverse to show newest first (since we push new ones to end)
+    if (currentSort === 'date_desc') {
+        // Default: Newest first (assuming array is pushed in order, or use created timestamp if available)
+        // If we don't have reliable timestamps, we rely on array order (last = new)
+        // So we reverse.
         processedCircuits.reverse();
-    } else if (explorerSort === 'dist_asc') {
+    } else if (currentSort === 'date_asc') {
+        // Oldest first -> Keep array order
+        // No action needed if we assume array is chronological
+    } else if (currentSort === 'dist_asc') {
         processedCircuits.sort((a, b) => a.distVal - b.distVal);
-    } else if (explorerSort === 'dist_desc') {
+    } else if (currentSort === 'dist_desc') {
         processedCircuits.sort((a, b) => b.distVal - a.distVal);
     }
 
@@ -220,12 +262,14 @@ export function renderExplorerList() {
         ? '<div style="padding:20px; text-align:center; color:var(--ink-soft);">Aucun circuit correspondant.</div>'
         : processedCircuits.map(c => {
             const displayName = c.name.split(' via ')[0];
-
             const distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
-
             const iconName = c.realTrack ? 'footprints' : 'bird';
 
-            // Unified Action Button (Delete for everyone)
+            // Visual indicator for "Visited" (Checkmark)
+            const visitedIndicator = c.allVisited
+                ? `<span style="color:var(--ok); margin-left:5px;"><i data-lucide="check-check" style="width:14px; height:14px;"></i></span>`
+                : '';
+
             const actionsHtml = `
                 <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
                     <i data-lucide="trash-2"></i>
@@ -234,7 +278,9 @@ export function renderExplorerList() {
             return `
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
-                    <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}</div>
+                    <div class="explorer-item-name" title="${escapeXml(c.name)}">
+                        ${escapeXml(displayName)} ${visitedIndicator}
+                    </div>
                     <div class="explorer-item-meta">
                         ${c.poiCount} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}
                     </div>
@@ -244,7 +290,7 @@ export function renderExplorerList() {
             `;
         }).join('');
 
-    createIcons({ icons });
+    if (window.lucide) window.lucide.createIcons();
 
     // Event Listeners
     listContainer.querySelectorAll('.explorer-item').forEach(item => {
@@ -303,7 +349,7 @@ function renderCircuitsList() {
                 </div>
             </div>`;
         }).join('');
-    createIcons({ icons });
+    if (window.lucide) window.lucide.createIcons();
 }
 
 async function handleCircuitsListClick(e) {
