@@ -65,10 +65,11 @@ export function renderExplorerList() {
         ? '<div style="padding:20px; text-align:center; color:var(--ink-soft);">Aucun circuit.</div>'
         : visibleCircuits.map(c => {
             const displayName = c.name.split(' via ')[0];
-            const poiCount = c.poiIds ? c.poiIds.length : 0;
+            const ids = c.poiIds || [];
+            const poiCount = ids.length;
 
             // Resolve POIs to calculate distance/zone
-            const circuitFeatures = c.poiIds
+            const circuitFeatures = ids
                 .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
                 .filter(Boolean);
 
@@ -89,11 +90,15 @@ export function renderExplorerList() {
                  zoneName = getZoneFromCoords(lat, lng);
             }
 
+            const iconName = c.realTrack ? 'footprints' : 'bird';
+
             return `
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
                     <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}</div>
-                    <div class="explorer-item-meta">${poiCount} POI • ${distKm} km • ${zoneName}</div>
+                    <div class="explorer-item-meta">
+                        ${poiCount} POI • ${distKm} km <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${zoneName}
+                    </div>
                 </div>
                 <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
                     <i data-lucide="trash-2"></i>

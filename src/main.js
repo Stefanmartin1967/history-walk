@@ -11,6 +11,7 @@ import {
     closeCircuitsModal,
     populateZonesMenu,
     populateCategoriesMenu,
+    openDetailsPanel,
     closeDetailsPanel,
     populateAddPoiModalCategories,
     showLegendModal,

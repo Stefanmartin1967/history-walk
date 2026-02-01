@@ -105,9 +105,9 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     // --- TEMPLATE PC ---
     const pcHtml = `
-        <div class="panel-header editable-field" data-field-id="title" style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="panel-header editable-field pc-layout" data-field-id="title" style="display:flex; justify-content:space-between; align-items:center;">
 
-            <div class="left-text-block" style="flex:1; margin-right: 10px; display:flex; flex-direction:column;">
+            <div class="left-text-block pc-text-block" style="flex:1; margin-right: 10px; display:flex; flex-direction:column;">
                  <div class="editable-content">
                     <h2 id="panel-title-display" title="${escapeXml(poiName)}">${escapeXml(poiName)}</h2>
                     <p class="panel-nom-arabe">${escapeXml(allProps['Nom du site arabe'] || '')}</p>

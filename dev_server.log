@@ -3,10 +3,10 @@
 > vite
 
 
-  VITE v7.3.1  ready in 359 ms
+  VITE v7.3.1  ready in 423 ms
 
   ➜  Local:   http://localhost:5173/history-walk/
   ➜  Network: use --host to expose
-1:45:25 PM [vite] (client) page reload index.html
-1:45:37 PM [vite] (client) page reload src/ui.js
-1:47:50 PM [vite] (client) page reload index.html
+2:45:13 PM [vite] (client) page reload src/main.js
+2:46:00 PM [vite] (client) page reload src/ui-circuit-list.js
+2:47:54 PM [vite] (client) page reload src/main.js
