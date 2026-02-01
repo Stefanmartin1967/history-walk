@@ -134,7 +134,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
         </div>
         <div class="panel-content">
             <div class="detail-section editable-field" data-field-id="short_desc">
-                <h3>Description Courte (GPX)
+                <h3>Description du circuit
                     <div class="edit-controls section-controls">
                         <button class="action-button edit-btn">${ICONS.pen}</button>
                         <button class="action-button save-btn" style="display: none;">${ICONS.check}</button>
@@ -229,7 +229,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             <div class="detail-section editable-field" data-field-id="short_desc">
-                <h3>Description Courte (GPX)
+                <h3>Description du circuit
                     <div class="edit-controls section-controls">
                         <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
                         <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
