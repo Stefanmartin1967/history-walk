@@ -3,7 +3,9 @@
 > vite
 
 
-  VITE v7.3.1  ready in 518 ms
+  VITE v7.3.1  ready in 398 ms
 
   ➜  Local:   http://localhost:5173/history-walk/
   ➜  Network: use --host to expose
+7:19:07 PM [vite] (client) hmr update /style.css?direct&v=1.4
+7:24:55 PM [vite] (client) hmr update /style.css?direct&v=1.4

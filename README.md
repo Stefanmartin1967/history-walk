@@ -83,18 +83,36 @@ Cet outil permet de mettre à jour le fichier GeoJSON maître (`djerba.geojson`)
 *   `index.html` : Page principale de l'application.
 *   `fusion.html` : Page de la console de fusion.
 
-## Gestion des Photos GPS (Desktop)
+## Documentation Technique Avancée
+
+### Gestion des Photos GPS (Desktop)
 
 L'importation de photos géolocalisées suit un algorithme spécifique pour garantir la cohérence des données :
 
 1.  **Extraction GPS** : L'application extrait les coordonnées GPS (EXIF) de toutes les photos importées.
 2.  **Clustering (Regroupement)** : Les photos sont regroupées en "clusters" basés sur la proximité géographique (seuil de 50m).
-    *   *Exemple :* Si vous importez 10 photos d'une mosquée et 3 photos d'un restaurant distant de 500m, l'application créera deux groupes distincts.
 3.  **Priorité à la Majorité** : Les groupes contenant le plus de photos sont traités en premier.
 4.  **Association Intelligente** :
-    *   Pour chaque groupe, le barycentre (moyenne des positions) est calculé.
+    *   Pour chaque groupe, le barycentre est calculé.
     *   L'application recherche le lieu (POI) le plus proche de ce barycentre.
-    *   Si un lieu est trouvé à proximité (< 100m), l'application propose d'ajouter les photos à ce lieu.
-    *   Sinon, elle propose de créer un **nouveau lieu** à la position du barycentre.
-5.  **Détection de Doublons** : Avant d'ajouter une photo, l'application vérifie si une image identique (basée sur son contenu compressé) existe déjà pour ce lieu, évitant ainsi les duplications.
-6.  **Traitement des "Parasites"** : Les photos isolées (outliers) sont traitées comme des petits groupes à la fin du processus, permettant de décider au cas par cas (ajout ou création).
+    *   Si un lieu est trouvé (< 100m), elle propose d'ajouter les photos à ce lieu.
+    *   Sinon, elle propose de créer un **nouveau lieu**.
+5.  **Détection de Doublons** : Vérification basée sur le contenu compressé de l'image.
+
+### Partage de Circuit via QR Code
+
+La fonctionnalité de partage a été améliorée pour supporter les scanners tiers :
+
+*   **Format Universel** : Les QR Codes générés utilisent désormais une URL Web standard :
+    `https://[votre-site]/[dossier]/?import=ID1,ID2`
+*   **Compatibilité** :
+    *   **Scanner Interne** : Détecte le paramètre `import` et charge le circuit en mémoire et le sauvegarde immédiatement dans IndexedDB.
+    *   **Scanner Externe (Caméra)** : Ouvre l'URL dans le navigateur, qui lance ensuite l'application et l'importation automatique.
+*   **Persistance** : Les circuits importés sont automatiquement sauvegardés localement avec un ID unique pour persister après rechargement.
+
+### Notes sur le Layout et CSS
+
+#### Fenêtre de Détails (PC)
+Pour garantir une mise en page stable (Titre à gauche, Icônes à droite) malgré les conflits CSS potentiels, une stratégie de haute spécificité a été appliquée :
+*   **Classes** : `.pc-layout` et `.pc-text-block` dans `src/templates.js`.
+*   **CSS** : Utilisation de règles `!important` dans `style.css` pour forcer `flex-direction: row` sur l'entête et `flex-direction: column` sur le bloc de texte.
