@@ -146,16 +146,12 @@ export function renderExplorerList() {
     const listContainer = document.getElementById('explorer-list');
     if (!listContainer) return;
 
-    // 1. Data Prep
-    const officialCircuits = (state.officialCircuits || []).map(c => ({...c, type: 'official'}));
-    const localCircuits = (state.myCircuits || [])
-        .filter(c => !c.isDeleted)
-        .map(c => ({...c, type: 'local'}));
-
-    let allCircuits = [...officialCircuits, ...localCircuits];
+    // 1. Data Prep (Unified - No Official Distinction in UI)
+    // We only show state.myCircuits because we now merge everything there on load
+    const visibleCircuits = (state.myCircuits || []).filter(c => !c.isDeleted);
 
     // 2. Pre-calculation (Distance / Features) for Sorting/Filtering
-    const enrichedCircuits = allCircuits.map(c => {
+    const enrichedCircuits = visibleCircuits.map(c => {
         const ids = c.poiIds || [];
         const features = ids
             .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
@@ -169,7 +165,8 @@ export function renderExplorerList() {
         }
 
         let sortDistance = distance;
-        if (c.isOfficial && c.distance && typeof c.distance === 'string') {
+        // Legacy check for string distance if imported from old json
+        if (c.distance && typeof c.distance === 'string') {
             const parsed = parseFloat(c.distance.replace(',', '.'));
             if (!isNaN(parsed)) sortDistance = parsed * 1000;
         }
@@ -205,9 +202,8 @@ export function renderExplorerList() {
 
     // 4. Sort
     if (explorerSort === 'recent') {
-        const officials = processedCircuits.filter(c => c.type === 'official');
-        const locals = processedCircuits.filter(c => c.type === 'local').reverse();
-        processedCircuits = [...officials, ...locals];
+        // Just reverse to show newest first (since we push new ones to end)
+        processedCircuits.reverse();
     } else if (explorerSort === 'dist_asc') {
         processedCircuits.sort((a, b) => a.distVal - b.distVal);
     } else if (explorerSort === 'dist_desc') {
@@ -228,15 +224,12 @@ export function renderExplorerList() {
             }
 
             const iconName = c.realTrack ? 'footprints' : 'bird';
-            const isOfficial = c.isOfficial;
 
-            let actionsHtml = '';
-            if (!isOfficial) {
-                actionsHtml += `
+            // Unified Action Button (Delete for everyone)
+            const actionsHtml = `
                 <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
                     <i data-lucide="trash-2"></i>
                 </button>`;
-            }
 
             return `
             <div class="explorer-item" data-id="${c.id}">

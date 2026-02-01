@@ -423,6 +423,9 @@ export async function exportOfficialCircuitsJSON() {
 
         downloadFile('circuits.json', jsonString, 'application/json');
 
+        // RESET FLAG
+        state.hasUnexportedChanges = false;
+
         showToast(`${exportArray.length} circuits exportés pour le serveur.`, "success");
         showToast("N'oubliez pas d'exporter les GPX correspondants !", "info");
 

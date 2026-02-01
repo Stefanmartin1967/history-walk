@@ -134,6 +134,7 @@ export async function saveAndExportCircuit() {
 
     try {
         await saveCircuit(circuitToSave);
+        state.hasUnexportedChanges = true; // FLAG CHANGEMENT
         await recalculatePlannedCountersForMap(state.currentMapId);
         applyFilters();
         generateAndDownloadGPX(state.currentCircuit, circuitToSave.id, circuitToSave.name, circuitToSave.description);
