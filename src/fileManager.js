@@ -362,3 +362,72 @@ export async function exportFullBackupPC() {
         showToast("Erreur lors de l'export complet", "error");
     }
 }
+
+/**
+ * EXPORT CIRCUITS OFFICIELS (JSON uniquement)
+ * Génère un fichier circuits.json basé sur les circuits locaux actuels
+ */
+export async function exportOfficialCircuitsJSON() {
+    try {
+        const { getRealDistance, getOrthodromicDistance } = await import('./map.js');
+        const { getPoiId } = await import('./data.js');
+
+        // On prend UNIQUEMENT les circuits créés localement (non officiels)
+        // car le but est de transformer le travail local en futur officiel.
+        const sourceCircuits = state.myCircuits.filter(c => !c.isDeleted);
+
+        if (sourceCircuits.length === 0) {
+            showToast("Aucun circuit local à exporter.", "warning");
+            return;
+        }
+
+        const exportArray = sourceCircuits.map((c, index) => {
+            // Résolution des distances
+            const circuitFeatures = c.poiIds
+                .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
+                .filter(Boolean);
+
+            let distDisplay = "0 km";
+            if (circuitFeatures.length > 0) {
+                let d = 0;
+                if (c.realTrack) {
+                    d = getRealDistance(c);
+                } else {
+                    d = getOrthodromicDistance(circuitFeatures);
+                }
+                distDisplay = (d / 1000).toFixed(1) + ' km';
+            }
+
+            // Génération d'un nom de fichier GPX théorique
+            // Ex: "Circuit Djerba Hood" -> "circuit_djerba_hood.gpx"
+            const safeName = c.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+
+            const fileName = `${safeName}.gpx`;
+
+            return {
+                id: `off_${String(index + 1).padStart(2, '0')}`, // off_01, off_02...
+                name: c.name,
+                file: fileName,
+                description: c.description || "Pas de description.",
+                distance: distDisplay,
+                isOfficial: true,
+                poiIds: c.poiIds // On garde les IDs pour la reconstruction
+            };
+        });
+
+        const jsonString = JSON.stringify(exportArray, null, 2);
+        const { downloadFile } = await import('./utils.js');
+
+        downloadFile('circuits.json', jsonString, 'application/json');
+
+        showToast(`${exportArray.length} circuits exportés pour le serveur.`, "success");
+        showToast("N'oubliez pas d'exporter les GPX correspondants !", "info");
+
+    } catch (err) {
+        console.error("Erreur Export Circuits:", err);
+        showToast("Erreur lors de l'export des circuits", "error");
+    }
+}

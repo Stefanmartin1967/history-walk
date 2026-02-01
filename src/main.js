@@ -33,7 +33,7 @@ import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-ac
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
 import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } from './mobile.js';
 
-import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile } from './fileManager.js';
+import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile, exportOfficialCircuitsJSON } from './fileManager.js';
 import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
@@ -346,9 +346,12 @@ function setupFileListeners() {
     }
     if (DOM.btnOpenGeojson) DOM.btnOpenGeojson.addEventListener('click', () => DOM.geojsonLoader.click());
 
-    // Sauvegarde Mobile (Données uniquement)
+    // Sauvegarde Données (Données uniquement) - Ancien "Mobile"
     const btnSaveMobile = document.getElementById('btn-save-mobile');
     if (btnSaveMobile) {
+        // Mise à jour du texte si possible
+        // if (btnSaveMobile.querySelector('span')) btnSaveMobile.querySelector('span').textContent = "Sauvegarde Données";
+
         btnSaveMobile.addEventListener('click', () => {
             if (window.innerWidth > 768) {
                 // SUR PC : On veut le téléchargement direct
@@ -357,6 +360,14 @@ function setupFileListeners() {
                 // SUR MOBILE : On garde le système de partage .txt
                 saveUserData(false);
             }
+        });
+    }
+
+    // NOUVEAU : Sauvegarde Circuits (JSON Officiel)
+    const btnSaveCircuits = document.getElementById('btn-save-circuits');
+    if (btnSaveCircuits) {
+        btnSaveCircuits.addEventListener('click', () => {
+            exportOfficialCircuitsJSON();
         });
     }
 
