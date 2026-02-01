@@ -297,10 +297,33 @@ export function refreshMapMarkers(visibleFeatures) {
             // ---> LOGIQUE DES MARQUEURS ET STATUTS <---
             const props = feature.properties.userData || {};
 
-            // 1. VIP (Incontournable) -> Icône "Gem"
+            // 1. VIP (Incontournable) -> Icône Catégorie dans Pentagone Jaune Pastel
             if (props.incontournable === true) {
-                icon.options.html = `<div class="hw-icon-wrapper"><i data-lucide="gem" class="marker-vip-icon"></i></div>`;
-                icon.options.className += ' marker-vip'; 
+                // Construction du SVG Pentagone (Pastel Yellow)
+                // Points pour un pentagone "maison" (pointe en haut) qui remplit le 32x32
+                // M16 2 L30 12 L26 30 L6 30 L2 12 Z
+                const pentagonSvg = `
+                    <svg viewBox="0 0 32 32" class="vip-background" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:-1;">
+                        <path d="M16 2 L30 12 L25 30 L7 30 L2 12 Z" fill="#FFF9C4" stroke="#FBC02D" stroke-width="2" />
+                    </svg>
+                `;
+
+                // On garde l'icône de catégorie originale (déjà générée dans 'iconHtml' par createHistoryWalkIcon)
+                // Mais on doit l'extraire ou la régénérer proprement.
+                // createHistoryWalkIcon retourne un DivIcon avec .html = <div class="hw-icon-wrapper">...</div>
+
+                // Hack propre : on reconstruit le HTML pour les VIPs en injectant le fond
+                const originalIconHtml = icon.options.html; // <div class="hw-icon-wrapper">...</div>
+
+                // On injecte le pentagone AVANT l'icône, à l'intérieur du wrapper
+                // Attention : string manipulation
+                const newHtml = originalIconHtml.replace(
+                    '<div class="hw-icon-wrapper">',
+                    `<div class="hw-icon-wrapper vip-wrapper" style="position:relative;">${pentagonSvg}`
+                );
+
+                icon.options.html = newHtml;
+                icon.options.className += ' marker-vip-container';
             }
 
             // 2. Visité -> Bordure Verte

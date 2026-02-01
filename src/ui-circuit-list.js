@@ -74,13 +74,12 @@ function renderExplorerHeader() {
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Circuits';
 
     header.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-right: 10px;">
-            <h2 style="margin:0; font-size:18px;">${mapName}</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding: 0 10px; position:relative;">
             <div style="position:relative;">
                 <button id="btn-explorer-filter" class="header-btn" title="Trier et Filtrer">
                     <i data-lucide="list-filter"></i>
                 </button>
-                <div id="explorer-filter-menu" class="tools-menu" style="display:none; top:35px; right:0; min-width:200px; z-index: 2000;">
+                <div id="explorer-filter-menu" class="tools-menu" style="display:none; top:40px; left:0; min-width:220px; z-index: 2000;">
                     <div style="padding:8px; font-weight:600; color:var(--ink-soft); font-size:12px;">TRIER PAR</div>
                     <button class="tools-menu-item ${explorerSort === 'recent' ? 'active' : ''}" data-sort="recent">
                         <i data-lucide="clock"></i> Plus récents
@@ -103,6 +102,11 @@ function renderExplorerHeader() {
                     </button>
                 </div>
             </div>
+
+            <h2 style="margin:0; font-size:22px; text-align:center; flex:1;">${mapName}</h2>
+
+            <!-- Spacer to balance the left button -->
+            <div style="width:32px;"></div>
         </div>
     `;
 
