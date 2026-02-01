@@ -10,6 +10,10 @@ import { getOrthodromicDistance, getRealDistance } from './map.js';
 
 const getEl = (id) => document.getElementById(id);
 
+// --- LOCAL STATE ---
+let explorerSort = 'recent'; // 'recent', 'dist_asc', 'dist_desc'
+let explorerFilter = 'none'; // 'none', 'restaurant'
+
 export function openCircuitsModal() {
     renderCircuitsList();
     const modal = getEl('circuits-modal');
@@ -48,80 +52,190 @@ export function initCircuitListUI() {
             renderExplorerList();
         }
     });
+
+    // Initial render of header
+    renderExplorerHeader();
+
+    // Global listener for closing menu (Fixed memory leak)
+    document.addEventListener('click', (e) => {
+        const header = document.querySelector('.explorer-header');
+        const menu = document.getElementById('explorer-filter-menu');
+        if (header && menu && !header.contains(e.target)) {
+             menu.style.display = 'none';
+        }
+    });
+}
+
+// --- EXPLORER HEADER (NEW) ---
+function renderExplorerHeader() {
+    const header = document.querySelector('.explorer-header');
+    if (!header) return;
+
+    const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Circuits';
+
+    header.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-right: 10px;">
+            <h2 style="margin:0; font-size:18px;">${mapName}</h2>
+            <div style="position:relative;">
+                <button id="btn-explorer-filter" class="header-btn" title="Trier et Filtrer">
+                    <i data-lucide="list-filter"></i>
+                </button>
+                <div id="explorer-filter-menu" class="tools-menu" style="display:none; top:35px; right:0; min-width:200px; z-index: 2000;">
+                    <div style="padding:8px; font-weight:600; color:var(--ink-soft); font-size:12px;">TRIER PAR</div>
+                    <button class="tools-menu-item ${explorerSort === 'recent' ? 'active' : ''}" data-sort="recent">
+                        <i data-lucide="clock"></i> Plus récents
+                    </button>
+                    <button class="tools-menu-item ${explorerSort === 'dist_desc' ? 'active' : ''}" data-sort="dist_desc">
+                        <i data-lucide="arrow-down-0-1"></i> Distance (Long -> Court)
+                    </button>
+                    <button class="tools-menu-item ${explorerSort === 'dist_asc' ? 'active' : ''}" data-sort="dist_asc">
+                        <i data-lucide="arrow-up-0-1"></i> Distance (Court -> Long)
+                    </button>
+
+                    <div style="height:1px; background:var(--line); margin:5px 0;"></div>
+
+                    <div style="padding:8px; font-weight:600; color:var(--ink-soft); font-size:12px;">FILTRER</div>
+                    <button class="tools-menu-item ${explorerFilter === 'restaurant' ? 'active' : ''}" data-filter="restaurant">
+                        <i data-lucide="utensils"></i> Avec Restaurant
+                    </button>
+                    <button class="tools-menu-item ${explorerFilter === 'none' ? 'active' : ''}" data-filter="none">
+                        <i data-lucide="x"></i> Aucun filtre
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    createIcons({ icons });
+
+    // Event Listeners
+    const btnFilter = header.querySelector('#btn-explorer-filter');
+    const menu = header.querySelector('#explorer-filter-menu');
+
+    if (btnFilter && menu) {
+        btnFilter.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = menu.style.display === 'block';
+            menu.style.display = isVisible ? 'none' : 'block';
+        });
+
+        // Menu items
+        menu.querySelectorAll('.tools-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const sort = item.dataset.sort;
+                const filter = item.dataset.filter;
+
+                if (sort) explorerSort = sort;
+                if (filter) explorerFilter = filter;
+
+                renderExplorerHeader(); // Re-render to update 'active' class
+                renderExplorerList(); // Re-render list
+                menu.style.display = 'none';
+            });
+        });
+    }
 }
 
 export function renderExplorerList() {
+    // Need to call header render in case mapId wasn't ready at init
+    const headerTitle = document.querySelector('.explorer-header h2');
+    if (headerTitle && state.currentMapId && !headerTitle.textContent.includes(state.currentMapId.charAt(0).toUpperCase())) {
+         renderExplorerHeader();
+    }
+
     const listContainer = document.getElementById('explorer-list');
     if (!listContainer) return;
 
-    // 1. Circuits Officiels
-    const officialCircuits = state.officialCircuits || [];
-
-    // 2. Circuits Locaux (Triés par récent)
-    // Note: state.myCircuits is usually appended to, so reverse gives newest first.
-    const localCircuits = state.myCircuits
+    // 1. Data Prep
+    const officialCircuits = (state.officialCircuits || []).map(c => ({...c, type: 'official'}));
+    const localCircuits = (state.myCircuits || [])
         .filter(c => !c.isDeleted)
-        .slice()
-        .reverse();
+        .map(c => ({...c, type: 'local'}));
 
-    // Fusion : Officiels en premier
-    const allCircuits = [...officialCircuits, ...localCircuits];
+    let allCircuits = [...officialCircuits, ...localCircuits];
 
-    listContainer.innerHTML = (allCircuits.length === 0)
-        ? '<div style="padding:20px; text-align:center; color:var(--ink-soft);">Aucun circuit.</div>'
-        : allCircuits.map(c => {
+    // 2. Pre-calculation (Distance / Features) for Sorting/Filtering
+    const enrichedCircuits = allCircuits.map(c => {
+        const ids = c.poiIds || [];
+        const features = ids
+            .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
+            .filter(Boolean);
+
+        let distance = 0;
+        if (c.realTrack) {
+            distance = getRealDistance(c);
+        } else {
+            distance = getOrthodromicDistance(features);
+        }
+
+        let sortDistance = distance;
+        if (c.isOfficial && c.distance && typeof c.distance === 'string') {
+            const parsed = parseFloat(c.distance.replace(',', '.'));
+            if (!isNaN(parsed)) sortDistance = parsed * 1000;
+        }
+
+        const hasRestaurant = features.some(f => {
+            const cat = f.properties['Catégorie'] || f.properties.userData?.Catégorie;
+            return cat === 'Restaurant';
+        });
+
+        // Zone
+        let zoneName = "Inconnue";
+        if (features.length > 0) {
+             const firstPoi = features[0];
+             const [lng, lat] = firstPoi.geometry.coordinates;
+             zoneName = getZoneFromCoords(lat, lng);
+        }
+
+        return {
+            ...c,
+            features,
+            distVal: sortDistance,
+            hasRestaurant,
+            zoneName,
+            poiCount: ids.length
+        };
+    });
+
+    // 3. Filter
+    let processedCircuits = enrichedCircuits;
+    if (explorerFilter === 'restaurant') {
+        processedCircuits = enrichedCircuits.filter(c => c.hasRestaurant);
+    }
+
+    // 4. Sort
+    if (explorerSort === 'recent') {
+        const officials = processedCircuits.filter(c => c.type === 'official');
+        const locals = processedCircuits.filter(c => c.type === 'local').reverse();
+        processedCircuits = [...officials, ...locals];
+    } else if (explorerSort === 'dist_asc') {
+        processedCircuits.sort((a, b) => a.distVal - b.distVal);
+    } else if (explorerSort === 'dist_desc') {
+        processedCircuits.sort((a, b) => b.distVal - a.distVal);
+    }
+
+    // 5. Render
+    listContainer.innerHTML = (processedCircuits.length === 0)
+        ? '<div style="padding:20px; text-align:center; color:var(--ink-soft);">Aucun circuit correspondant.</div>'
+        : processedCircuits.map(c => {
             const displayName = c.name.split(' via ')[0];
-            const ids = c.poiIds || [];
-            const poiCount = ids.length;
-
-            // Resolve POIs to calculate distance/zone
-            const circuitFeatures = ids
-                .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
-                .filter(Boolean);
-
-            // Distance
-            let distance = 0;
-            if (c.realTrack) {
-                distance = getRealDistance(c);
-            } else {
-                distance = getOrthodromicDistance(circuitFeatures);
-            }
 
             let distDisplay;
-            // Si c'est un circuit officiel avec une distance pré-remplie (ex: "3.5 km")
             if (c.isOfficial && c.distance) {
                  distDisplay = c.distance;
-            }
-            // Sinon on calcule
-            else {
-                 distDisplay = (distance / 1000).toFixed(1) + ' km';
-            }
-
-            // Zone
-            let zoneName = "Inconnue";
-            if (circuitFeatures.length > 0) {
-                 const firstPoi = circuitFeatures[0];
-                 const [lng, lat] = firstPoi.geometry.coordinates;
-                 zoneName = getZoneFromCoords(lat, lng);
+            } else {
+                 distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
             }
 
             const iconName = c.realTrack ? 'footprints' : 'bird';
-
-            // LOGIQUE OFFICIEL (Nettoyée sur PC)
             const isOfficial = c.isOfficial;
 
-            // Sur PC, on retire le badge et le bouton download comme demandé
-            // On garde juste le bouton Supprimer SI ce n'est PAS officiel
             let actionsHtml = '';
-
             if (!isOfficial) {
                 actionsHtml += `
                 <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
                     <i data-lucide="trash-2"></i>
                 </button>`;
-            } else {
-                // Pour les officiels sur PC, on met un espace vide ou rien pour garder l'alignement si besoin
-                // Ici on laisse vide, ce qui rend l'item non supprimable
             }
 
             return `
@@ -129,7 +243,7 @@ export function renderExplorerList() {
                 <div class="explorer-item-content">
                     <div class="explorer-item-name" title="${escapeXml(c.name)}">${escapeXml(displayName)}</div>
                     <div class="explorer-item-meta">
-                        ${poiCount} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${zoneName}
+                        ${c.poiCount} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}
                     </div>
                 </div>
                 ${actionsHtml}
@@ -139,19 +253,16 @@ export function renderExplorerList() {
 
     createIcons({ icons });
 
-    // Event Listeners (Load)
+    // Event Listeners
     listContainer.querySelectorAll('.explorer-item').forEach(item => {
         item.addEventListener('click', (e) => {
-            // Prevent if clicking action buttons (delete button or download link)
             if (e.target.closest('.explorer-item-delete') || e.target.closest('a')) return;
-
             const id = item.dataset.id;
             eventBus.emit('circuit:request-load', id);
             eventBus.emit('ui:request-tab-change', 'circuit');
         });
     });
 
-    // Event Listeners (Delete) - Only for local ones
     listContainer.querySelectorAll('.explorer-item-delete').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
