@@ -62,10 +62,14 @@ function generateAndDownloadGPX(circuit, id, name, description, realTrack = null
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Inconnue';
 
     // On met le HW-ID dans les keywords pour qu'il soit discret mais présent
+    // AJOUT V3 : On met aussi le HW-ID dans <author><name> pour survivre à GPX Studio
     const metadataXML = `
     <metadata>
         <name>${escapeXml(name)}</name>
         <desc>Circuit généré par History Walk.</desc>
+        <author>
+            <name>[HW-ID:${id}]</name>
+        </author>
         <link href="https://stefanmartin1967.github.io/history-walk/">
             <text>History Walk</text>
         </link>
@@ -208,22 +212,38 @@ export async function processImportedGpx(file, circuitId) {
                 const xmlDoc = parser.parseFromString(text, "text/xml");
                 
                 // 1. EXTRACTION HW-ID (SÉCURITÉ)
-                // Recherche dans <desc> (Legacy)
-                const descNodes = xmlDoc.getElementsByTagName("desc");
                 let foundHwId = null;
-                for (let i = 0; i < descNodes.length; i++) {
-                    const match = descNodes[i].textContent.match(/\[HW-ID:(.*?)\]/);
-                    if (match) {
-                        foundHwId = match[1];
-                        break;
+
+                // Recherche dans <author><name> (Format compatible GPX Studio)
+                const authorNodes = xmlDoc.getElementsByTagName("author");
+                if (authorNodes.length > 0) {
+                    const nameNodes = authorNodes[0].getElementsByTagName("name");
+                    for (let i = 0; i < nameNodes.length; i++) {
+                         const match = nameNodes[i].textContent.match(/\[HW-ID:(.*?)\]/);
+                         if (match) {
+                             foundHwId = match[1];
+                             break;
+                         }
                     }
                 }
 
-                // Recherche dans <keywords> (Nouveau format)
+                // Recherche dans <keywords> (Format Standard V2)
                 if (!foundHwId) {
                     const keywordNodes = xmlDoc.getElementsByTagName("keywords");
                     for (let i = 0; i < keywordNodes.length; i++) {
                         const match = keywordNodes[i].textContent.match(/\[HW-ID:(.*?)\]/);
+                        if (match) {
+                            foundHwId = match[1];
+                            break;
+                        }
+                    }
+                }
+
+                // Recherche dans <desc> (Format Legacy V1)
+                if (!foundHwId) {
+                    const descNodes = xmlDoc.getElementsByTagName("desc");
+                    for (let i = 0; i < descNodes.length; i++) {
+                        const match = descNodes[i].textContent.match(/\[HW-ID:(.*?)\]/);
                         if (match) {
                             foundHwId = match[1];
                             break;
