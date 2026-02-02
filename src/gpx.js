@@ -61,22 +61,24 @@ function generateAndDownloadGPX(circuit, id, name, description, realTrack = null
     // MÉTADONNÉES ÉTENDUES (Destination + Lien)
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Inconnue';
 
-    // On met le HW-ID dans les keywords pour qu'il soit discret mais présent
-    // AJOUT V3 : On met aussi le HW-ID dans <author><name> pour survivre à GPX Studio
+    // NOUVELLE STRUCTURE V4 : ID dans <extensions>
+    // On conserve le lien en premier pour la visibilité Wikiloc
     const metadataXML = `
     <metadata>
         <name>${escapeXml(name)}</name>
         <desc>Circuit généré par History Walk.</desc>
-        <author>
-            <name>[HW-ID:${id}]</name>
-        </author>
         <link href="https://stefanmartin1967.github.io/history-walk/">
             <text>History Walk</text>
         </link>
         <keywords>${escapeXml(mapName)}, [HW-ID:${id}]</keywords>
+        <extensions>
+            <hw:id>${id}</hw:id>
+            <hw:app>History Walk</hw:app>
+        </extensions>
     </metadata>`;
 
-    const gpxContent = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="History Walk ${APP_VERSION}" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">${metadataXML}${waypointsXML}<trk><name>${escapeXml(name)}</name><desc><![CDATA[${description}]]></desc><trkseg>${trackpointsXML}</trkseg></trk></gpx>`;
+    // Ajout du namespace hw
+    const gpxContent = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="History Walk ${APP_VERSION}" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:hw="http://www.historywalk.app/GPX/1/0" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">${metadataXML}${waypointsXML}<trk><name>${escapeXml(name)}</name><desc><![CDATA[${description}]]></desc><trkseg>${trackpointsXML}</trkseg></trk></gpx>`;
 
     downloadFile(`${name}.gpx`, gpxContent, 'application/gpx+xml');
 }
@@ -214,20 +216,28 @@ export async function processImportedGpx(file, circuitId) {
                 // 1. EXTRACTION HW-ID (SÉCURITÉ)
                 let foundHwId = null;
 
-                // Recherche dans <author><name> (Format compatible GPX Studio)
-                const authorNodes = xmlDoc.getElementsByTagName("author");
-                if (authorNodes.length > 0) {
-                    const nameNodes = authorNodes[0].getElementsByTagName("name");
-                    for (let i = 0; i < nameNodes.length; i++) {
-                         const match = nameNodes[i].textContent.match(/\[HW-ID:(.*?)\]/);
-                         if (match) {
-                             foundHwId = match[1];
-                             break;
-                         }
+                // A. Recherche dans <extensions><hw:id> (Format V4 - Robuste GPX Studio)
+                const hwIdNodes = xmlDoc.getElementsByTagName("hw:id");
+                if (hwIdNodes.length > 0) {
+                     foundHwId = hwIdNodes[0].textContent.trim();
+                }
+
+                // B. Recherche dans <author><name> (Format Legacy V3)
+                if (!foundHwId) {
+                    const authorNodes = xmlDoc.getElementsByTagName("author");
+                    if (authorNodes.length > 0) {
+                        const nameNodes = authorNodes[0].getElementsByTagName("name");
+                        for (let i = 0; i < nameNodes.length; i++) {
+                            const match = nameNodes[i].textContent.match(/\[HW-ID:(.*?)\]/);
+                            if (match) {
+                                foundHwId = match[1];
+                                break;
+                            }
+                        }
                     }
                 }
 
-                // Recherche dans <keywords> (Format Standard V2)
+                // C. Recherche dans <keywords> (Format Legacy V2)
                 if (!foundHwId) {
                     const keywordNodes = xmlDoc.getElementsByTagName("keywords");
                     for (let i = 0; i < keywordNodes.length; i++) {
