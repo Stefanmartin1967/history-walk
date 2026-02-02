@@ -356,6 +356,9 @@ async function initDesktopMode() {
         setupDesktopTools();
         setupSmartSearch();
     }
+    // La sidebar est visible par défaut sur Desktop (Explorer)
+    document.body.classList.add('sidebar-open');
+
     setupDesktopUIListeners(); // Listeners spécifiques UI Desktop
     updateSelectionModeButton(state.isSelectionModeActive);
 }

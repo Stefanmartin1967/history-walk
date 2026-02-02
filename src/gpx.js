@@ -1,7 +1,8 @@
 // gpx.js
 import { state, APP_VERSION } from './state.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
-import { generateCircuitName } from './circuit.js';
+import { generateCircuitName, loadCircuitById } from './circuit.js';
+import { DOM } from './ui.js';
 import { getAllPoiDataForMap, getAllCircuitsForMap, saveCircuit, batchSavePoiData, getAppState } from './database.js';
 import { showToast } from './toast.js';
 import { downloadFile } from './utils.js';
@@ -132,7 +133,15 @@ export async function recalculatePlannedCountersForMap(mapId) {
 export async function saveAndExportCircuit() {
     if (state.currentCircuit.length === 0) return;
     
-    const circuitName = generateCircuitName();
+    // 1. Détermination du nom : Priorité à l'interface (User) sur la génération auto
+    let circuitName = generateCircuitName();
+    if (DOM.circuitTitleText && DOM.circuitTitleText.textContent) {
+        const uiTitle = DOM.circuitTitleText.textContent.trim();
+        // Si le titre de l'UI n'est pas le placeholder par défaut, on le garde
+        if (uiTitle && uiTitle !== "Nouveau Circuit") {
+            circuitName = uiTitle;
+        }
+    }
     
     const draft = await getAppState(`circuitDraft_${state.currentMapId}`);
     let description = (draft && draft.description) ? draft.description : '';
@@ -239,9 +248,46 @@ export async function processImportedGpx(file, circuitId) {
                 let canImport = false;
                 const { showConfirm, showAlert } = await import('./modal.js');
 
+                // A. VÉRIFICATION GEOGRAPHIQUE (HORS ZONE)
+                if (state.loadedFeatures.length > 0 && coordinates.length > 0) {
+                    // Calcul de la Bounding Box de la carte
+                    let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180;
+                    state.loadedFeatures.forEach(f => {
+                        const [lon, lat] = f.geometry.coordinates;
+                        if (lat < minLat) minLat = lat;
+                        if (lat > maxLat) maxLat = lat;
+                        if (lon < minLon) minLon = lon;
+                        if (lon > maxLon) maxLon = lon;
+                    });
+
+                    // Marge de tolérance (ex: 0.1 degré ~= 11km)
+                    const margin = 0.1;
+                    minLat -= margin; maxLat += margin;
+                    minLon -= margin; maxLon += margin;
+
+                    // Vérification si au moins un point de la trace est dans la zone
+                    const isInside = coordinates.some(([lat, lon]) =>
+                        lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon
+                    );
+
+                    if (!isInside) {
+                        await showAlert(
+                            "Import Bloqué",
+                            "Ce fichier contient une trace située HORS DE LA ZONE actuelle (trop éloignée).\n\nVeuillez charger la carte correspondante avant d'importer ce fichier."
+                        );
+                        reject(new Error("Hors Zone"));
+                        return;
+                    }
+                }
+
+                // B. VÉRIFICATION HW-ID
                 if (foundHwId) {
                     // CAS A : Un ID est présent dans le fichier
-                    if (foundHwId === circuitId) {
+                    if (circuitId && foundHwId === circuitId) {
+                        canImport = true;
+                    } else if (!circuitId) {
+                        // Import Nouveau Circuit avec ID existant -> On garde l'ID ? Ou on considère comme nouveau ?
+                        // Pour éviter les conflits, on considère comme une copie
                         canImport = true;
                     } else {
                         await showAlert(
@@ -287,10 +333,14 @@ export async function processImportedGpx(file, circuitId) {
                             "Importer", "Annuler"
                         );
                     } else {
+                        const msg = circuitId
+                            ? "Ce fichier ne contient ni ID certifié, ni étapes communes avec ce circuit.\n\nÊtes-vous SÛR de vouloir l'utiliser ?"
+                            : "Ce fichier ne contient pas d'ID certifié.\n\nCréer un nouveau circuit à partir de cette trace ?";
+
                         canImport = await showConfirm(
-                            "Attention",
-                            "Ce fichier ne contient ni ID certifié, ni étapes communes avec ce circuit.\n\nÊtes-vous SÛR de vouloir l'utiliser ?",
-                            "Importer (Risqué)", "Annuler", true
+                            "Confirmation",
+                            msg,
+                            "Importer", "Annuler", true
                         );
                     }
                 }
@@ -301,18 +351,41 @@ export async function processImportedGpx(file, circuitId) {
                 }
 
                 // 4. SAUVEGARDE
-                const circuitIndex = state.myCircuits.findIndex(c => c.id === circuitId);
-                
-                if (circuitIndex !== -1) {
-                    state.myCircuits[circuitIndex].realTrack = coordinates;
-                    await saveCircuit(state.myCircuits[circuitIndex]);
-                    
-                    if (state.activeCircuitId === circuitId) {
-                        updatePolylines(); 
+                if (circuitId) {
+                    // Mise à jour d'un circuit existant
+                    const circuitIndex = state.myCircuits.findIndex(c => c.id === circuitId);
+                    if (circuitIndex !== -1) {
+                        state.myCircuits[circuitIndex].realTrack = coordinates;
+                        await saveCircuit(state.myCircuits[circuitIndex]);
+
+                        if (state.activeCircuitId === circuitId) {
+                            updatePolylines();
+                        }
+                        showToast("Trace importée et mise à jour !", "success");
+                        resolve();
+                    } else {
+                        throw new Error("Circuit cible introuvable.");
                     }
-                    resolve();
                 } else {
-                    throw new Error("Circuit cible introuvable.");
+                    // Création d'un NOUVEAU circuit
+                    const newId = `HW-${Date.now()}`;
+                    const newCircuit = {
+                        id: newId,
+                        mapId: state.currentMapId,
+                        name: "Trace Importée",
+                        description: "Circuit créé à partir d'un import GPX.",
+                        poiIds: [],
+                        realTrack: coordinates,
+                        transport: {}
+                    };
+
+                    state.myCircuits.push(newCircuit);
+                    await saveCircuit(newCircuit);
+
+                    // On charge ce nouveau circuit
+                    await loadCircuitById(newId);
+                    showToast("Nouveau circuit créé depuis la trace GPX", "success");
+                    resolve();
                 }
             } catch (err) {
                 reject(err);

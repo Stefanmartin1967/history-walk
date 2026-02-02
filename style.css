@@ -1,6 +1,7 @@
 /* style.css - BASE V1 RESTAURÉE + PATCH BOUTONS */
 :root,
 html[data-theme="maritime"] {
+    --sidebar-width: clamp(380px, 30vw, 480px);
     --bg: #0D3B66;
     --bg-2: #062B4D;
     --surface: #FFFFFF;
@@ -314,6 +315,11 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
+    transition: right 0.3s ease;
+}
+
+body.sidebar-open #map {
+    right: var(--sidebar-width);
 }
 
 #app-version {
@@ -356,7 +362,7 @@ body {
     right: 0;
     bottom: 0;
     height: auto;
-    width: clamp(380px, 30vw, 480px);
+    width: var(--sidebar-width);
     max-width: 100%;
     background: var(--surface-muted);
     box-shadow: var(--shadow);
@@ -1096,7 +1102,7 @@ textarea.editable-input {
 }
 
 .real-track-polyline {
-    stroke: var(--danger);
+    stroke: var(--danger) !important;
     stroke-width: 3;
     opacity: 0.8;
 }

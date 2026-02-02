@@ -159,8 +159,11 @@ export function handleMarkerClick(feature) {
             showToast("Circuit plein (15 points max) !", "warning");
             return;
         }
-        addPoiToCircuit(feature);
-        showToast("Ajouté au circuit", "success");
+
+        const added = addPoiToCircuit(feature);
+        if (added) {
+            showToast("Ajouté au circuit", "success");
+        }
 
     } else {
         // --- MODE CONSULTATION (OFF) ---
@@ -196,13 +199,10 @@ export function drawLineOnMap(coordinates, isRealTrack = false) {
     // On nettoie AVANT de dessiner
     clearMapLines();
 
-    const color = isRealTrack ? '#ff0000' : '#0000ff'; // Rouge pour réel, Bleu pour théorique
-    const dashArray = isRealTrack ? null : '5, 10';   // Plein pour réel, Pointillé pour théorique
+    const className = isRealTrack ? 'real-track-polyline' : 'circuit-polyline';
 
     const polyline = L.polyline(coordinates, {
-        color: color,
-        weight: 3,
-        dashArray: dashArray,
+        className: className,
         interactive: false
     }).addTo(map);
 

@@ -1,6 +1,6 @@
 import { getZonesData } from './circuit-actions.js';
 import { applyFilters } from './data.js';
-import { toggleSelectionMode } from './circuit.js';
+import { toggleSelectionMode, clearCircuit } from './circuit.js';
 import { map } from './map.js';
 import { addPoiFeature, getPoiId } from './data.js';
 import { state } from './state.js';
@@ -422,7 +422,14 @@ function handleWizardStart() {
     // On met à jour le filtre Zone global car il est partagé
     state.activeFilters.zone = selectedZone || null;
 
-    // 3. Lancement du mode
+    // Mise à jour de l'étiquette du bouton Zone
+    const zonesLabel = document.getElementById('zonesLabel');
+    if (zonesLabel) {
+        zonesLabel.textContent = selectedZone || 'Zone';
+    }
+
+    // 3. Lancement du mode (Avec reset du circuit précédent pour éviter la confusion)
+    clearCircuit(false);
     toggleSelectionMode(true);
     applyFilters(); // Force le rafraîchissement avec les nouvelles règles
 

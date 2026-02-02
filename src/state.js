@@ -23,6 +23,7 @@ export const state = {
     currentCircuit: [],
     customFeatures: [],
     hiddenPoiIds: [],
+    customDraftName: null, // Titre personnalisé pour le brouillon
     activeCircuitId: null,
     circuitIdToImportFor: null,
     orthodromicPolyline: null,
