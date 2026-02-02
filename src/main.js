@@ -85,10 +85,6 @@ async function loadDefaultMap() {
         const mapId = fileName.split('.')[0];
         state.currentMapId = mapId;
 
-        // Mise à jour du titre (ex: djerba -> Djerba)
-        const formattedName = mapId.charAt(0).toUpperCase() + mapId.slice(1);
-        document.title = `History Walk - ${formattedName}`;
-
         await saveAppState('lastMapId', mapId);
 
         // 2. Chargement Données Utilisateur
