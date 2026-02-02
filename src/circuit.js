@@ -177,6 +177,7 @@ export function addPoiToCircuit(feature) {
     // 3. Ajout normal (Mode Brouillon)
     addPoiToCurrentCircuit(feature);
     saveAppState('currentCircuit', state.currentCircuit);
+    saveCircuitDraft(); // On met à jour le brouillon complet (avec description vide ou existante)
     renderCircuitPanel(); 
     notifyCircuitChanged();
 }
@@ -296,22 +297,25 @@ export async function clearCircuit(withConfirmation = true) {
         toggleSelectionMode(false); // Cette fonction ferme déjà le panneau et nettoie la carte
         resetCurrentCircuit();
         state.activeCircuitId = null;
-        return;
+    }
+    else {
+        // CAS 2 : On est en mode Brouillon (Modification en cours)
+        const hasPoints = state.currentCircuit.length > 0;
+        if (withConfirmation && hasPoints) {
+            if (!await showConfirm("Réinitialiser", "Voulez-vous vraiment réinitialiser ce brouillon ?", "Réinitialiser", "Annuler", true)) return;
+        }
+        resetCurrentCircuit();
+        state.activeCircuitId = null;
     }
 
-    // CAS 2 : On est en mode Brouillon (Modification en cours)
-    const hasPoints = state.currentCircuit.length > 0;
-    if (withConfirmation && hasPoints) {
-        if (!await showConfirm("Réinitialiser", "Voulez-vous vraiment réinitialiser ce brouillon ?", "Réinitialiser", "Annuler", true)) return;
-    }
-
-    // Reset de la donnée
-    resetCurrentCircuit();
-    state.activeCircuitId = null;
-    
-    // On vide les champs texte
+    // NETTOYAGE COMMUN (IMPORTANT pour éviter les fantômes)
     if(DOM.circuitDescription) DOM.circuitDescription.value = '';
+    if(DOM.circuitTitleText) DOM.circuitTitleText.textContent = 'Nouveau Circuit';
     
+    // On vide le brouillon persistant
+    await saveAppState(`circuitDraft_${state.currentMapId}`, null);
+    await saveAppState('currentCircuit', []);
+
     renderCircuitPanel();
     notifyCircuitChanged();
 }
