@@ -7,13 +7,16 @@ import { createIcons, icons } from 'lucide';
 import { saveUserData } from './fileManager.js'; 
 import { deleteDatabase, saveAppState } from './database.js';
 import { Html5Qrcode } from 'html5-qrcode';
-import { getIconForFeature } from './map.js';
-import { isPointInPolygon, escapeHtml } from './utils.js';
+import QRCode from 'qrcode';
+import { getIconForFeature, getRealDistance, getOrthodromicDistance } from './map.js';
+import { isPointInPolygon, escapeHtml, getZoneFromCoords } from './utils.js';
 import { zonesData } from './zones.js';
 import { showToast } from './toast.js';
 import { showConfirm } from './modal.js';
 
 let currentView = 'circuits'; 
+let mobileSort = 'date_desc'; // date_desc, date_asc, dist_asc, dist_desc
+let mobileFilterResto = false;
 
 export function isMobileView() {
     return window.innerWidth <= 768;
@@ -97,6 +100,10 @@ export function switchMobileView(viewName) {
     const container = document.getElementById('mobile-main-container');
     container.innerHTML = ''; 
     
+    // Masquer toolbar si on change de vue
+    const toolbar = document.getElementById('mobile-toolbar');
+    if(toolbar) toolbar.style.display = (viewName === 'circuits') ? 'flex' : 'none';
+
     switch (viewName) {
         case 'circuits':
             renderMobileCircuitsList();
@@ -193,28 +200,71 @@ export function renderMobileCircuitsList() {
 
     let circuitsToDisplay = allCircuits;
 
-    // 2. Filtrage "A faire"
-    if (state.filterCompleted) {
-        circuitsToDisplay = allCircuits.filter(c => {
-            const existingFeatures = c.poiIds
-                .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
-                .filter(f => f); 
+    // 2. Préparation des données pour tri/filtre
+    // On enrichit d'abord pour pouvoir trier
+    let enrichedCircuits = circuitsToDisplay.map(c => {
+        const validPois = c.poiIds
+            .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
+            .filter(f => f);
+            
+        // Distance
+        let dist = 0;
+        if (c.realTrack) {
+            dist = getRealDistance(c);
+        } else {
+            dist = getOrthodromicDistance(validPois);
+        }
+        if (c.distance && typeof c.distance === 'string' && dist === 0) {
+            const parsed = parseFloat(c.distance.replace(',', '.'));
+            if (!isNaN(parsed)) dist = parsed * 1000;
+        }
 
-            if (existingFeatures.length === 0) return true; 
-            
-            const allVisited = existingFeatures.every(f => 
-                f.properties.userData && f.properties.userData.vu
-            );
-            
-            return !allVisited; 
+        // Restaurant
+        const hasRestaurant = validPois.some(f => {
+            const cat = f.properties['Catégorie'] || f.properties.userData?.Catégorie;
+            return cat === 'Restaurant';
         });
+
+        // Visited status
+        const allVisited = validPois.length > 0 && validPois.every(f =>
+            f.properties.userData && f.properties.userData.vu
+        );
+
+        return {
+            ...c,
+            _validPois: validPois,
+            _dist: dist,
+            _hasRestaurant: hasRestaurant,
+            _allVisited: allVisited
+        };
+    });
+
+    // 3. Filtrage
+    if (state.filterCompleted) {
+        enrichedCircuits = enrichedCircuits.filter(c => !c._allVisited);
     }
+    if (mobileFilterResto) {
+        enrichedCircuits = enrichedCircuits.filter(c => c._hasRestaurant);
+    }
+
+    // 4. Tri
+    if (mobileSort === 'date_desc') {
+        enrichedCircuits.reverse();
+    } else if (mobileSort === 'date_asc') {
+        // Déjà dans l'ordre chronologique (par défaut)
+    } else if (mobileSort === 'dist_asc') {
+        enrichedCircuits.sort((a, b) => a._dist - b._dist);
+    } else if (mobileSort === 'dist_desc') {
+        enrichedCircuits.sort((a, b) => b._dist - a._dist);
+    }
+
+    circuitsToDisplay = enrichedCircuits;
 
     let html = `
         <div class="mobile-view-header">
-            <h1>Mes Circuits ${state.filterCompleted ? '(A faire)' : ''}</h1>
+            <h1>Mes Circuits</h1>
         </div>
-        <div class="panel-content" style="padding: 10px;">
+        <div class="panel-content" style="padding: 10px 10px 140px 10px;">
     `;
 
     if (allCircuits.length === 0) {
@@ -238,9 +288,32 @@ export function renderMobileCircuitsList() {
             const done = validPois.filter(f => f.properties.userData?.vu).length;
             const isDone = (total > 0 && total === done);
             
+            // Calculs Métadonnées
+            let distance = 0;
+            if (circuit.realTrack) {
+                distance = getRealDistance(circuit);
+            } else {
+                distance = getOrthodromicDistance(validPois);
+            }
+            // Fix legacy distance string if needed
+            if (circuit.distance && typeof circuit.distance === 'string' && distance === 0) {
+                const parsed = parseFloat(circuit.distance.replace(',', '.'));
+                if (!isNaN(parsed)) distance = parsed * 1000;
+            }
+            const distDisplay = (distance / 1000).toFixed(1) + ' km';
+
+            let zoneName = "Zone Inconnue";
+            if (validPois.length > 0) {
+                const firstPoi = validPois[0];
+                const [lng, lat] = firstPoi.geometry.coordinates;
+                zoneName = getZoneFromCoords(lat, lng);
+            }
+
+            const displayName = circuit.name.split(' via ')[0];
+
             const statusIcon = isDone 
-                ? `<i data-lucide="check-circle" style="color:var(--ok); width:16px;"></i>`
-                : `<span style="font-size:11px; color:var(--ink-soft); font-weight:500;">${done}/${total}</span>`;
+                ? `<i data-lucide="check-circle" style="color:var(--ok); width:20px; height:20px;"></i>`
+                : `<span style="font-size:12px; color:var(--ink-soft); font-weight:600; background:var(--surface-muted); padding:2px 6px; border-radius:4px;">${done}/${total}</span>`;
 
             // Badge Officiel
             const badgeHtml = circuit.isOfficial
@@ -256,19 +329,22 @@ export function renderMobileCircuitsList() {
                 </a>`;
             }
 
-            // CORRECTION DESIGN : Utilisation de Flexbox pour coller le compteur à droite
             html += `
                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px;">
-                    <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" style="justify-content: space-between; flex:1;">
-                        <div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;">
-                            <i data-lucide="route" style="color:var(--brand); margin-right:10px; flex-shrink:0;"></i>
-                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(circuit.name)}</span>
-                            ${badgeHtml}
+                    <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" style="justify-content: space-between; flex:1; align-items:flex-start;">
+                        <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:10px;">
+                            <div style="display:flex; align-items:center;">
+                                <span style="font-weight:700; font-size:16px; color:var(--ink);">${escapeHtml(displayName)}</span>
+                                ${badgeHtml}
+                            </div>
+                            <div style="font-size:13px; color:var(--ink-soft); margin-top:4px;">
+                                ${total} POI • ${distDisplay} • ${zoneName}
+                            </div>
                         </div>
 
-                        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; align-self:center;">
                             ${statusIcon}
-                            <i data-lucide="chevron-right" style="opacity:0.5;"></i>
+                            <i data-lucide="chevron-right" style="opacity:0.5; width:18px; height:18px;"></i>
                         </div>
                     </button>
                     ${downloadAction}
@@ -281,10 +357,16 @@ export function renderMobileCircuitsList() {
     html += `</div>`;
     container.innerHTML = html;
 
+    renderMobileToolbar();
+
     const resetBtn = document.getElementById('btn-reset-filter-inline');
     if(resetBtn) {
         resetBtn.addEventListener('click', () => {
-            document.getElementById('btn-mobile-filter').click(); 
+            // Reset toolbar state
+            state.filterCompleted = false;
+            mobileFilterResto = false;
+            mobileSort = 'date_desc';
+            renderMobileCircuitsList();
         });
     }
 
@@ -296,21 +378,79 @@ export function renderMobileCircuitsList() {
     });
 }
 
-function getCategoryIconName(category) {
-    if (!category) return 'map-pin';
-    const cat = category.toLowerCase();
+function renderMobileToolbar() {
+    let toolbar = document.getElementById('mobile-toolbar');
+    if (!toolbar) {
+        toolbar = document.createElement('div');
+        toolbar.id = 'mobile-toolbar';
+        toolbar.className = 'mobile-toolbar';
+        // Insérer avant le mobile-nav s'il existe, sinon à la fin du body
+        // Mais mobile-nav est fixed, toolbar aussi. On l'ajoute au body simplement.
+        document.body.appendChild(toolbar);
+    }
     
-    if (cat.includes('mosquée')) return 'landmark';
-    if (cat.includes('synagogue')) return 'star';
-    if (cat.includes('église')) return 'church'; 
-    if (cat.includes('musée')) return 'library';
-    if (cat.includes('puits')) return 'droplet';
-    if (cat.includes('atelier')) return 'hammer';
-    if (cat.includes('phare')) return 'tower-control'; 
-    if (cat.includes('tour')) return 'castle';
-    if (cat.includes('fort')) return 'shield';
+    // Si on n'est pas sur la vue circuits, on cache la toolbar
+    if (currentView !== 'circuits') {
+        toolbar.style.display = 'none';
+        return;
+    }
+    toolbar.style.display = 'flex';
+
+    const dateIcon = mobileSort.startsWith('date')
+        ? (mobileSort === 'date_asc' ? 'calendar-arrow-up' : 'calendar-arrow-down')
+        : 'calendar';
     
-    return 'map-pin';
+    const distIcon = mobileSort.startsWith('dist')
+        ? (mobileSort === 'dist_desc' ? 'arrow-up-1-0' : 'arrow-down-0-1')
+        : 'ruler';
+
+    toolbar.innerHTML = `
+        <button id="mob-sort-date" class="toolbar-btn ${mobileSort.startsWith('date') ? 'active' : ''}">
+            <i data-lucide="${dateIcon}"></i>
+        </button>
+        <button id="mob-sort-dist" class="toolbar-btn ${mobileSort.startsWith('dist') ? 'active' : ''}">
+            <i data-lucide="${distIcon}"></i>
+        </button>
+        <div class="toolbar-sep"></div>
+        <button id="mob-filter-resto" class="toolbar-btn ${mobileFilterResto ? 'active' : ''}">
+            <i data-lucide="utensils"></i>
+        </button>
+        <button id="mob-filter-todo" class="toolbar-btn ${state.filterCompleted ? 'active' : ''}">
+            <i data-lucide="${state.filterCompleted ? 'list-todo' : 'list-checks'}"></i>
+        </button>
+        <div class="toolbar-sep"></div>
+        <button id="mob-reset" class="toolbar-btn">
+            <i data-lucide="rotate-ccw"></i>
+        </button>
+    `;
+
+    createIcons({ icons });
+
+    // Listeners
+    document.getElementById('mob-sort-date').onclick = () => {
+        mobileSort = (mobileSort === 'date_desc') ? 'date_asc' : 'date_desc';
+        renderMobileCircuitsList();
+    };
+    document.getElementById('mob-sort-dist').onclick = () => {
+        mobileSort = (mobileSort === 'dist_asc') ? 'dist_desc' : 'dist_asc';
+        renderMobileCircuitsList();
+    };
+    document.getElementById('mob-filter-resto').onclick = () => {
+        mobileFilterResto = !mobileFilterResto;
+        renderMobileCircuitsList();
+    };
+    document.getElementById('mob-filter-todo').onclick = () => {
+        state.filterCompleted = !state.filterCompleted;
+        if(state.filterCompleted) showToast("Circuits terminés masqués", "info");
+        else showToast("Tous les circuits affichés", "info");
+        renderMobileCircuitsList();
+    };
+    document.getElementById('mob-reset').onclick = () => {
+        mobileSort = 'date_desc';
+        mobileFilterResto = false;
+        state.filterCompleted = false;
+        renderMobileCircuitsList();
+    };
 }
 
 export function renderMobilePoiList(features) {
@@ -368,16 +508,16 @@ export function renderMobilePoiList(features) {
     listToDisplay.forEach(feature => {
         const name = getPoiName(feature);
         const poiId = getPoiId(feature);
-        const cat = feature.properties.Catégorie || '';
-        const icon = getCategoryIconName(cat);
+        const iconHtml = getIconForFeature(feature);
         const isVisited = feature.properties.userData?.vu;
         const checkIcon = isVisited ? '<i data-lucide="check" style="width:20px; height:20px; margin-left:5px; color:var(--ok); stroke-width:3;"></i>' : '';
-        const opacityStyle = '';
 
         listHtml += `
-            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between; ${opacityStyle}">
+            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <i data-lucide="${icon}" style="color:${isVisited ? 'var(--ok)' : 'var(--brand)'};"></i>
+                    <div style="color:${isVisited ? 'var(--ok)' : 'var(--brand)'}; display:flex; align-items:center;">
+                        ${iconHtml}
+                    </div>
                     <span>${escapeHtml(name)}</span>
                 </div>
                 ${checkIcon}
@@ -503,11 +643,12 @@ export function renderMobileSearch() {
 
         let html = '';
         matches.forEach(f => {
-            const cat = f.properties.Catégorie || '';
-            const icon = getCategoryIconName(cat);
+            const iconHtml = getIconForFeature(f);
             html += `
                 <button class="mobile-list-item result-item" data-id="${getPoiId(f)}">
-                    <i data-lucide="${icon}"></i>
+                    <div style="color:var(--brand); display:flex; align-items:center; margin-right:16px;">
+                        ${iconHtml}
+                    </div>
                     <span>${escapeHtml(getPoiName(f))}</span>
                 </button>
             `;
@@ -564,6 +705,16 @@ export function renderMobileMenu() {
                 <i data-lucide="palette"></i>
                 <span>Changer Thème</span>
             </button>
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
+            <button class="mobile-list-item" id="mob-action-share-app">
+                <i data-lucide="share-2"></i>
+                <span>Partager l'application</span>
+            </button>
+            <button class="mobile-list-item bmc-btn-mobile" id="mob-action-bmc">
+                <i data-lucide="coffee"></i>
+                <span>Offrir un café</span>
+                <i data-lucide="heart" style="color:#e91e63; margin-left:auto; fill:#e91e63;"></i>
+            </button>
         </div>
         <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
             History Walk Mobile v${state.appVersion || '3.1'}
@@ -584,6 +735,31 @@ export function renderMobileMenu() {
         document.getElementById('btn-theme-selector').click(); 
         showToast("Thème changé", "success");
     });
+    document.getElementById('mob-action-share-app').addEventListener('click', handleShareAppClick);
+    document.getElementById('mob-action-bmc').addEventListener('click', () => {
+        window.open('https://www.buymeacoffee.com/history_walk', '_blank');
+    });
+}
+
+async function handleShareAppClick() {
+    const url = window.location.href.split('?')[0]; // On partage la racine de l'app
+    try {
+        const qrDataUrl = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: "#000000", light: "#ffffff" } });
+
+        const content = `
+            <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+                <p style="text-align:center; color:var(--ink);">Scannez ce code pour installer l'application :</p>
+                <img src="${qrDataUrl}" style="width:200px; height:200px; border-radius:12px; border:1px solid var(--line);">
+                <p style="font-size:12px; color:var(--brand); word-break:break-all; text-align:center;">${url}</p>
+            </div>
+        `;
+
+        showConfirm("Partager l'application", content, "Fermer", null, false).catch(()=>{});
+
+    } catch (err) {
+        console.error(err);
+        showToast("Erreur génération QR Code", "error");
+    }
 }
 
 async function handleScanClick() {
