@@ -604,13 +604,14 @@ export function setupCircuitEventListeners() {
     // 2. Bouton IMPORTER GPX
     if (DOM.btnImportGpx) {
         DOM.btnImportGpx.addEventListener('click', () => {
-            console.log("Clic sur Import/Modifier. ID Actif :", state.activeCircuitId);
+            console.log("Clic sur Import. ID Actif :", state.activeCircuitId);
 
             if (state.activeCircuitId) {
-                // CAS 1 : On est en mode consultation -> On bascule en brouillon
-                convertToDraft();
+                // CAS 1 : On est en mode actif -> On veut importer une trace réelle pour CE circuit
+                // On passe par l'eventBus qui va déclencher le file input via main.js
+                eventBus.emit('circuit:request-import', state.activeCircuitId);
             } else {
-                // CAS 2 : On est en mode création -> On ouvre l'import GPX
+                // CAS 2 : On est en mode création -> On ouvre l'import GPX pour créer un nouveau circuit
                 if (DOM.gpxImporter) {
                     DOM.gpxImporter.click();
                 } else {
