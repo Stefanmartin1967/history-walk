@@ -31,16 +31,23 @@ L'ID `HW-` est la clé de voûte de la cohérence entre l'application et les fic
 ### Stockage dans le GPX
 Lors de l'export, cet ID est intégré "en dur" dans les métadonnées du fichier XML pour permettre une identification certaine lors de la réimportation.
 
+Pour garantir la persistance de l'ID lors de l'édition avec des outils tiers comme **GPX Studio** (qui suppriment souvent les balises non-standard comme `keywords`), l'ID est stocké dans la balise `<author><name>`.
+
 ```xml
 <metadata>
     <name>Mon Super Circuit</name>
-    <keywords>Djerba, [HW-ID:HW-1741258963254]</keywords> <!-- Emplacement Principal -->
+    <author>
+        <name>[HW-ID:HW-1741258963254]</name>
+    </author>
+    <!-- ... -->
+    <keywords>Djerba, [HW-ID:HW-1741258963254]</keywords> <!-- Redondance (Format V2) -->
 </metadata>
-<!-- ... -->
-<desc>... [HW-ID:HW-1741258963254] ...</desc> <!-- Support Legacy (Anciennes versions) -->
 ```
 
-*Note : L'application cherche l'ID dans les balises `<desc>` (ancien format) puis `<keywords>` (nouveau format).*
+*Note : L'application cherche l'ID dans cet ordre de priorité :*
+1.  `<author><name>` (Format V3 - GPX Studio Safe)
+2.  `<keywords>` (Format V2)
+3.  `<desc>` (Format Legacy V1)
 
 ---
 
@@ -81,7 +88,7 @@ Voici la procédure pour valider le bon fonctionnement du module Circuit et Impo
 ### Test 1 : Création et Génération ID
 *   [ ] **Action** : Créer un circuit de 3 points, ajouter un titre, cliquer sur "Export GPX".
 *   [ ] **Vérification** : Le fichier GPX se télécharge.
-*   [ ] **Vérification** : Ouvrir le GPX (Bloc-notes) et vérifier la présence de `<keywords>...[HW-ID:HW-...]</keywords>`.
+*   [ ] **Vérification** : Ouvrir le GPX (Bloc-notes) et vérifier la présence de `[HW-ID:HW-...]` dans `<author><name>`.
 *   [ ] **Vérification** : Dans l'app, le circuit a maintenant une icône "Vol d'oiseau" (Oiseau).
 
 ### Test 2 : Import Trace Réelle (Succès - Même Circuit)
