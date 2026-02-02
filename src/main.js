@@ -273,6 +273,20 @@ async function initializeApp() {
         }
     }
 
+    // Theme Selector (Always active)
+    const themeSelector = document.getElementById('btn-theme-selector');
+    if (themeSelector) {
+        themeSelector.addEventListener('click', () => {
+            const themes = ['maritime', 'desert', 'oasis', 'night'];
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'maritime';
+            const currentIndex = themes.indexOf(currentTheme);
+            const nextIndex = (currentIndex + 1) % themes.length;
+            const nextTheme = themes[nextIndex];
+            document.documentElement.setAttribute('data-theme', nextTheme);
+            saveAppState('currentTheme', nextTheme);
+        });
+    }
+
     // On allume la tour de contrôle
     setupGlobalEventListeners();
     setupUnsavedChangesWarning(); // <--- AJOUT DE LA PROTECTION
@@ -478,20 +492,6 @@ function setupDesktopUIListeners() {
             if (cMenu) cMenu.style.display = 'none';
         }
     });
-
-    // Theme Selector
-    const themeSelector = document.getElementById('btn-theme-selector');
-    if (themeSelector) {
-        themeSelector.addEventListener('click', () => {
-            const themes = ['maritime', 'desert', 'oasis', 'night'];
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'maritime';
-            const currentIndex = themes.indexOf(currentTheme);
-            const nextIndex = (currentIndex + 1) % themes.length;
-            const nextTheme = themes[nextIndex];
-            document.documentElement.setAttribute('data-theme', nextTheme);
-            saveAppState('currentTheme', nextTheme);
-        });
-    }
 
     // Search Desktop
     if (DOM.searchInput) DOM.searchInput.addEventListener('input', setupSearch);

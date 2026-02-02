@@ -384,9 +384,14 @@ function renderMobileToolbar() {
         toolbar = document.createElement('div');
         toolbar.id = 'mobile-toolbar';
         toolbar.className = 'mobile-toolbar';
-        // Insérer avant le mobile-nav s'il existe, sinon à la fin du body
-        // Mais mobile-nav est fixed, toolbar aussi. On l'ajoute au body simplement.
-        document.body.appendChild(toolbar);
+
+        // Insérer DANS le dock, avant le nav (pour qu'il soit au-dessus visuellement ou empilé)
+        const dock = document.getElementById('mobile-dock');
+        if (dock) {
+            dock.prepend(toolbar);
+        } else {
+            document.body.appendChild(toolbar);
+        }
     }
     
     // Si on n'est pas sur la vue circuits, on cache la toolbar
