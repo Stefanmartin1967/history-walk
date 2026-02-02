@@ -42,6 +42,12 @@ export function getDomainFromUrl(url) {
 
 export async function displayGeoJSON(geoJSON, mapId) {
     state.currentMapId = mapId;
+
+    // 0. Mise à jour de l'Identité (Titre de la page)
+    if (mapId) {
+        const formattedName = mapId.charAt(0).toUpperCase() + mapId.slice(1);
+        document.title = `History Walk - ${formattedName}`;
+    }
     
     // 1. Récupération des données sauvegardées (Cachés, Notes, Ajouts manuels)
     state.hiddenPoiIds = (await getAppState(`hiddenPois_${mapId}`)) || [];

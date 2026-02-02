@@ -408,7 +408,7 @@ export async function exportOfficialCircuitsJSON() {
             const fileName = `${safeName}.gpx`;
 
             return {
-                id: `off_${String(index + 1).padStart(2, '0')}`, // off_01, off_02...
+                id: c.id, // On garde l'ID original (HW-...) pour la robustesse
                 name: c.name,
                 file: fileName,
                 description: c.description || "Pas de description.",
