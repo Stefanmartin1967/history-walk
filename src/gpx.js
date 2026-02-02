@@ -18,7 +18,8 @@ export function escapeXml(unsafe) {
         '"': '&quot;'
     }[c]));
 }
-function generateAndDownloadGPX(circuit, id, name, description) {
+
+function generateAndDownloadGPX(circuit, id, name, description, realTrack = null) {
     const waypointsXML = circuit.map(feature => {
         const poiName = escapeXml(getPoiName(feature));
         // Description de l'étiquette (Wikiloc)
@@ -42,9 +43,19 @@ function generateAndDownloadGPX(circuit, id, name, description) {
     </wpt>`;
     }).join('');
 
-    const trackpointsXML = circuit.map(feature =>
-        `<trkpt lat="${feature.geometry.coordinates[1]}" lon="${feature.geometry.coordinates[0]}"></trkpt>`
-    ).join('\n      ');
+    let trackpointsXML = '';
+
+    if (realTrack && realTrack.length > 0) {
+        // Cas A : Trace réelle (Importée) -> Format [lat, lon]
+        trackpointsXML = realTrack.map(coord =>
+            `<trkpt lat="${coord[0]}" lon="${coord[1]}"><ele>0</ele></trkpt>`
+        ).join('\n      ');
+    } else {
+        // Cas B : Trace orthodromique (POI à POI) -> Format GeoJSON [lon, lat]
+        trackpointsXML = circuit.map(feature =>
+            `<trkpt lat="${feature.geometry.coordinates[1]}" lon="${feature.geometry.coordinates[0]}"><ele>0</ele></trkpt>`
+        ).join('\n      ');
+    }
 
     // MÉTADONNÉES ÉTENDUES (Destination + Lien)
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Inconnue';
@@ -169,7 +180,7 @@ export async function saveAndExportCircuit() {
         state.hasUnexportedChanges = true; // FLAG CHANGEMENT
         await recalculatePlannedCountersForMap(state.currentMapId);
         applyFilters();
-        generateAndDownloadGPX(state.currentCircuit, circuitToSave.id, circuitToSave.name, circuitToSave.description);
+        generateAndDownloadGPX(state.currentCircuit, circuitToSave.id, circuitToSave.name, circuitToSave.description, circuitToSave.realTrack);
         showToast(`Circuit "${circuitToSave.name}" sauvegardé et exporté !`, 'success');
     } catch (error) {
         console.error("Erreur lors de la sauvegarde du circuit :", error);

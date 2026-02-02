@@ -115,12 +115,13 @@ export function updateControlButtons(uiState) {
 
     // IMPORT / MODIFIER : Toujours actif (vu précédemment)
     if (btnImport) {
-        btnImport.disabled = false; 
+        btnImport.disabled = false;
+        // On force l'icône d'import (Nuage) même si actif, pour permettre de charger une trace réelle
+        btnImport.innerHTML = '<i data-lucide="upload-cloud"></i>';
+
         if (uiState.isActive) {
-            btnImport.innerHTML = '<i data-lucide="edit-3"></i>';
-            btnImport.title = "Modifier le tracé";
+            btnImport.title = "Importer une trace réelle (remplace le tracé)";
         } else {
-            btnImport.innerHTML = '<i data-lucide="upload-cloud"></i>';
             btnImport.title = "Importer un GPX";
         }
     }
