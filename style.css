@@ -1021,6 +1021,7 @@ textarea.editable-input {
     background: var(--surface-muted);
     border-top: 1px solid var(--line);
     display: flex;
+    flex-wrap: nowrap;
     justify-content: space-evenly;
     align-items: center;
     gap: 4px;
