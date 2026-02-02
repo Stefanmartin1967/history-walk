@@ -100,9 +100,15 @@ export function updateControlButtons(uiState) {
     const btnClear = document.getElementById('btn-clear-circuit');
     const btnLoop = document.getElementById('btn-loop-circuit');
     const btnShare = document.getElementById('btn-share-circuit');
+    const btnModify = document.getElementById('btn-modify-circuit');
 
     if (btnLoop) {
         btnLoop.style.display = uiState.isActive ? 'none' : 'flex';
+    }
+
+    if (btnModify) {
+        btnModify.style.display = uiState.isActive ? 'flex' : 'none';
+        btnModify.disabled = false;
     }
 
     // EXPORT / PARTAGE : Actif seulement si le circuit n'est pas vide

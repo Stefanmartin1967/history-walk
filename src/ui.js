@@ -344,6 +344,7 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
         targetPanel.style.display = 'block';
     } else {
         DOM.rightSidebar.style.display = 'flex';
+        document.body.classList.add('sidebar-open');
         switchSidebarTab('details', true);
     }
 }

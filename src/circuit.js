@@ -76,6 +76,7 @@ export async function saveCircuitDraft() {
 
         const circuitData = {
             poiIds: state.currentCircuit.map(getPoiId).filter(Boolean),
+            customDraftName: state.customDraftName,
             // On vérifie aussi DOM.circuitDescription au cas où
             description: DOM.circuitDescription ? DOM.circuitDescription.value : '',
             transport: {
@@ -97,9 +98,11 @@ export async function loadCircuitDraft() {
         const savedData = await getAppState(`circuitDraft_${state.currentMapId}`);
         if (savedData && Array.isArray(savedData.poiIds) && savedData.poiIds.length > 0) {
             state.currentCircuit = savedData.poiIds.map(id => state.loadedFeatures.find(feature => getPoiId(feature) === id)).filter(Boolean);
+            state.customDraftName = savedData.customDraftName || null;
 
-            const circuitName = generateCircuitName();
-            if (DOM.circuitTitleText) DOM.circuitTitleText.textContent = circuitName;
+            if (DOM.circuitTitleText) {
+                DOM.circuitTitleText.textContent = state.customDraftName || generateCircuitName();
+            }
 
             if (DOM.circuitDescription) DOM.circuitDescription.value = savedData.description || '';
 
@@ -143,12 +146,18 @@ export function toggleSelectionMode(forceValue) {
 
     // 3. Gestion de l'Interface (Panneaux et Lignes)
     if (state.isSelectionModeActive) {
-        if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'flex';
+        if (DOM.rightSidebar) {
+            DOM.rightSidebar.style.display = 'flex';
+            document.body.classList.add('sidebar-open');
+        }
         switchSidebarTab('circuit');
         renderCircuitPanel();
         showToast("Mode sélection activé : Cliquez sur la carte pour ajouter des points", "info");
     } else {
-        if (DOM.rightSidebar) DOM.rightSidebar.style.display = 'none';
+        if (DOM.rightSidebar) {
+            DOM.rightSidebar.style.display = 'none';
+            document.body.classList.remove('sidebar-open');
+        }
         if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
         if (state.realTrackPolyline) state.realTrackPolyline.remove();
         showToast("Mode sélection désactivé", "info");
@@ -164,14 +173,14 @@ export function addPoiToCircuit(feature) {
     // 1. Sécurité : Si un circuit est déjà chargé (Mode Consultation)
     if (state.activeCircuitId) {
         showToast("Mode lecture seule. Cliquez sur 'Modifier' pour changer ce circuit.", "info");
-        return; 
+        return false;
     }
     
     // 2. Sécurités habituelles
-    if (state.currentCircuit.length > 0 && getPoiId(feature) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) return;
+    if (state.currentCircuit.length > 0 && getPoiId(feature) === getPoiId(state.currentCircuit[state.currentCircuit.length - 1])) return false;
     if (state.currentCircuit.length >= MAX_CIRCUIT_POINTS) {
         showToast(`Maximum de ${MAX_CIRCUIT_POINTS} points atteint.`, 'warning');
-        return;
+        return false;
     }
 
     // 3. Ajout normal (Mode Brouillon)
@@ -180,6 +189,7 @@ export function addPoiToCircuit(feature) {
     saveCircuitDraft(); // On met à jour le brouillon complet (avec description vide ou existante)
     renderCircuitPanel(); 
     notifyCircuitChanged();
+    return true;
 }
 
 // circuit.js (extrait)
@@ -220,7 +230,8 @@ export function updateCircuitMetadata(updateTitle = true) {
         totalDistance = getOrthodromicDistance(state.currentCircuit);
     }
 
-    let title = generateCircuitName();
+    // Priorité : Titre sauvegardé > Titre personnalisé brouillon > Génération auto
+    let title = state.customDraftName || generateCircuitName();
     if (activeCircuitData && activeCircuitData.name && !activeCircuitData.name.startsWith("Nouveau Circuit")) {
         title = activeCircuitData.name;
     }
@@ -312,6 +323,8 @@ export async function clearCircuit(withConfirmation = true) {
     if(DOM.circuitDescription) DOM.circuitDescription.value = '';
     if(DOM.circuitTitleText) DOM.circuitTitleText.textContent = 'Nouveau Circuit';
     
+    state.customDraftName = null;
+
     // On vide le brouillon persistant
     await saveAppState(`circuitDraft_${state.currentMapId}`, null);
     await saveAppState('currentCircuit', []);
@@ -660,6 +673,35 @@ export function setupCircuitEventListeners() {
                          showToast(result.message, 'error');
                      }
                  }
+             }
+        });
+    }
+
+    // 6. Édition du Titre
+    const btnModify = document.getElementById('btn-modify-circuit');
+    if (btnModify) {
+        btnModify.addEventListener('click', () => {
+            convertToDraft();
+        });
+    }
+
+    const btnEditTitle = document.getElementById('edit-circuit-title-button');
+    if (btnEditTitle) {
+        btnEditTitle.addEventListener('click', () => {
+             const currentTitle = DOM.circuitTitleText ? DOM.circuitTitleText.textContent : "";
+             const newTitle = prompt("Entrez le titre du circuit :", currentTitle);
+             if (newTitle !== null && newTitle.trim() !== "") {
+                 const trimmed = newTitle.trim();
+
+                 if (state.activeCircuitId) {
+                     const idx = state.myCircuits.findIndex(c => c.id === state.activeCircuitId);
+                     if (idx > -1) state.myCircuits[idx].name = trimmed;
+                 } else {
+                     state.customDraftName = trimmed;
+                 }
+
+                 updateCircuitMetadata();
+                 saveCircuitDraft();
              }
         });
     }
