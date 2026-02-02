@@ -52,7 +52,7 @@ html[data-theme="night"] {
     --bg-2: #000000;
     --surface: #1f2937;
     --surface-muted: #374151;
-    --ink: #d1d5db;
+    --ink: #f3f4f6; /* Plus clair (presque blanc) pour meilleure lisibilité */
     --ink-soft: #9ca3af;
     --line: #4b5563;
     --brand: #60a5fa;
@@ -62,8 +62,11 @@ html[data-theme="night"] {
     --danger: #f87171;
 }
 
+/* Force la couleur sur tous les éléments de formulaire et boutons en mode nuit */
 html[data-theme="night"] input,
-html[data-theme="night"] textarea {
+html[data-theme="night"] textarea,
+html[data-theme="night"] select,
+html[data-theme="night"] button {
     color: var(--ink);
 }
 
