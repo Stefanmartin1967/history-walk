@@ -1021,11 +1021,12 @@ textarea.editable-input {
     background: var(--surface-muted);
     border-top: 1px solid var(--line);
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     padding: 8px 12px;
     min-height: 56px;
+    flex-wrap: nowrap;
 }
 
 .footer-btn {
@@ -1039,7 +1040,8 @@ textarea.editable-input {
     justify-content: center;
     align-items: center;
     transition: all 0.2s;
-    width: 42px;
+    flex: 1;
+    max-width: 42px;
     height: 42px;
     flex-shrink: 0;
 }
@@ -1078,7 +1080,7 @@ textarea.editable-input {
 .footer-btn.pill {
     /* On garde la classe pour compatibilité HTML mais on reset */
     height: 42px;
-    width: 42px;
+    /* width: 42px;  <-- Retiré pour laisser le flex-grow agir si besoin, ou max-width */
     border-radius: 12px;
 }
 
