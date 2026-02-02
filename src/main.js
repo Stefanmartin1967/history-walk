@@ -25,7 +25,8 @@ import {
     toggleSelectionMode,
     clearCircuit,
     setupCircuitEventListeners,
-    loadCircuitById
+    loadCircuitById,
+    loadCircuitDraft
 } from './circuit.js';
 
 import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-actions.js';
@@ -65,6 +66,40 @@ function setupUnsavedChangesWarning() {
     });
 }
 
+function updateAppTitle(mapId) {
+    if (!mapId) return;
+    const mapName = mapId.charAt(0).toUpperCase() + mapId.slice(1);
+    const title = `History Walk - ${mapName}`;
+    document.title = title;
+    const appTitle = document.getElementById('app-title');
+    if (appTitle) appTitle.textContent = title;
+}
+
+async function mergeOfficialCircuits() {
+    try {
+        const response = await fetch('./circuits/circuits.json');
+        if (response.ok) {
+            const officials = await response.json();
+
+            if (!state.myCircuits) state.myCircuits = [];
+
+            officials.forEach(off => {
+                // Fusion intelligente : on n'ajoute que ceux qui n'existent pas déjà (basé sur le nom)
+                const exists = state.myCircuits.some(c => c.name === off.name);
+                if (!exists) {
+                     const localCopy = { ...off, id: `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, isOfficial: false };
+                     state.myCircuits.push(localCopy);
+                }
+            });
+
+            console.log(`[Main] Circuits officiels fusionnés dans les circuits locaux.`);
+            import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
+        }
+    } catch (e) {
+        console.warn("[Main] Impossible de charger les circuits officiels :", e);
+    }
+}
+
 // --- INITIALISATION ---
 
 async function loadDefaultMap() {
@@ -84,15 +119,18 @@ async function loadDefaultMap() {
         // On enlève ".geojson" pour avoir "djerba"
         const mapId = fileName.split('.')[0];
         state.currentMapId = mapId;
+        updateAppTitle(mapId);
 
         await saveAppState('lastMapId', mapId);
 
-        // 2. Chargement Données Utilisateur
+        // 2. Chargement Données Utilisateur & Circuits (UNIFIÉ)
         try {
-            const loadedData = await getAllPoiDataForMap('Djerba');
-            if (loadedData) state.userData = loadedData;
+            state.userData = await getAllPoiDataForMap(mapId) || {};
+            state.myCircuits = await getAllCircuitsForMap(mapId) || [];
+            await mergeOfficialCircuits(); // Fusion immédiate
         } catch (dbErr) {
             console.warn("Aucune donnée utilisateur antérieure ou erreur DB:", dbErr);
+            state.myCircuits = [];
         }
 
         // 3. AFFICHAGE / CHARGEMENT (Branchement Mobile vs Desktop)
@@ -103,17 +141,12 @@ async function loadDefaultMap() {
             // Sauvegarde pour persistance
             await saveAppState('lastGeoJSON', geojsonData);
 
-            // On charge les circuits (si existants)
-            try {
-                state.myCircuits = await getAllCircuitsForMap('Djerba');
-            } catch (e) { state.myCircuits = []; }
-
             setSaveButtonsState(true);
             switchMobileView('circuits'); // Force l'affichage immédiat
 
         } else {
             // MODE DESKTOP : On affiche la carte Leaflet
-            await displayGeoJSON(geojsonData, 'Djerba');
+            await displayGeoJSON(geojsonData, mapId);
             showToast('Carte de Djerba chargée par défaut.', 'success');
         }
 
@@ -132,41 +165,6 @@ async function initializeApp() {
     // 1. Initialisation de base
     const versionEl = document.getElementById('app-version');
     if (versionEl) versionEl.textContent = APP_VERSION;
-
-    // Chargement des circuits officiels (Merge into myCircuits as local editable copies)
-    try {
-        const response = await fetch('./circuits/circuits.json');
-        if (response.ok) {
-            const officials = await response.json();
-            state.officialCircuits = []; // On ne stocke plus séparément
-
-            // Fusion intelligente : on n'ajoute que ceux qui n'existent pas déjà (basé sur le nom)
-            // car l'utilisateur a pu les modifier ou les supprimer localement.
-            // Note: C'est un comportement "First Run" ou "Reset".
-
-            // Pour l'instant, on les charge dans myCircuits s'ils sont vides,
-            // ou on les ajoute à la liste s'ils n'y sont pas.
-
-            // Simplification demandée : Tout est local.
-            if (!state.myCircuits) state.myCircuits = [];
-
-            officials.forEach(off => {
-                // On vérifie si un circuit avec ce nom existe déjà (pour éviter les doublons à chaque reload)
-                // C'est une heuristique simple.
-                const exists = state.myCircuits.some(c => c.name === off.name);
-                if (!exists) {
-                     // On le convertit en format local
-                     const localCopy = { ...off, id: `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, isOfficial: false };
-                     state.myCircuits.push(localCopy);
-                }
-            });
-
-            console.log(`[Main] Circuits officiels fusionnés dans les circuits locaux.`);
-            import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
-        }
-    } catch (e) {
-        console.warn("[Main] Impossible de charger les circuits officiels :", e);
-    }
 
     initializeDomReferences();
     setupCircuitEventListeners();
@@ -198,11 +196,13 @@ async function initializeApp() {
 
         if (lastMapId && lastGeoJSON) {
             state.currentMapId = lastMapId;
+            updateAppTitle(lastMapId);
             setSaveButtonsState(true);
 
             try {
                 state.userData = await getAllPoiDataForMap(lastMapId) || {};
                 state.myCircuits = await getAllCircuitsForMap(lastMapId) || [];
+                await mergeOfficialCircuits(); // Fusion immédiate
             } catch (e) { console.error("Erreur DB secondaire:", e); }
 
             // 3. Affichage de la carte
@@ -214,16 +214,7 @@ async function initializeApp() {
 
                 // --- RESTAURATION SÉCURISÉE DU BROUILLON ---
                 try {
-                    const savedDraft = await getAppState('currentCircuit');
-                    
-                    if (savedDraft && savedDraft.length > 0) {
-                        state.currentCircuit = savedDraft;
-                        // On relance l'affichage du circuit avec nos NOUVELLES fonctions
-                        setTimeout(() => {
-                            if (typeof refreshCircuitDisplay === 'function') notifyCircuitChanged();;
-                            if (typeof renderCircuitPanel === 'function') renderCircuitPanel();
-                        }, 800);
-                    }
+                    await loadCircuitDraft();
                 } catch (err) {
                     console.warn("Échec restauration brouillon:", err);
                 }

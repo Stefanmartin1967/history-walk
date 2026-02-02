@@ -19,15 +19,37 @@ export function escapeXml(unsafe) {
     }[c]));
 }
 function generateAndDownloadGPX(circuit, id, name, description) {
-    const waypointsXML = circuit.map(feature =>
-        `<wpt lat="${feature.geometry.coordinates[1]}" lon="${feature.geometry.coordinates[0]}"><name>${escapeXml(getPoiName(feature))}</name><desc>${escapeXml(feature.properties.userData?.Description_courte || feature.properties.Desc_wpt || '')}</desc></wpt>`
-    ).join('');
+    const waypointsXML = circuit.map(feature => {
+        const poiName = escapeXml(getPoiName(feature));
+        // Description de l'étiquette (Wikiloc)
+        const desc = escapeXml(feature.properties.userData?.Description_courte || feature.properties.Desc_wpt || '');
+
+        // Lien externe (Wikiloc)
+        // On cherche 'Source' ou 'Lien'
+        const sourceUrl = feature.properties.userData?.Source || feature.properties.Source || '';
+        let linkXML = '';
+        if (sourceUrl && sourceUrl.trim().startsWith('http')) {
+             linkXML = `
+      <link href="${escapeXml(sourceUrl.trim())}">
+        <text>Lien vers le site</text>
+      </link>`;
+        }
+
+        return `
+    <wpt lat="${feature.geometry.coordinates[1]}" lon="${feature.geometry.coordinates[0]}">
+      <name>${poiName}</name>
+      <desc>${desc}</desc>${linkXML}
+    </wpt>`;
+    }).join('');
+
     const trackpointsXML = circuit.map(feature =>
         `<trkpt lat="${feature.geometry.coordinates[1]}" lon="${feature.geometry.coordinates[0]}"></trkpt>`
     ).join('\n      ');
 
     // MÉTADONNÉES ÉTENDUES (Destination + Lien)
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Inconnue';
+
+    // On met le HW-ID dans les keywords pour qu'il soit discret mais présent
     const metadataXML = `
     <metadata>
         <name>${escapeXml(name)}</name>
@@ -35,10 +57,11 @@ function generateAndDownloadGPX(circuit, id, name, description) {
         <link href="https://stefanmartin1967.github.io/history-walk/">
             <text>History Walk</text>
         </link>
-        <keywords>${escapeXml(mapName)}</keywords>
+        <keywords>${escapeXml(mapName)}, [HW-ID:${id}]</keywords>
     </metadata>`;
 
-    const gpxContent = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="History Walk ${APP_VERSION}" xmlns="http://www.topografix.com/GPX/1/1">${metadataXML}${waypointsXML}<trk><name>${escapeXml(name)}</name><desc><![CDATA[${description ? `${description}\n` : ''}[HW-ID:${id}]]]></desc><trkseg>${trackpointsXML}</trkseg></trk></gpx>`;
+    const gpxContent = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="History Walk ${APP_VERSION}" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">${metadataXML}${waypointsXML}<trk><name>${escapeXml(name)}</name><desc><![CDATA[${description}]]></desc><trkseg>${trackpointsXML}</trkseg></trk></gpx>`;
+
     downloadFile(`${name}.gpx`, gpxContent, 'application/gpx+xml');
 }
 
@@ -51,7 +74,6 @@ export async function recalculatePlannedCountersForMap(mapId) {
         const counters = {};
         
         // Etape 1 : On initialise tout à 0 (même les supprimés s'ils sont chargés)
-        // Cela permet de remettre leur compteur à 0 s'ils étaient à 1 avant la suppression
         state.loadedFeatures.forEach(f => {
             counters[getPoiId(f)] = 0;
         });
@@ -60,11 +82,9 @@ export async function recalculatePlannedCountersForMap(mapId) {
             [...new Set(circuit.poiIds)].forEach(poiId => {
                 // Etape 2 : On vérifie l'existence et l'état du POI
                 if (counters.hasOwnProperty(poiId)) {
-                    // On cherche le POI pour vérifier s'il est "actif"
                     const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-                    
                     // CORRECTION : On ne compte QUE si le POI n'est pas marqué supprimé
-                    const isDeleted = feature.properties.userData && feature.properties.userData.deleted;
+                    const isDeleted = feature && feature.properties.userData && feature.properties.userData.deleted;
                     
                     if (!isDeleted) {
                         counters[poiId]++;
@@ -73,7 +93,6 @@ export async function recalculatePlannedCountersForMap(mapId) {
             });
         });
 
-        // ... Le reste (sauvegarde batch) est parfait ...
         const updatesToBatch = [];
         for (const [poiId, count] of Object.entries(counters)) {
             const currentCount = (poiDataForMap[poiId] && poiDataForMap[poiId].planifieCounter) || 0;
@@ -169,6 +188,7 @@ export async function processImportedGpx(file, circuitId) {
                 const xmlDoc = parser.parseFromString(text, "text/xml");
                 
                 // 1. EXTRACTION HW-ID (SÉCURITÉ)
+                // Recherche dans <desc> (Legacy)
                 const descNodes = xmlDoc.getElementsByTagName("desc");
                 let foundHwId = null;
                 for (let i = 0; i < descNodes.length; i++) {
@@ -176,6 +196,18 @@ export async function processImportedGpx(file, circuitId) {
                     if (match) {
                         foundHwId = match[1];
                         break;
+                    }
+                }
+
+                // Recherche dans <keywords> (Nouveau format)
+                if (!foundHwId) {
+                    const keywordNodes = xmlDoc.getElementsByTagName("keywords");
+                    for (let i = 0; i < keywordNodes.length; i++) {
+                        const match = keywordNodes[i].textContent.match(/\[HW-ID:(.*?)\]/);
+                        if (match) {
+                            foundHwId = match[1];
+                            break;
+                        }
                     }
                 }
 
@@ -213,7 +245,6 @@ export async function processImportedGpx(file, circuitId) {
                     const wpts = xmlDoc.getElementsByTagName("wpt");
                     let matchCount = 0;
 
-                    // On récupère le circuit cible
                     const targetCircuit = state.myCircuits.find(c => c.id === circuitId);
 
                     if (targetCircuit && wpts.length > 0) {
@@ -238,7 +269,6 @@ export async function processImportedGpx(file, circuitId) {
                         }
                     }
 
-                    // Décision basée sur les correspondances
                     if (matchCount > 0) {
                         canImport = await showConfirm(
                             "Vérification",
