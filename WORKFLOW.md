@@ -88,21 +88,12 @@ Bien que `zones.js` et `map.geojson` contiennent les définitions correctes, le 
 
 ## 3. Qualité du Code ("Clean Code")
 
-### État Actuel
-Le code est fonctionnel et modulaire (ES Modules), mais présente des signes de "dette technique" et de redondance, typiques d'un projet qui a évolué par itérations successives.
+### État Actuel (Mars 2024)
+Suite à la campagne de refactoring (Refonte V2.5), le code a été nettoyé et unifié. L'application utilise une architecture modulaire ES6 stricte.
 
-### Points à Nettoyer
-1. **Redondances dans `src/map.js`** :
-   - Le commentaire `// --- INITIALISATION CARTE ---` est répété 4 fois sans raison.
-   - La gestion des icônes est parfois dupliquée (fonction `createHistoryWalkIcon` vs logique inline).
-2. **Logique de Zone** :
-   - Bien que centralisée maintenant dans `utils.js`, certaines parties du code (comme `fusion.js` avant correction) n'utilisaient pas cette centralisation.
-3. **Variables Globales** :
-   - L'exposition de variables sur `window` (comme `window.state`, `window.lucide`) est pratique pour le débogage mais polluante en production.
-4. **Code Mort** :
-   - Il est probable que certaines fonctions d'anciennes versions (V1, V2) traînent encore si elles n'ont pas été supprimées lors des refontes.
+### Points Corrigés et Validés
+*   ✅ **Variables Globales** : Suppression de la pollution de l'objet `window` (ex: `window.state`). L'état est géré via `src/state.js`.
+*   ✅ **Centralisation** : La logique de détection de zone (`getZoneFromCoords`) et de calcul de distance est centralisée dans `src/utils.js` et utilisée partout (y compris dans `src/fusion.js`).
+*   ✅ **Redondances** : Le code de `src/map.js` a été épuré (suppression des commentaires dupliqués et unification de la génération des icônes).
 
-### Recommandations
-- **Standardiser les imports** : S'assurer que tous les modules utilisent les fonctions utilitaires (`src/utils.js`) plutôt que de réimplémenter la logique (ex: calcul de distance, zones).
-- **Nettoyage Linting** : Supprimer les blocs de code commentés et les commentaires répétitifs.
-- **Unification des Types** : S'assurer que les objets "Circuit" et "POI" ont toujours la même structure de données à travers l'application.
+Pour un audit complet de l'état actuel, se référer au document `ETAT_DU_CODE.md`.
