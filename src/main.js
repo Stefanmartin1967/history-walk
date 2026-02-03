@@ -39,6 +39,7 @@ import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, h
 import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
+import { initAdminMode } from './admin.js';
 
 // --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
 function setSaveButtonsState(enabled) {
@@ -176,6 +177,7 @@ async function initializeApp() {
     const versionEl = document.getElementById('app-version');
     if (versionEl) versionEl.textContent = APP_VERSION;
 
+    initAdminMode(); // Initialisation des écouteurs Admin (God Mode)
     initializeDomReferences();
     setupCircuitEventListeners();
     setupEventBusListeners(); // <--- LISTENER EVENT BUS
