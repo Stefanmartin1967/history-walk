@@ -10,12 +10,13 @@ import { DOM, closeDetailsPanel, openDetailsPanel } from './ui.js';
 import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords, clusterByLocation, calculateBarycenter, filterOutliers } from './utils.js';
 import { showToast } from './toast.js';
 import { showConfirm } from './modal.js';
+import { RichEditor } from './richEditor.js';
 
 let desktopDraftMarker = null;
-const BASE_CATEGORIES = ["Mosquée", "Site historique", "Curiosité", "Hôtel", "Restaurant", "Café", "Taxi", "Commerce"];
 
 export function enableDesktopCreationMode() {
     if (!map) return;
+    RichEditor.init(); // Initialisation des écouteurs de la modale riche
     map.on('contextmenu', (e) => {
         const { lat, lng } = e.latlng;
         if (desktopDraftMarker) {
@@ -246,7 +247,8 @@ export function createDraftMarker(lat, lng, mapInstance, photos = []) {
     
     validateBtn.addEventListener('click', () => {
         const finalLatLng = desktopDraftMarker.getLatLng();
-        openDesktopAddModal(finalLatLng.lat, finalLatLng.lng, photos);
+        // REMPLACEMENT PAR LA RICH EDITOR
+        RichEditor.openForCreate(finalLatLng.lat, finalLatLng.lng, photos);
         
         if (mapInstance && desktopDraftMarker) {
             mapInstance.removeLayer(desktopDraftMarker);
@@ -259,76 +261,7 @@ export function createDraftMarker(lat, lng, mapInstance, photos = []) {
     desktopDraftMarker.on('dragend', () => desktopDraftMarker.openPopup());
 }
 
-export function openDesktopAddModal(lat, lng, photos = []) {
-    const modal = document.getElementById('add-poi-modal');
-    if (!modal) { console.error("Erreur Modal Manquant"); return; }
-
-    const coordsDisplay = document.getElementById('new-poi-coords');
-    const nameInput = document.getElementById('new-poi-name');
-    const catSelect = document.getElementById('new-poi-category');
-    const confirmBtn = document.getElementById('btn-confirm-add-poi');
-    const closeBtn = document.getElementById('close-add-poi-modal');
-
-    nameInput.value = '';
-    coordsDisplay.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    
-    catSelect.innerHTML = '';
-    const existingCats = new Set(state.loadedFeatures.map(f => f.properties.Catégorie).filter(Boolean));
-    const allCats = new Set([...BASE_CATEGORIES, ...existingCats]);
-    Array.from(allCats).sort().forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat;
-        option.textContent = cat;
-        if (cat === 'Mosquée' && state.currentMapId?.includes('Djerba')) option.selected = true;
-        catSelect.appendChild(option);
-    });
-
-    modal.style.display = 'flex';
-    nameInput.focus();
-
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-    newConfirmBtn.addEventListener('click', async () => {
-        const name = nameInput.value.trim();
-        const category = catSelect.value;
-        if (!name) return showToast("Nom requis", "warning");
-
-        const zoneAutomatique = getZoneFromCoords(lat, lng);
-
-        const newPoiId = `HW-PC-${Date.now()}`;
-        const newFeature = {
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [lng, lat] },
-            properties: {
-                "Nom du site FR": name,
-                "Catégorie": category,
-                "Zone": zoneAutomatique || "Non définie", 
-                "Description": "Ajouté depuis PC",
-                "HW_ID": newPoiId
-            }
-        };
-
-        addPoiFeature(newFeature);
-        await saveAppState('lastGeoJSON', { type: 'FeatureCollection', features: state.loadedFeatures });
-        await logModification(newPoiId, 'Création PC', 'All', null, 'Nouveau lieu PC');
-
-        // Si des photos sont associées à cette création
-        if (photos && photos.length > 0) {
-            showToast(`Ajout du lieu... Intégration de ${photos.length} photos...`, 'info');
-            await addPhotosToPoi(newFeature, photos);
-        } else {
-            showToast(`Lieu "${name}" ajouté dans ${zoneAutomatique || 'A définir'} !`, "success");
-        }
-
-        modal.style.display = 'none';
-    });
-
-    const closeHandler = () => { modal.style.display = 'none'; };
-    const newCloseBtn = closeBtn.cloneNode(true);
-    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-    newCloseBtn.addEventListener('click', closeHandler);
-}
+// L'ancienne fonction openDesktopAddModal a été supprimée car remplacée par RichEditor.
 
 function getPoiName(feature) {
     return feature.properties['Nom du site FR'] || feature.properties['name'] || "Lieu inconnu";
