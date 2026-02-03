@@ -3,7 +3,7 @@ import { DOM, openDetailsPanel, switchSidebarTab } from './ui.js';
 import { getPoiName, getPoiId } from './data.js';
 import { state } from './state.js';
 import { showToast } from './toast.js';
-import { createIcons } from 'lucide';
+import { createIcons, icons } from 'lucide';
 
 /**
  * Génère le HTML pour une étape du circuit
@@ -59,7 +59,7 @@ export function renderCircuitList(points, callbacks) {
     }
 
     // Rafraîchissement des icônes Lucide après injection HTML
-    createIcons();
+    createIcons({ icons });
 }
 
 /**
@@ -83,7 +83,7 @@ export function updateCircuitHeader(data) {
 
         distIcon.replaceWith(newIcon);
 
-        createIcons();
+        createIcons({ icons });
     }
 
     const btnDelete = document.getElementById('btn-delete-active-circuit');
@@ -144,7 +144,7 @@ export function updateControlButtons(uiState) {
         }
     }
 
-    createIcons();
+    createIcons({ icons });
 }
 
 export function updateCircuitForm(data) {
