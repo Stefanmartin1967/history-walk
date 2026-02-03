@@ -297,24 +297,42 @@ export async function processImportedGpx(file, circuitId) {
 
                     const targetCircuit = state.myCircuits.find(c => c.id === circuitId);
 
-                    if (targetCircuit && wpts.length > 0) {
+                    if (targetCircuit) {
                         const circuitFeatures = targetCircuit.poiIds
                             .map(pid => state.loadedFeatures.find(f => getPoiId(f) === pid))
                             .filter(Boolean);
 
                         if (circuitFeatures.length > 0) {
-                            for (let i = 0; i < wpts.length; i++) {
-                                const lat = parseFloat(wpts[i].getAttribute("lat"));
-                                const lon = parseFloat(wpts[i].getAttribute("lon"));
+                            // ÉTAPE 1 : Tentative via Waypoints (si présents)
+                            if (wpts.length > 0) {
+                                for (let i = 0; i < wpts.length; i++) {
+                                    const lat = parseFloat(wpts[i].getAttribute("lat"));
+                                    const lon = parseFloat(wpts[i].getAttribute("lon"));
 
-                                // Vérifie la proximité (~50m)
-                                const isMatch = circuitFeatures.some(f => {
-                                    const fLat = f.geometry.coordinates[1];
-                                    const fLon = f.geometry.coordinates[0];
-                                    const d = Math.sqrt(Math.pow(lat - fLat, 2) + Math.pow(lon - fLon, 2));
-                                    return d < 0.0005;
+                                    // Vérifie la proximité (~60m)
+                                    const isMatch = circuitFeatures.some(f => {
+                                        const fLat = f.geometry.coordinates[1];
+                                        const fLon = f.geometry.coordinates[0];
+                                        const d = Math.sqrt(Math.pow(lat - fLat, 2) + Math.pow(lon - fLon, 2));
+                                        return d < 0.0006;
+                                    });
+                                    if (isMatch) matchCount++;
+                                }
+                            }
+
+                            // ÉTAPE 2 : Fallback sur la trace (Si échec ou absence de Waypoints)
+                            if (matchCount === 0 && coordinates.length > 0) {
+                                // On inverse la logique : Pour chaque POI du circuit, est-il proche de la trace ?
+                                circuitFeatures.forEach(f => {
+                                    const [fLon, fLat] = f.geometry.coordinates;
+
+                                    const isNearTrace = coordinates.some(([tLat, tLon]) => {
+                                        const d = Math.sqrt(Math.pow(tLat - fLat, 2) + Math.pow(tLon - fLon, 2));
+                                        return d < 0.0006; // Seuil ~60m
+                                    });
+
+                                    if (isNearTrace) matchCount++;
                                 });
-                                if (isMatch) matchCount++;
                             }
                         }
                     }
