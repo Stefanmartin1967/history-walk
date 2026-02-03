@@ -98,10 +98,8 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     const gmapsButtonHtml = `<button class="action-button" id="open-gmaps-btn" title="Itinéraire Google Maps">${ICONS.googleMaps}</button>`;
     
-    // BOUTON ADMIN (GOD MODE)
-    const adminButtonHtml = state.isAdmin
-        ? `<button class="action-button" id="btn-admin-edit-rich" title="Modifier (Admin)" style="background:var(--brand); color:white;">${ICONS.pen}</button>`
-        : '';
+    // BOUTON ADMIN (GOD MODE) - Supprimé car fusionné avec le crayon standard
+    const adminButtonHtml = '';
 
     const categorySelectHtml = `
         <select id="panel-category-select" class="editable-input header-input" style="display:none; margin-top:5px; width:100%; font-size:14px;">

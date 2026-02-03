@@ -224,6 +224,11 @@ async function initializeApp() {
             } else {
                 await displayGeoJSON(lastGeoJSON, lastMapId);
 
+                // Si on recharge une carte autre que Djerba, on ajuste la vue
+                if (lastMapId !== 'djerba') {
+                     import('./map.js').then(m => m.fitMapToContent());
+                }
+
                 // --- RESTAURATION SÉCURISÉE DU BROUILLON ---
                 try {
                     await loadCircuitDraft();

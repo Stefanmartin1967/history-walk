@@ -7,63 +7,46 @@ export function initAdminMode() {
     eventBus.on('admin:mode-toggled', (isAdmin) => {
         toggleAdminUI(isAdmin);
     });
+
+    setupAdminListeners();
 }
 
 function toggleAdminUI(isAdmin) {
-    let adminContainer = document.getElementById('admin-floating-container');
-
-    if (isAdmin) {
-        if (!adminContainer) {
-            createAdminUI();
-            adminContainer = document.getElementById('admin-floating-container');
-        }
-        adminContainer.style.display = 'flex';
-    } else {
-        if (adminContainer) {
-            adminContainer.style.display = 'none';
-        }
+    const adminContainer = document.getElementById('admin-tools-container');
+    if (adminContainer) {
+        adminContainer.style.display = isAdmin ? 'block' : 'none';
     }
 }
 
-function createAdminUI() {
-    const container = document.createElement('div');
-    container.id = 'admin-floating-container';
-    container.style.position = 'fixed';
-    container.style.bottom = '20px';
-    container.style.left = '20px'; // Bottom Left to avoid map controls
-    container.style.zIndex = '9999';
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.gap = '10px';
-    container.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    container.style.padding = '10px';
-    container.style.borderRadius = '8px';
-    container.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+function setupAdminListeners() {
+    const btnMenu = document.getElementById('btn-admin-menu');
+    const menuContent = document.getElementById('admin-menu-content');
 
-    const title = document.createElement('div');
-    title.textContent = 'GOD MODE';
-    title.style.color = '#ff0000';
-    title.style.fontWeight = 'bold';
-    title.style.fontSize = '12px';
-    title.style.textAlign = 'center';
-    title.style.marginBottom = '5px';
-    container.appendChild(title);
+    if (btnMenu && menuContent) {
+        btnMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuContent.classList.toggle('active');
+        });
 
-    const btnExport = document.createElement('button');
-    btnExport.textContent = 'Export Master GeoJSON';
-    btnExport.style.padding = '8px 12px';
-    btnExport.style.cursor = 'pointer';
-    btnExport.style.backgroundColor = '#2563EB';
-    btnExport.style.color = 'white';
-    btnExport.style.border = 'none';
-    btnExport.style.borderRadius = '4px';
-    btnExport.style.fontSize = '12px';
-    btnExport.style.fontWeight = '600';
-    btnExport.addEventListener('click', exportMasterGeoJSON);
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!btnMenu.contains(e.target) && !menuContent.contains(e.target)) {
+                menuContent.classList.remove('active');
+            }
+        });
+    }
 
-    container.appendChild(btnExport);
+    const btnScout = document.getElementById('btn-admin-scout');
+    if (btnScout) {
+        btnScout.addEventListener('click', () => {
+            window.open('scout.html', '_blank');
+        });
+    }
 
-    document.body.appendChild(container);
+    const btnExport = document.getElementById('btn-admin-export-master');
+    if (btnExport) {
+        btnExport.addEventListener('click', exportMasterGeoJSON);
+    }
 }
 
 function exportMasterGeoJSON() {

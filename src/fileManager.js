@@ -34,6 +34,8 @@ export function handleFileLoad(event) {
                 } else {
                     // Desktop: Rendu Carte
                     await displayGeoJSON(json, mapName);
+                    // On cadre la vue sur la nouvelle carte
+                    import('./map.js').then(m => m.fitMapToContent());
                     showToast(`Carte "${file.name}" chargée.`, 'success');
                 }
             } 
