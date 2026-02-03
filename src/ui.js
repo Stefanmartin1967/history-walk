@@ -274,6 +274,20 @@ if (chkInc) {
         });
     }
 
+    // --- NOUVEAU : BOUTON RECHERCHE GOOGLE ---
+    const searchBtns = document.querySelectorAll('.btn-web-search');
+    searchBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+             if (feature) {
+                 const name = getPoiName(feature);
+                 // Construction de la requête "Nom + Djerba"
+                 const query = encodeURIComponent(`${name} Djerba`);
+                 window.open(`https://www.google.com/search?q=${query}`, '_blank');
+             }
+        });
+    });
+
     // Gestion Photos DÉLÉGUÉE
     setupPhotoPanelListeners(poiId);
 

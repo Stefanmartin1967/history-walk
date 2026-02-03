@@ -24,7 +24,8 @@ export const ICONS = {
     download: `<i data-lucide="download" style="width:18px;height:18px;"></i>`,
     play: `<i data-lucide="play" style="width:18px;height:18px;"></i>`,
     trash: `<i data-lucide="trash-2" style="width:18px;height:18px;"></i>`,
-    googleMaps: `<i data-lucide="map-pin" style="width:18px;height:18px;"></i>`
+    googleMaps: `<i data-lucide="map-pin" style="width:18px;height:18px;"></i>`,
+    globe: `<i data-lucide="globe" style="width:18px;height:18px;"></i>`
 };
 
 export function renderSource(allProps) {
@@ -118,6 +119,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
             <div class="right-icon-block" style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0;">
                 <div class="details-nav" style="display:flex; gap:4px;">
+                    <button class="action-button btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
                     ${inCircuit ? `<button class="action-button" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
                                   <button class="action-button" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
                     <button class="action-button" id="close-details-button" title="Fermer">${ICONS.x}</button>
@@ -197,7 +199,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
     
     // --- TEMPLATE MOBILE ---
     const mobileHtml = `
-        <div class="panel-content">
+        <div class="panel-content" style="padding-bottom: 100px;">
             <div class="detail-section editable-field" data-field-id="title">
                 <div class="content">
                     <div class="title-section-line">
@@ -205,6 +207,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                             <h2 class="editable-text">${escapeXml(poiName)}</h2>
                         </div>
                         <div class="title-actions details-header-nav">
+                            <button class="btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
                             <button id="details-prev-btn" data-direction="-1" ${(!inCircuit || circuitIndex === 0) ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
                             <button id="details-next-btn" data-direction="1" ${(!inCircuit || circuitIndex === state.currentCircuit.length - 1) ? 'disabled' : ''}>${ICONS.chevronRight}</button>
                             <button id="details-close-btn">${ICONS.x}</button>
