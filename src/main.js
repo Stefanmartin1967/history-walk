@@ -3,7 +3,7 @@ import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsF
 import { APP_VERSION, state } from './state.js';
 import { initMap, map, refreshMapMarkers } from './map.js';
 import { eventBus } from './events.js';
-import { createIcons } from 'lucide';
+import { createIcons, icons } from 'lucide';
 import {
     initializeDomReferences,
     setupTabs,
@@ -171,7 +171,7 @@ async function initializeApp() {
     setupCircuitEventListeners();
     setupEventBusListeners(); // <--- LISTENER EVENT BUS
 
-    createIcons();
+    createIcons({ icons });
 
     if (typeof populateAddPoiModalCategories === 'function') {
         populateAddPoiModalCategories();
@@ -280,7 +280,7 @@ async function initializeApp() {
     setupUnsavedChangesWarning(); // <--- AJOUT DE LA PROTECTION
 
     // 5. Relancer les icônes à la toute fin
-    createIcons();
+    createIcons({ icons });
 
     // --- GESTION DE L'IMPORT URL (QR Code Universel) ---
     const urlParams = new URLSearchParams(window.location.search);

@@ -4,7 +4,7 @@ import { addPoiToCircuit } from './circuit.js';
 import { openDetailsPanel } from './ui.js';
 import { showToast } from './toast.js';
 import { getPoiId } from './data.js';
-import { createIcons } from 'lucide';
+import { createIcons, icons } from 'lucide';
 
 export let map;
 
@@ -291,5 +291,5 @@ export function refreshMapMarkers(visibleFeatures) {
         if (bounds.isValid()) map.flyToBounds(bounds.pad(0.1));
     }
 
-    createIcons();
+    createIcons({ icons });
 }

@@ -77,7 +77,7 @@ export function initMobileMode() {
             }
             
             // 6. DESSIN DES ICÔNES ICI (À l'intérieur du clic)
-            createIcons({ icons }); 
+            createIcons({ icons, root: newFilterBtn });
 
         }); // <-- FIN DU CLIC DÉPLACÉE ICI
     }
@@ -119,7 +119,7 @@ export function switchMobileView(viewName) {
             break;
     }
     
-    createIcons({ icons });
+    createIcons({ icons, root: container });
 }
 
 async function handleAddPoiClick() {
@@ -429,7 +429,7 @@ function renderMobileToolbar() {
         </button>
     `;
 
-    createIcons({ icons });
+    createIcons({ icons, root: toolbar });
 
     // Listeners
     document.getElementById('mob-sort-date').onclick = () => {
@@ -606,7 +606,7 @@ export function renderMobilePoiList(features) {
         });
     });
     
-    createIcons({ icons });
+    createIcons({ icons, root: container });
 }
 
 export function renderMobileSearch() {
@@ -659,7 +659,7 @@ export function renderMobileSearch() {
             `;
         });
         resultsContainer.innerHTML = html;
-        createIcons({ icons });
+        createIcons({ icons, root: resultsContainer });
 
         resultsContainer.querySelectorAll('.result-item').forEach(btn => {
             btn.addEventListener('click', () => {
