@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>History Walk - Module Scout</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; max-width: 800px; margin: auto; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, select, button { padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; }
+        button { background: #2563eb; color: white; cursor: pointer; border: none; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        #log { margin-top: 20px; padding: 10px; background: #333; color: #0f0; font-family: monospace; font-size: 12px; height: 150px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔭 Module Scout</h2>
+        <p>Générez un squelette GeoJSON pour une nouvelle destination.</p>
+        
+        <label>Zone de recherche (ex: Houmt Souk, Djerba)</label>
+        <input type="text" id="location" placeholder="Nom de la ville ou région...">
+        
+        <label>Rayon de recherche (mètres)</label>
+        <input type="number" id="radius" value="3000">
+
+        <button id="btn-fetch">Moissonner les POI</button>
+        <div id="log">En attente...</div>
+        <button id="btn-download" style="display:none; background: #059669;">Télécharger le GeoJSON</button>
+    </div>
+
+    <script>
+        const DOM = {
+            btnFetch: document.getElementById('btn-fetch'),
+            btnDownload: document.getElementById('btn-download'),
+            location: document.getElementById('location'),
+            radius: document.getElementById('radius'),
+            log: document.getElementById('log')
+        };
+
+        let lastResult = null;
+
+        function addLog(msg) { DOM.log.innerHTML += `<div>> ${msg}</div>`; DOM.log.scrollTop = DOM.log.scrollHeight; }
+
+        DOM.btnFetch.onclick = async () => {
+            const loc = DOM.location.value;
+            const rad = DOM.radius.value;
+            if(!loc) return alert("Précisez une zone !");
+
+            addLog(`Recherche des coordonnées pour "${loc}"...`);
+            try {
+                // 1. Geocoding pour trouver le centre
+                const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(loc)}`);
+                const geoData = await geoRes.json();
+                if(geoData.length === 0) throw new Error("Zone introuvable");
+                
+                const { lat, lon } = geoData[0];
+                addLog(`Centre trouvé : ${lat}, ${lon}`);
+
+                // 2. Requête Overpass
+                addLog("Interrogation d'OpenStreetMap (Overpass)...");
+                const query = `[out:json];
+                    (
+                      node["amenity"~"place_of_worship|museum|library|townhall"](around:${rad},${lat},${lon});
+                      node["tourism"~"attraction|museum|viewpoint|hotel|information"](around:${rad},${lat},${lon});
+                      node["historic"](around:${rad},${lat},${lon});
+                    );
+                    out body;`;
+                
+                const opRes = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+                const opData = await opRes.json();
+                
+                // 3. Conversion vers format History Walk
+                const features = opData.elements.map(el => ({
+                    type: "Feature",
+                    geometry: { type: "Point", coordinates: [el.lon, el.lat] },
+                    properties: {
+                        "Nom du site FR": el.tags.name || el.tags["name:fr"] || "Sans nom",
+                        "Catégorie": el.tags.amenity || el.tags.tourism || el.tags.historic || "A définir",
+                        "Zone": loc.split(',')[0],
+                        "Description": el.tags.description || "",
+                        "HW_ID": `HW-SCOUT-${Date.now()}-${Math.floor(Math.random()*1000)}`
+                    }
+                }));
+
+                lastResult = { type: "FeatureCollection", features };
+                addLog(`Succès ! ${features.length} POI moissonnés.`);
+                DOM.btnDownload.style.display = 'block';
+
+            } catch (err) {
+                addLog(`ERREUR : ${err.message}`);
+            }
+        };
+
+        DOM.btnDownload.onclick = () => {
+            const blob = new Blob([JSON.stringify(lastResult, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Scout_${DOM.location.value.replace(/ /g, '_')}.geojson`;
+            a.click();
+        };
+    </script>
+</body>
+</html>
