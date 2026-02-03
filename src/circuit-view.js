@@ -3,6 +3,7 @@ import { DOM, openDetailsPanel, switchSidebarTab } from './ui.js';
 import { getPoiName, getPoiId } from './data.js';
 import { state } from './state.js';
 import { showToast } from './toast.js';
+import { createIcons } from 'lucide';
 
 /**
  * Génère le HTML pour une étape du circuit
@@ -58,7 +59,7 @@ export function renderCircuitList(points, callbacks) {
     }
 
     // Rafraîchissement des icônes Lucide après injection HTML
-    if (window.lucide) window.lucide.createIcons();
+    createIcons();
 }
 
 /**
@@ -82,7 +83,7 @@ export function updateCircuitHeader(data) {
 
         distIcon.replaceWith(newIcon);
 
-        if (window.lucide) window.lucide.createIcons();
+        createIcons();
     }
 
     const btnDelete = document.getElementById('btn-delete-active-circuit');
@@ -143,7 +144,7 @@ export function updateControlButtons(uiState) {
         }
     }
 
-    if (window.lucide) window.lucide.createIcons();
+    createIcons();
 }
 
 export function updateCircuitForm(data) {
@@ -162,21 +163,4 @@ export function updateCircuitForm(data) {
         const el = document.getElementById(id);
         if (el) el.value = value || '';
     }
-}
-
-export function convertToDraft() {
-    if (!state.activeCircuitId) return;
-
-    // On détache le circuit de son ID (il devient un brouillon local)
-    state.activeCircuitId = null;
-    
-    // On informe l'utilisateur
-    showToast("Mode édition activé. La trace réelle est remplacée par le tracé prévisionnel.", "info");
-    
-    // On force le re-rendu (cela appellera updateControlButtons)
-    // Note: C'est un peu circulaire, mais le state ayant changé, l'UI suivra
-    const event = new CustomEvent('circuit:updated', {
-        detail: { points: state.currentCircuit, activeId: null }
-    });
-    window.dispatchEvent(event);
 }

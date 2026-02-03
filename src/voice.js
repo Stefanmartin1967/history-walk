@@ -1,5 +1,6 @@
 // voice.js
-import { showToast } from './toast.js';;
+import { showToast } from './toast.js';
+import { createIcons } from 'lucide';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
@@ -55,7 +56,7 @@ function updateIcon(button, isRecording) {
     if (button) {
         button.classList.toggle('recording', isRecording);
         button.innerHTML = isRecording ? '<i data-lucide="mic-off"></i>' : '<i data-lucide="mic"></i>';
-        if(window.lucide) lucide.createIcons();
+        createIcons();
     }
 }
 

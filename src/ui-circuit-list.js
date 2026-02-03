@@ -6,6 +6,7 @@ import { eventBus } from './events.js';
 import { showConfirm } from './modal.js';
 import { getZoneFromCoords } from './utils.js';
 import { getOrthodromicDistance, getRealDistance } from './map.js';
+import { createIcons } from 'lucide';
 
 const getEl = (id) => document.getElementById(id);
 
@@ -124,7 +125,7 @@ function renderExplorerToolbar() {
         </button>
     `;
 
-    if (window.lucide) window.lucide.createIcons();
+    createIcons();
 
     // Event Listeners
     footer.querySelector('#btn-sort-date').addEventListener('click', () => {
@@ -290,7 +291,7 @@ export function renderExplorerList() {
             `;
         }).join('');
 
-    if (window.lucide) window.lucide.createIcons();
+    createIcons();
 
     // Event Listeners
     listContainer.querySelectorAll('.explorer-item').forEach(item => {
@@ -349,7 +350,7 @@ function renderCircuitsList() {
                 </div>
             </div>`;
         }).join('');
-    if (window.lucide) window.lucide.createIcons();
+    createIcons();
 }
 
 async function handleCircuitsListClick(e) {

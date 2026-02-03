@@ -3,6 +3,7 @@ import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsF
 import { APP_VERSION, state } from './state.js';
 import { initMap, map, refreshMapMarkers } from './map.js';
 import { eventBus } from './events.js';
+import { createIcons } from 'lucide';
 import {
     initializeDomReferences,
     setupTabs,
@@ -170,7 +171,7 @@ async function initializeApp() {
     setupCircuitEventListeners();
     setupEventBusListeners(); // <--- LISTENER EVENT BUS
 
-    if (typeof createIcons === 'function') createIcons();
+    createIcons();
 
     if (typeof populateAddPoiModalCategories === 'function') {
         populateAddPoiModalCategories();
@@ -279,7 +280,7 @@ async function initializeApp() {
     setupUnsavedChangesWarning(); // <--- AJOUT DE LA PROTECTION
 
     // 5. Relancer les icônes à la toute fin
-    if (typeof createIcons === 'function') createIcons();
+    createIcons();
 
     // --- GESTION DE L'IMPORT URL (QR Code Universel) ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -504,41 +505,6 @@ function setupDesktopUIListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
-
-// Fonction globale suppression (inchangée)
-window.requestSoftDelete = async function (idOrIndex) {
-    let feature;
-    if (typeof idOrIndex === 'number' && state.loadedFeatures[idOrIndex]) {
-        feature = state.loadedFeatures[idOrIndex];
-    } else {
-        feature = state.loadedFeatures[state.currentFeatureId];
-    }
-    if (!feature) return;
-
-    let poiId;
-    try { poiId = getPoiId(feature); } catch (e) { poiId = feature.properties.HW_ID || feature.id; }
-    const poiName = feature.properties['Nom du site FR'] || feature.properties['Nom du site AR'] || "ce lieu";
-
-    const msg = isMobileView()
-        ? `ATTENTION !\n\nVoulez-vous vraiment placer "${poiName}" dans la corbeille ?`
-        : `ATTENTION !\n\nVoulez-vous vraiment signaler "${poiName}" pour suppression ?`;
-
-    if (await showConfirm("Suppression", msg, "Supprimer", "Garder", true)) {
-        if (!state.hiddenPoiIds) state.hiddenPoiIds = [];
-        if (!state.hiddenPoiIds.includes(poiId)) {
-            state.hiddenPoiIds.push(poiId);
-        }
-        await saveAppState(`hiddenPois_${state.currentMapId}`, state.hiddenPoiIds);
-        if (typeof closeDetailsPanel === 'function') closeDetailsPanel(true);
-
-        // Refresh selon mode
-        if (isMobileView()) {
-            switchMobileView('circuits'); // Refresh liste
-        } else {
-            if (typeof applyFilters === 'function') applyFilters();
-        }
-    }
-};
 
 import { registerSW } from 'virtual:pwa-register';
 

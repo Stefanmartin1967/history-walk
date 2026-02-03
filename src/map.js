@@ -1,9 +1,10 @@
 // map.js
 import { state } from './state.js';
 import { addPoiToCircuit } from './circuit.js';
-import { openDetailsPanel } from './ui.js'; // <-- Ajouter l'import de l'UI
+import { openDetailsPanel } from './ui.js';
 import { showToast } from './toast.js';
 import { getPoiId } from './data.js';
+import { createIcons } from 'lucide';
 
 export let map;
 
@@ -41,8 +42,6 @@ export function initMap() {
     });
 
     // 2. Couche "Satellite Hybride" (Google Maps) - Le meilleur compromis
-    // lyrs=y : C'est le code pour "Hybrid" (Photo + Noms + Routes)
-    // C'est une seule image à charger, donc c'est le plus rapide pour le WiFi d'hôtel !
     const googleHybridLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
         maxZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
@@ -58,18 +57,13 @@ export function initMap() {
         "Satellite": googleHybridLayer
     };
 
-    // --- POSITION DU MENU : HAUT GAUCHE ---
-    // On le met à gauche (topleft) pour qu'il ne soit jamais caché par le panneau de droite
     L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
-
-    // Ajout de l'attribution (Bas gauche)
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
     initMapListeners();
 }
 
 /**
  * Initialise les écouteurs d'événements pour la carte
- * (La carte écoute les signaux envoyés par le reste de l'appli)
  */
 export function initMapListeners() {
     console.log("📍 La carte est maintenant à l'écoute des changements de circuit...");
@@ -98,16 +92,22 @@ export function initMapListeners() {
     });
 }
 
-export function createHistoryWalkIcon(category) {
+/**
+ * Génère le code HTML de l'icône pour une catégorie donnée
+ */
+export function getIconHtml(category) {
     const defaultIcon = 'map-pin';
     const iconContent = iconMap[category] || defaultIcon;
-    let iconHtml;
 
     if (iconContent.startsWith('<svg')) {
-        iconHtml = iconContent;
+        return iconContent;
     } else {
-        iconHtml = `<i data-lucide="${iconContent}"></i>`;
+        return `<i data-lucide="${iconContent}"></i>`;
     }
+}
+
+export function createHistoryWalkIcon(category) {
+    const iconHtml = getIconHtml(category);
 
     return L.divIcon({
         html: `<div class="hw-icon-wrapper">${iconHtml}</div>`,
@@ -118,25 +118,12 @@ export function createHistoryWalkIcon(category) {
     });
 }
 
-// Utile pour l'affichage dans la liste mobile
-// --- LE NOUVEL AIGUILLEUR DE CLIC ---
-// --- FONCTION POUR LES ICONES (Celle qui avait disparu !) ---
 export function getIconForFeature(feature) {
-    const defaultIcon = 'map-pin';
     const category = feature.properties.Catégorie;
-    // On suppose que iconMap est défini plus haut dans votre fichier
-    const iconContent = iconMap[category] || defaultIcon;
-
-    if (iconContent.startsWith('<svg')) {
-        return iconContent;
-    } else {
-        return `<i data-lucide="${iconContent}"></i>`;
-    }
+    return getIconHtml(category);
 }
 
-// --- LE NOUVEL AIGUILLEUR DE CLIC ---
 export function handleMarkerClick(feature) {
-    // L'AIGUILLAGE STRICT
     if (state.isSelectionModeActive) {
         // --- MODE SELECTION (ON) ---
         const poiId = getPoiId(feature);
@@ -170,14 +157,11 @@ export function handleMarkerClick(feature) {
 let currentDrawnLine = null; 
 
 export function clearMapLines() {
-    // 1. Nettoyage de la variable locale
     if (currentDrawnLine) {
         currentDrawnLine.remove();
         currentDrawnLine = null;
     }
 
-    // 2. Nettoyage des références dans le State (Utilisées par circuit.js)
-    // On boucle sur les deux types de polylines possibles
     if (state.orthodromicPolyline) {
         state.orthodromicPolyline.remove();
         state.orthodromicPolyline = null;
@@ -190,7 +174,6 @@ export function clearMapLines() {
 }
 
 export function drawLineOnMap(coordinates, isRealTrack = false) {
-    // On nettoie AVANT de dessiner
     clearMapLines();
 
     const className = isRealTrack ? 'real-track-polyline' : 'circuit-polyline';
@@ -200,7 +183,6 @@ export function drawLineOnMap(coordinates, isRealTrack = false) {
         interactive: false
     }).addTo(map);
 
-    // On stocke la référence aux deux endroits pour être sûr
     currentDrawnLine = polyline;
     
     if (isRealTrack) {
@@ -221,31 +203,26 @@ function calculateRealDistance(latLngs) {
 }
 
 export function updatePolylines() {
-    // Nettoyage des anciennes lignes
     if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
     if (state.realTrackPolyline) state.realTrackPolyline.remove();
 
-    // Pas de tracé si moins de 2 points
     if (!state.currentCircuit || state.currentCircuit.length < 2) return;
 
-    // Sécurité : on s'assure que myCircuits est un tableau
     const allCircuits = state.myCircuits || [];
     const activeCircuitData = allCircuits.find(c => c.id === state.activeCircuitId);
 
-    // Cas 1 : Circuit enregistré avec un tracé réel (GPX/Routeur)
     if (activeCircuitData && activeCircuitData.realTrack) {
         state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, {
-            className: 'real-track-polyline' // Style CSS spécifique
+            className: 'real-track-polyline'
         }).addTo(map);
     }
-    // Cas 2 : Circuit en cours de création (Ligne droite "Vol d'oiseau")
     else {
         const latLngs = state.currentCircuit.map(feature => {
             const [lon, lat] = feature.geometry.coordinates;
             return [lat, lon];
         });
         state.orthodromicPolyline = L.polyline(latLngs, {
-            className: 'circuit-polyline' // Style CSS spécifique
+            className: 'circuit-polyline'
         }).addTo(map);
     }
 }
@@ -261,7 +238,6 @@ export function getOrthodromicDistance(circuit) {
     for (let i = 0; i < circuit.length - 1; i++) {
         const from = circuit[i].geometry.coordinates;
         const to = circuit[i + 1].geometry.coordinates;
-        // Attention : GeoJSON est [Lon, Lat], Leaflet calcule avec [Lat, Lon] interne
         totalDistance += L.latLng(from[1], from[0]).distanceTo(L.latLng(to[1], to[0]));
     }
     return totalDistance;
@@ -271,9 +247,7 @@ export function getOrthodromicDistance(circuit) {
 export function refreshMapMarkers(visibleFeatures) {
     if (!map) return;
 
-    // 1. Initialisation ou Nettoyage de la couche
     if (!state.geojsonLayer) {
-        // CHANGEMENT ICI : featureGroup au lieu de layerGroup pour avoir accès à getBounds()
         state.geojsonLayer = L.featureGroup().addTo(map); 
     } else {
         state.geojsonLayer.clearLayers();
@@ -281,35 +255,27 @@ export function refreshMapMarkers(visibleFeatures) {
 
     if (visibleFeatures.length === 0) return;
 
-    // 2. Dessin des points
     const tempLayer = L.geoJSON(visibleFeatures, {
         pointToLayer: (feature, latlng) => {
             const category = feature.properties.Catégorie || 'default'; 
             const icon = createHistoryWalkIcon(category);
 
-            // ---> LOGIQUE DES MARQUEURS ET STATUTS <---
             const props = feature.properties.userData || {};
 
-            // 1. VIP (Incontournable) -> Icône Catégorie + Style VIP
             if (props.incontournable === true) {
-                // On garde l'icône de catégorie mais on applique le style VIP (Pentagone Jaune)
                 icon.options.className += ' marker-vip'; 
             }
 
-            // 2. Visité -> Bordure Verte
             if (props.vu === true) {
                 icon.options.className += ' marker-visited';
             }
 
-            // 3. Planifié -> Bordure Orange
             if ((props.planifieCounter || 0) > 0) {
                 icon.options.className += ' marker-planned';
             }
-            // ----------------------------------------------
 
             const marker = L.marker(latlng, { icon: icon });
             
-            // Le clic utilise notre aiguilleur propre !
             marker.on('click', (e) => {
                 L.DomEvent.stop(e); 
                 handleMarkerClick(feature); 
@@ -318,15 +284,12 @@ export function refreshMapMarkers(visibleFeatures) {
         }
     });
     
-    // 3. Ajout à la carte
     tempLayer.eachLayer(layer => state.geojsonLayer.addLayer(layer));
 
-    // 4. Zoom automatique si on a filtré par zone
     if (state.activeFilters.zone && state.geojsonLayer.getLayers().length > 0) {
         const bounds = state.geojsonLayer.getBounds();
         if (bounds.isValid()) map.flyToBounds(bounds.pad(0.1));
     }
 
-    // 5. La baguette magique pour dessiner les icônes dynamiques !
-    if (window.lucide) lucide.createIcons();
+    createIcons();
 }
