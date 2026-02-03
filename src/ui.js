@@ -15,6 +15,7 @@ import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
 import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
 import { initCircuitListUI, renderExplorerList } from './ui-circuit-list.js';
 import { showConfirm } from './modal.js';
+import { RichEditor } from './richEditor.js';
 
 // Re-exports for external use
 export { openCircuitsModal, closeCircuitsModal } from './ui-circuit-list.js';
@@ -81,9 +82,13 @@ export function initializeDomReferences() {
         DOM.closeCircuitPanelBtn.addEventListener('click', () => toggleSelectionMode(false));
     }
 
+    // Activation du God Mode
+    setupGodModeListener();
+
     // Initialisation des sous-modules UI
     initPhotoViewer();
     initCircuitListUI();
+    RichEditor.init(); // Setup écouteurs Rich Modal
 
     // Listen for tab change requests from other modules
     eventBus.on('ui:request-tab-change', (tabName) => {
@@ -288,6 +293,14 @@ if (chkInc) {
         });
     });
 
+    // --- NOUVEAU : BOUTON ADMIN EDIT ---
+    const btnAdmin = document.getElementById('btn-admin-edit-rich');
+    if (btnAdmin) {
+        btnAdmin.addEventListener('click', () => {
+            RichEditor.openForEdit(poiId);
+        });
+    }
+
     // Gestion Photos DÉLÉGUÉE
     setupPhotoPanelListeners(poiId);
 
@@ -436,6 +449,34 @@ export function setupTabs() {
 }
 
 // --- UTILITAIRES ---
+
+function setupGodModeListener() {
+    let buffer = [];
+    let timeout;
+
+    window.addEventListener('keydown', (e) => {
+        // Ignorer si on est dans un champ texte
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        const key = e.key.toLowerCase();
+        buffer.push(key);
+
+        // Reset buffer si pause trop longue
+        clearTimeout(timeout);
+        timeout = setTimeout(() => { buffer = []; }, 1000);
+
+        // Check sequence "god"
+        if (buffer.join('').endsWith('god')) {
+            state.isAdmin = !state.isAdmin;
+            showToast(`Mode GOD : ${state.isAdmin ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`, state.isAdmin ? 'success' : 'info');
+
+            // Émettre un événement pour que l'UI se mette à jour
+            eventBus.emit('admin:mode-toggled', state.isAdmin);
+
+            buffer = []; // Reset
+        }
+    });
+}
 
 export function adjustTime(minutesToAdd) {
     if (state.currentFeatureId === null) return;

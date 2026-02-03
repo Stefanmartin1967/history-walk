@@ -39,6 +39,7 @@ import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, h
 import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
+import { initAdminMode } from './admin.js';
 
 // --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
 function setSaveButtonsState(enabled) {
@@ -163,10 +164,20 @@ async function loadDefaultMap() {
 }
 
 async function initializeApp() {
+    // 0. Détection Mode Admin (God Mode)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'admin' || urlParams.get('admin') === 'true') {
+        state.isAdmin = true;
+        console.warn("🛡️ GOD MODE ACTIVATED (ADMIN) 🛡️");
+        document.body.classList.add('admin-mode'); // Pour usage CSS éventuel
+        if (DOM.appTitle) DOM.appTitle.textContent += " (Admin)";
+    }
+
     // 1. Initialisation de base
     const versionEl = document.getElementById('app-version');
     if (versionEl) versionEl.textContent = APP_VERSION;
 
+    initAdminMode(); // Initialisation des écouteurs Admin (God Mode)
     initializeDomReferences();
     setupCircuitEventListeners();
     setupEventBusListeners(); // <--- LISTENER EVENT BUS
@@ -283,7 +294,7 @@ async function initializeApp() {
     createIcons({ icons });
 
     // --- GESTION DE L'IMPORT URL (QR Code Universel) ---
-    const urlParams = new URLSearchParams(window.location.search);
+    // Note: urlParams est déjà déclaré au début de initializeApp
     const importIds = urlParams.get('import');
     const importName = urlParams.get('name');
 

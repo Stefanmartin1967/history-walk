@@ -29,6 +29,7 @@ export const state = {
     orthodromicPolyline: null,
     realTrackPolyline: null,
     filterCompleted: false,
+    isAdmin: false, // Activation du "God Mode"
     selectionModeFilters: {
         hideVisited: true,
         hidePlanned: true

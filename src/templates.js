@@ -98,6 +98,11 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     const gmapsButtonHtml = `<button class="action-button" id="open-gmaps-btn" title="Itinéraire Google Maps">${ICONS.googleMaps}</button>`;
     
+    // BOUTON ADMIN (GOD MODE)
+    const adminButtonHtml = state.isAdmin
+        ? `<button class="action-button" id="btn-admin-edit-rich" title="Modifier (Admin)" style="background:var(--brand); color:white;">${ICONS.pen}</button>`
+        : '';
+
     const categorySelectHtml = `
         <select id="panel-category-select" class="editable-input header-input" style="display:none; margin-top:5px; width:100%; font-size:14px;">
             ${categoryOptions}
@@ -127,6 +132,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
                 <div class="edit-controls" style="display:flex; gap:5px; justify-content:flex-end;">
                     ${gmapsButtonHtml}
+                    ${adminButtonHtml}
                     <button class="action-button edit-btn" title="Modifier le nom">${ICONS.pen}</button>
                     <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
                     <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
@@ -222,6 +228,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                         </div>
                         <div class="title-actions edit-controls">
                              ${gmapsButtonHtml}
+                             ${adminButtonHtml}
                              <button id="mobile-move-poi-btn" class="action-button" title="Mettre à jour la position">${ICONS.locate}</button>
                              <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
                              <button class="action-button" id="btn-soft-delete" title="Supprimer (Corbeille)" style="color: var(--danger);">${ICONS.trash}</button>
