@@ -226,7 +226,7 @@ body {
     display: flex !important;
     flex-direction: row !important;
     justify-content: space-between !important;
-    align-items: center !important;
+    align-items: flex-start !important;
 }
 
 #details-panel .pc-text-block {
@@ -434,8 +434,9 @@ body.sidebar-open #map {
     margin: 0 0 4px 0;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     padding: 0 8px;
-    height: 28px;
+    height: 24px;
 }
 
 .detail-section .content {
@@ -779,7 +780,7 @@ textarea.editable-input {
     font-size: 16px;
     font-weight: 500;
     color: var(--ink);
-    background: transparent;
+    background: transparent !important;
     border: 1px solid transparent;
     border-radius: 8px;
     padding: 6px 12px;
@@ -792,7 +793,7 @@ textarea.editable-input {
 }
 
 .duration-picker-trigger:hover {
-    background: var(--surface-muted);
+    background: transparent !important;
 }
 
 #circuit-panel .circuit-header {

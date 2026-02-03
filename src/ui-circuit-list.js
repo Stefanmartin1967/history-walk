@@ -282,7 +282,7 @@ export function renderExplorerList() {
                         ${escapeXml(displayName)} ${visitedIndicator}
                     </div>
                     <div class="explorer-item-meta">
-                        ${c.poiCount} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}
+                        ${c.poiCount} POI • ${distDisplay} • ${c.zoneName}
                     </div>
                 </div>
                 ${actionsHtml}
