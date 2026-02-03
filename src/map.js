@@ -293,3 +293,14 @@ export function refreshMapMarkers(visibleFeatures) {
 
     createIcons({ icons });
 }
+
+// --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT ---
+export function fitMapToContent() {
+    if (map && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
+        const bounds = state.geojsonLayer.getBounds();
+        if (bounds.isValid()) {
+             // On ajoute un peu de marge (5%) pour ne pas coller aux bords
+             map.fitBounds(bounds.pad(0.05));
+        }
+    }
+}

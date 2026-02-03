@@ -132,6 +132,13 @@ export function setupEditableField(fieldId, poiId) {
     
     if (editBtn) {
         editBtn.addEventListener('click', () => {
+            // --- GOD MODE INTERCEPTION ---
+            // Si on est Admin et qu'on clique sur le crayon du titre, on ouvre la modale riche
+            if (state.isAdmin && fieldId === 'title') {
+                import('./richEditor.js').then(m => m.RichEditor.openForEdit(poiId));
+                return;
+            }
+
             const currentFeature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
             if (!currentFeature) return;
 
@@ -293,13 +300,7 @@ if (chkInc) {
         });
     });
 
-    // --- NOUVEAU : BOUTON ADMIN EDIT ---
-    const btnAdmin = document.getElementById('btn-admin-edit-rich');
-    if (btnAdmin) {
-        btnAdmin.addEventListener('click', () => {
-            RichEditor.openForEdit(poiId);
-        });
-    }
+    // (Ancien bouton Admin supprimé - géré par le crayon standard en God Mode)
 
     // Gestion Photos DÉLÉGUÉE
     setupPhotoPanelListeners(poiId);
