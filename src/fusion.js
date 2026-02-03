@@ -1,4 +1,4 @@
-import { escapeHtml } from './utils.js';
+import { escapeHtml, getZoneFromCoords } from './utils.js';
 
 // fusion.js - Version avec Dictionnaire de Données et Support Arabe
 
@@ -266,13 +266,17 @@ DOM.btnFusion.addEventListener('click', () => {
             const newPoi = JSON.parse(JSON.stringify(item.feature));
             const userData = newPoi.properties.userData || {};
 
+            // Calcul de la zone
+            const [lng, lat] = newPoi.geometry.coordinates;
+            const computedZone = getZoneFromCoords(lat, lng);
+
             // Nettoyage initial
             newPoi.properties = {
                 "HW_ID": item.id,
                 "Nom du site FR": newNameFR,
                 "Nom du site AR": newNameAR || "", // Injection champ Arabe
                 "Catégorie": item.feature.properties.Catégorie || "A définir",
-                "Zone": "A définir"
+                "Zone": computedZone
             };
 
             // Mapping intelligent via Dictionnaire

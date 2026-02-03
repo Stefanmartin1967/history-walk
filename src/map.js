@@ -24,12 +24,6 @@ export const iconMap = {
 
 // --- INITIALISATION CARTE ---
 
-// --- INITIALISATION CARTE ---
-
-// --- INITIALISATION CARTE ---
-
-// --- INITIALISATION CARTE ---
-
 export function initMap() {
     // Initialisation de la carte centrée sur Djerba
     map = L.map('map', {
@@ -278,7 +272,6 @@ export function refreshMapMarkers(visibleFeatures) {
     if (!map) return;
 
     // 1. Initialisation ou Nettoyage de la couche
-   // 1. Initialisation ou Nettoyage de la couche
     if (!state.geojsonLayer) {
         // CHANGEMENT ICI : featureGroup au lieu de layerGroup pour avoir accès à getBounds()
         state.geojsonLayer = L.featureGroup().addTo(map); 
