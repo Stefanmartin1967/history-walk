@@ -15,6 +15,7 @@ import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
 import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
 import { initCircuitListUI, renderExplorerList } from './ui-circuit-list.js';
 import { showConfirm } from './modal.js';
+import { RichEditor } from './richEditor.js';
 
 // Re-exports for external use
 export { openCircuitsModal, closeCircuitsModal } from './ui-circuit-list.js';
@@ -84,6 +85,7 @@ export function initializeDomReferences() {
     // Initialisation des sous-modules UI
     initPhotoViewer();
     initCircuitListUI();
+    RichEditor.init(); // Setup écouteurs Rich Modal
 
     // Listen for tab change requests from other modules
     eventBus.on('ui:request-tab-change', (tabName) => {
@@ -287,6 +289,14 @@ if (chkInc) {
              }
         });
     });
+
+    // --- NOUVEAU : BOUTON ADMIN EDIT ---
+    const btnAdmin = document.getElementById('btn-admin-edit-rich');
+    if (btnAdmin) {
+        btnAdmin.addEventListener('click', () => {
+            RichEditor.openForEdit(poiId);
+        });
+    }
 
     // Gestion Photos DÉLÉGUÉE
     setupPhotoPanelListeners(poiId);

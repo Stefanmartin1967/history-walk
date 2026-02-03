@@ -270,35 +270,97 @@
         </div>
     </div>
 
+    <!-- ANCIENNE MODALE SIMPLE (Remplacée par Rich Modal, mais gardée en cas de rollback urgent ou usage legacy) -->
     <div id="add-poi-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="max-width: 350px;">
+             <!-- Contenu Legacy -->
+        </div>
+    </div>
+
+    <!-- NOUVELLE MODALE RICHE (ADMIN / CREATION) -->
+    <div id="rich-poi-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 50px; overflow-y: auto;">
+        <div class="modal-content" style="max-width: 600px; width: 95%; margin-bottom: 50px;">
             <div class="modal-header">
-                <h2>Nouveau Lieu</h2>
-                <button id="close-add-poi-modal" class="header-btn"><i data-lucide="x"></i></button>
+                <h2 id="rich-poi-modal-title">Éditer le Lieu</h2>
+                <button id="close-rich-poi-modal" class="header-btn"><i data-lucide="x"></i></button>
             </div>
             <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; padding-top: 20px;">
 
+                <!-- Ligne 1 : Noms -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                        <label for="rich-poi-name-fr" style="font-weight: 600;">Nom (FR)*</label>
+                        <input type="text" id="rich-poi-name-fr" class="editable-input" style="padding: 10px;">
+                    </div>
+                    <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                        <label for="rich-poi-name-ar" style="font-weight: 600;">Nom (AR)</label>
+                        <input type="text" id="rich-poi-name-ar" class="editable-input" style="padding: 10px; text-align: right;" placeholder="الاسم بالعربية">
+                    </div>
+                </div>
+
+                <!-- Ligne 2 : Catégorie & Zone -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                        <label for="rich-poi-category" style="font-weight: 600;">Catégorie</label>
+                        <select id="rich-poi-category" class="editable-input" style="padding: 10px; background: var(--surface);">
+                            <!-- Rempli par JS -->
+                        </select>
+                    </div>
+                    <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                        <label for="rich-poi-zone" style="font-weight: 600;">Zone</label>
+                        <input type="text" id="rich-poi-zone" class="editable-input" style="padding: 10px;" placeholder="Ex: Houmt Souk">
+                    </div>
+                </div>
+
+                <!-- Descriptions -->
                 <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
-                    <label for="new-poi-name" style="font-weight: 600;">Nom du lieu</label>
-                    <input type="text" id="new-poi-name" class="editable-input" placeholder="Ex: Mosquée du centre..."
-                        style="padding: 12px;">
+                    <label for="rich-poi-desc-short" style="font-weight: 600;">Description Courte (Résumé)</label>
+                    <input type="text" id="rich-poi-desc-short" class="editable-input" style="padding: 10px;" placeholder="Apparaît dans la liste...">
                 </div>
 
                 <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
-                    <label for="new-poi-category" style="font-weight: 600;">Catégorie</label>
-                    <select id="new-poi-category" class="editable-input"
-                        style="padding: 12px; background: var(--surface);">
-                    </select>
+                    <label for="rich-poi-desc-long" style="font-weight: 600;">Description Complète</label>
+                    <textarea id="rich-poi-desc-long" class="editable-input" rows="4" style="padding: 10px;"></textarea>
                 </div>
 
-                <div
-                    style="font-size: 12px; color: var(--ink-soft); background: var(--surface-muted); padding: 8px; border-radius: 8px;">
-                    📍 GPS : <span id="new-poi-coords">En attente...</span>
+                <!-- Infos Pratiques -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--surface-muted); padding: 10px; border-radius: 8px;">
+                    <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                        <label style="font-weight: 600;">Temps de visite</label>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="number" id="rich-poi-time-h" class="editable-input" placeholder="H" style="width: 50px; text-align: center;"> h
+                            <input type="number" id="rich-poi-time-m" class="editable-input" placeholder="M" style="width: 50px; text-align: center;"> min
+                        </div>
+                    </div>
+                    <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                        <label for="rich-poi-price" style="font-weight: 600;">Prix (TND)</label>
+                        <input type="number" id="rich-poi-price" class="editable-input" placeholder="0" step="0.5">
+                    </div>
                 </div>
 
-                <button id="btn-confirm-add-poi" class="action-btn-large" style="margin-top: 10px;">
-                    <i data-lucide="save"></i> Enregistrer
-                </button>
+                <!-- Source & Notes -->
+                <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                    <label for="rich-poi-source" style="font-weight: 600;">Source (URL ou Texte)</label>
+                    <input type="text" id="rich-poi-source" class="editable-input" style="padding: 10px;" placeholder="https://...">
+                </div>
+
+                <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
+                    <label for="rich-poi-notes" style="font-weight: 600; color: var(--brand);">Notes Admin (Privé)</label>
+                    <textarea id="rich-poi-notes" class="editable-input" rows="2" style="padding: 10px; border-color: var(--brand-light);"></textarea>
+                </div>
+
+                <!-- Footer -->
+                <div style="font-size: 12px; color: var(--ink-soft); text-align: right;">
+                    📍 GPS : <span id="rich-poi-coords">...</span>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="btn-cancel-rich-poi" class="action-btn" style="flex: 1; background: var(--surface-muted); color: var(--ink);">Annuler</button>
+                    <button id="btn-save-rich-poi" class="action-btn" style="flex: 2; background: var(--brand); color: white;">
+                        <i data-lucide="save"></i> Enregistrer
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>
