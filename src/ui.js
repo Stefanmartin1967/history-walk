@@ -1,13 +1,13 @@
 // ui.js
 import { state, POI_CATEGORIES } from './state.js';
 import { getPoiId, getPoiName, applyFilters, updatePoiData } from './data.js';
-import { restoreCircuit } from './database.js';
+import { restoreCircuit, saveAppState } from './database.js';
 import { escapeXml } from './gpx.js';
 import { eventBus } from './events.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';
 import { map } from './map.js';
-import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList } from './mobile.js';
+import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList, switchMobileView } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
@@ -60,6 +60,10 @@ export function initializeDomReferences() {
         DOM.btnBmc.addEventListener('click', () => {
             window.open('https://www.buymeacoffee.com/history_walk', '_blank');
         });
+    }
+
+    if (DOM.btnModeSelection) {
+        updateSelectionModeButton(state.isSelectionModeActive);
     }
 
     DOM.tabButtons = document.querySelectorAll('.tab-button');
@@ -252,11 +256,7 @@ if (chkInc) {
     const softDeleteBtn = document.getElementById('btn-soft-delete');
     if (softDeleteBtn) {
         softDeleteBtn.addEventListener('click', () => {
-            if (typeof window.requestSoftDelete === 'function') {
-                window.requestSoftDelete(state.currentFeatureId);
-            } else {
-                showToast("Erreur: Fonction de suppression non chargée.", "error");
-            }
+            requestSoftDelete(state.currentFeatureId);
         });
     }
 
@@ -650,4 +650,41 @@ export function openRestoreModal() {
             eventBus.emit('circuit:list-updated');
         };
     });
+}
+
+// --- FONCTION DE SUPPRESSION DOUCE (Déplacée de main.js) ---
+export async function requestSoftDelete(idOrIndex) {
+    let feature;
+    if (typeof idOrIndex === 'number' && state.loadedFeatures[idOrIndex]) {
+        feature = state.loadedFeatures[idOrIndex];
+    } else {
+        feature = state.loadedFeatures[state.currentFeatureId];
+    }
+    if (!feature) return;
+
+    let poiId;
+    try { poiId = getPoiId(feature); } catch (e) { poiId = feature.properties.HW_ID || feature.id; }
+    const poiName = feature.properties['Nom du site FR'] || feature.properties['Nom du site AR'] || "ce lieu";
+
+    const msg = isMobileView()
+        ? `ATTENTION !\n\nVoulez-vous vraiment placer "${poiName}" dans la corbeille ?`
+        : `ATTENTION !\n\nVoulez-vous vraiment signaler "${poiName}" pour suppression ?`;
+
+    if (await showConfirm("Suppression", msg, "Supprimer", "Garder", true)) {
+        if (!state.hiddenPoiIds) state.hiddenPoiIds = [];
+        if (!state.hiddenPoiIds.includes(poiId)) {
+            state.hiddenPoiIds.push(poiId);
+        }
+        await saveAppState(`hiddenPois_${state.currentMapId}`, state.hiddenPoiIds);
+
+        // On ferme le panneau
+        closeDetailsPanel(true);
+
+        // Refresh selon mode
+        if (isMobileView()) {
+            switchMobileView('circuits'); // Refresh liste
+        } else {
+            applyFilters();
+        }
+    }
 }

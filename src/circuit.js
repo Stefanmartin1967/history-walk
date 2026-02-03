@@ -345,24 +345,6 @@ export function navigatePoiDetails(direction) {
     }
 }
 
-export function updateCircuitForm(data) {
-    if (DOM.circuitTitleText) DOM.circuitTitleText.textContent = data.name || 'Circuit chargé';
-    if (DOM.circuitDescription) DOM.circuitDescription.value = data.description || '';
-
-    // Remplissage des transports
-    const fields = {
-        'transport-aller-temps': data.transport?.allerTemps,
-        'transport-aller-cout': data.transport?.allerCout,
-        'transport-retour-temps': data.transport?.retourTemps,
-        'transport-retour-cout': data.transport?.retourCout
-    };
-
-    for (const [id, value] of Object.entries(fields)) {
-        const el = document.getElementById(id);
-        if (el) el.value = value || '';
-    }
-}
-
 // --- LE CHEF D'ORCHESTRE (Traducteur pour la carte) ---
 export function notifyCircuitChanged() {
     const event = new CustomEvent('circuit:updated', {
