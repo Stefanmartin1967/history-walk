@@ -266,10 +266,10 @@ export function renderExplorerList() {
             const distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
             const iconName = c.realTrack ? 'footprints' : 'bird';
 
-            // Visual indicator for "Visited" (Checkmark)
-            const visitedIndicator = c.allVisited
-                ? `<span style="color:var(--ok); margin-left:5px;"><i data-lucide="check-check" style="width:14px; height:14px;"></i></span>`
-                : '';
+            // Si le circuit est terminé, on remplace le compteur de POI par une case à cocher
+            const metaInfo = c.allVisited
+                ? `<span style="color:var(--ok); font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i data-lucide="check-square" style="width:14px; height:14px;"></i> Fait</span>`
+                : `${c.poiCount} POI`;
 
             const actionsHtml = `
                 <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
@@ -280,10 +280,10 @@ export function renderExplorerList() {
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
                     <div class="explorer-item-name" title="${escapeXml(c.name)}">
-                        ${escapeXml(displayName)} ${visitedIndicator}
+                        ${escapeXml(displayName)}
                     </div>
                     <div class="explorer-item-meta">
-                        ${c.poiCount} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}
+                        ${metaInfo} • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}
                     </div>
                 </div>
                 ${actionsHtml}
