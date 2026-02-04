@@ -286,25 +286,10 @@ export function setupDesktopTools() {
         });
     }
 
-    // 2. Menu Outils (Dropdown)
-    const btnTools = document.getElementById('btn-tools-menu');
-    const toolsMenu = document.getElementById('tools-menu-content');
+    // 2. Menu Outils (Dropdown) - GÉRÉ DANS ui.js (initializeDomReferences)
+    // Ne pas dupliquer l'écouteur ici !
 
-    if (btnTools && toolsMenu) {
-        btnTools.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isActive = toolsMenu.classList.contains('active');
-            closeAllDropdowns();
-            if (!isActive) toolsMenu.classList.add('active');
-        });
-
-        // Fermeture au clic ailleurs
-        document.addEventListener('click', (e) => {
-            if (!toolsMenu.contains(e.target) && !btnTools.contains(e.target)) {
-                toolsMenu.classList.remove('active');
-            }
-        });
-    }
+    // La fermeture au clic ailleurs est aussi gérée globalement dans main.js/setupDesktopUIListeners
 
     // 3. Initialisation du Wizard
     const btnStart = document.getElementById('btn-wizard-start');

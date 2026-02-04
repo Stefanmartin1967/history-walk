@@ -116,8 +116,14 @@ export function closeAllDropdowns() {
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.style.display = 'none'; // Pour ceux qui utilisent style.display
-            el.classList.remove('active'); // Pour ceux qui utilisent class active
+            // Pour les menus gérés par classe CSS (Outils / Admin), on retire le style inline qui bloque la classe active
+            if (id === 'tools-menu-content' || id === 'admin-menu-content') {
+                el.style.display = '';
+            } else {
+                // Pour les autres (Zones / Catégories), on utilise display: none
+                el.style.display = 'none';
+            }
+            el.classList.remove('active');
         }
     });
 }
