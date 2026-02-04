@@ -6290,7 +6290,7 @@
         "Nom du site FR": "Restaurant Cobry",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Guellala"
       }
     },
     {
@@ -6307,7 +6307,7 @@
         "Nom du site FR": "Chez Adel",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Sedouikech"
       }
     },
     {
@@ -6324,7 +6324,7 @@
         "Nom du site FR": "Chez Chouchou",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Taguermess"
       }
     },
     {
@@ -6341,7 +6341,7 @@
         "Nom du site FR": "Grillades Zammouri",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Taguermess"
       }
     },
     {
@@ -6358,7 +6358,7 @@
         "Nom du site FR": "El Ghorfa",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Houmt Souk"
       }
     },
     {
@@ -6375,7 +6375,7 @@
         "Nom du site FR": "Le bistrot Djerba",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Taguermess"
       }
     },
     {
@@ -6392,7 +6392,7 @@
         "Nom du site FR": "El Ghorfa",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Houmt Souk"
       }
     },
     {
@@ -6409,7 +6409,7 @@
         "Nom du site FR": "Les palmiers",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir",
+        "Zone": "Taguermess",
         "Description": "Entre autre plat, on y trouve la souris d'agneau"
       }
     },
@@ -6427,7 +6427,7 @@
         "Nom du site FR": "Restaurant La Clémence",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir",
+        "Zone": "Midoun",
         "Description": "Véritable cuisine Djerbienne"
       }
     },
@@ -6445,7 +6445,7 @@
         "Nom du site FR": "Café Restaurant Santorini",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir",
+        "Zone": "Mezraya",
         "Description": "Restaurant situé face à la mer"
       }
     },
@@ -6463,7 +6463,7 @@
         "Nom du site FR": "La paillot de pirate",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Houmt Souk"
       }
     },
     {
@@ -6480,7 +6480,7 @@
         "Nom du site FR": "L'autre monde",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Mezraya"
       }
     },
     {
@@ -6497,7 +6497,7 @@
         "Nom du site FR": "Restaurant la lagune",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir",
+        "Zone": "Taguermess",
         "Description": "Restaurant situé en bord de mer, sur la plage"
       }
     },
@@ -6515,7 +6515,7 @@
         "Nom du site FR": "Restaurant Port D'Aghir",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir",
+        "Zone": "Sedouikech",
         "Description": "Restaurant de bord de plage, face à la mer"
       }
     },
@@ -6533,7 +6533,7 @@
         "Nom du site FR": "Restaurant La Mamma",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Midoun"
       }
     },
     {
@@ -6550,7 +6550,7 @@
         "Nom du site FR": "Restaurant Grill La Perla",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-        "Zone": "A définir"
+        "Zone": "Taguermess"
       }
     }
   ]

@@ -40,6 +40,7 @@ let currentMode = 'CREATE'; // 'CREATE' | 'EDIT'
 let currentFeatureId = null; // Pour le mode EDIT
 let currentDraftCoords = null; // Pour le mode CREATE
 let currentPhotos = []; // Pour le mode CREATE (import photos)
+let isDirty = false;
 
 export const RichEditor = {
     /**
@@ -51,7 +52,7 @@ export const RichEditor = {
         if (!modal) return;
 
         // Fermeture
-        document.getElementById(DOM_IDS.BTNS.CLOSE)?.addEventListener('click', RichEditor.close);
+        document.getElementById(DOM_IDS.BTNS.CLOSE)?.addEventListener('click', () => RichEditor.close());
 
         // Hide explicit Cancel and Suggest buttons (New workflow)
         const btnCancel = document.getElementById(DOM_IDS.BTNS.CANCEL);
@@ -66,6 +67,32 @@ export const RichEditor = {
         const newSaveBtn = saveBtn.cloneNode(true);
         saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
         newSaveBtn.addEventListener('click', handleSave);
+
+        // Validation Listeners
+        const validationEvents = ['input', 'change'];
+        const fieldsToCheck = [DOM_IDS.INPUTS.NAME_FR, DOM_IDS.INPUTS.CATEGORY, DOM_IDS.INPUTS.DESC_LONG, DOM_IDS.INPUTS.SOURCE];
+
+        fieldsToCheck.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                validationEvents.forEach(evt => {
+                    el.addEventListener(evt, () => {
+                        updateSaveButtonState();
+                        isDirty = true;
+                    });
+                });
+            }
+        });
+
+        // Dirty tracking for other fields
+        Object.values(DOM_IDS.INPUTS).forEach(id => {
+            if (!fieldsToCheck.includes(id)) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', () => { isDirty = true; });
+                }
+            }
+        });
     },
 
     /**
@@ -85,7 +112,7 @@ export const RichEditor = {
         // Valeurs par défaut
         setValue(DOM_IDS.INPUTS.NAME_FR, "");
         setValue(DOM_IDS.INPUTS.NAME_AR, "");
-        setValue(DOM_IDS.INPUTS.CATEGORY, "A définir");
+        setValue(DOM_IDS.INPUTS.CATEGORY, ""); // Vide par défaut pour forcer le choix
 
         // Zone Automatique
         const autoZone = getZoneFromCoords(lat, lng);
@@ -179,15 +206,23 @@ export const RichEditor = {
         showModal();
     },
 
-    close: () => {
+    close: async () => {
+        if (isDirty) {
+            if (!await showConfirm("Modifications non enregistrées", "Voulez-vous fermer sans enregistrer ?", "Fermer sans sauver", "Annuler", true)) {
+                return;
+            }
+        }
         const modal = document.getElementById(DOM_IDS.MODAL);
         if (modal) modal.style.display = 'none';
+        isDirty = false;
     }
 };
 
 // --- PRIVATE HELPERS ---
 
 function showModal() {
+    isDirty = false; // Reset on open
+    updateSaveButtonState();
     const modal = document.getElementById(DOM_IDS.MODAL);
     if (modal) {
         modal.style.display = 'flex';
@@ -197,15 +232,42 @@ function showModal() {
     }
 }
 
+function updateSaveButtonState() {
+    const saveBtn = document.getElementById(DOM_IDS.BTNS.SAVE);
+    if (!saveBtn) return;
+
+    const name = getValue(DOM_IDS.INPUTS.NAME_FR);
+    const cat = getValue(DOM_IDS.INPUTS.CATEGORY);
+    const desc = getValue(DOM_IDS.INPUTS.DESC_LONG);
+    const source = getValue(DOM_IDS.INPUTS.SOURCE);
+
+    let error = null;
+    if (!name) error = "Le nom est obligatoire";
+    else if (!cat || cat === "A définir") error = "Veuillez sélectionner une catégorie";
+    else if (desc && !source) error = "Source non remplie (obligatoire avec description)";
+
+    if (error) {
+        saveBtn.disabled = true;
+        saveBtn.title = error;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+    } else {
+        saveBtn.disabled = false;
+        saveBtn.title = "Enregistrer";
+        saveBtn.style.opacity = '1';
+        saveBtn.style.cursor = 'pointer';
+    }
+}
+
 function prepareModal(title) {
     const titleEl = document.getElementById(DOM_IDS.TITLE);
     if (titleEl) titleEl.textContent = title;
 
-    // Remplir le select Catégories si vide ou incomplet
+    // Remplir le select Catégories (Toujours reconstruire pour être à jour)
     const catSelect = document.getElementById(DOM_IDS.INPUTS.CATEGORY);
-    if (catSelect && catSelect.options.length <= 1) {
-        catSelect.innerHTML = '';
-        POI_CATEGORIES.forEach(cat => {
+    if (catSelect) {
+        catSelect.innerHTML = '<option value="" disabled selected>Choisir une catégorie...</option>';
+        POI_CATEGORIES.filter(c => c !== "A définir" && c !== "Autre").forEach(cat => {
             const opt = document.createElement('option');
             opt.value = cat;
             opt.textContent = cat;
@@ -262,6 +324,7 @@ async function handleSave() {
         await executeEdit(data);
     }
 
+    isDirty = false; // Prevent warning on successful close
     RichEditor.close();
 }
 
