@@ -18,7 +18,8 @@ import {
     showLegendModal,
     openRestoreModal,
     updateSelectionModeButton,
-    populateCircuitsMenu
+    populateCircuitsMenu,
+    closeAllDropdowns
 } from './ui.js';
 import { showToast } from './toast.js';
 
@@ -78,6 +79,13 @@ function updateAppTitle(mapId) {
 }
 
 async function mergeOfficialCircuits() {
+    // SÉCURITÉ : On ne charge les circuits officiels (Djerba) que si on est sur la carte Djerba
+    // TODO: À l'avenir, structurer circuits.json pour supporter plusieurs cartes
+    if (state.currentMapId !== 'djerba') {
+        console.log(`[Main] Carte '${state.currentMapId}' active : Ignore les circuits officiels (Djerba).`);
+        return;
+    }
+
     try {
         const response = await fetch('./circuits/circuits.json');
         if (response.ok) {
@@ -458,7 +466,11 @@ function setupDesktopUIListeners() {
     document.getElementById('btn-categories')?.addEventListener('click', (e) => {
         e.stopPropagation();
         const cMenu = document.getElementById('categoriesMenu');
-        if (cMenu) cMenu.style.display = cMenu.style.display === 'none' ? 'block' : 'none';
+        if (cMenu) {
+            const isVisible = cMenu.style.display === 'block';
+            closeAllDropdowns();
+            if (!isVisible) cMenu.style.display = 'block';
+        }
     });
 
     // Initialisation du menu
@@ -484,7 +496,11 @@ function setupDesktopUIListeners() {
     document.getElementById('btn-filter-zones')?.addEventListener('click', (e) => {
         e.stopPropagation();
         const zMenu = document.getElementById('zonesMenu');
-        if (zMenu) zMenu.style.display = zMenu.style.display === 'none' ? 'block' : 'none';
+        if (zMenu) {
+            const isVisible = zMenu.style.display === 'block';
+            closeAllDropdowns();
+            if (!isVisible) zMenu.style.display = 'block';
+        }
     });
 
     document.addEventListener('click', (e) => {

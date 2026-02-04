@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { eventBus } from './events.js';
 import { downloadFile } from './utils.js';
 import { showToast } from './toast.js';
+import { closeAllDropdowns } from './ui.js';
 
 export function initAdminMode() {
     eventBus.on('admin:mode-toggled', (isAdmin) => {
@@ -25,7 +26,9 @@ function setupAdminListeners() {
     if (btnMenu && menuContent) {
         btnMenu.addEventListener('click', (e) => {
             e.stopPropagation();
-            menuContent.classList.toggle('active');
+            const isActive = menuContent.classList.contains('active');
+            closeAllDropdowns();
+            if (!isActive) menuContent.classList.add('active');
         });
 
         // Close menu when clicking outside

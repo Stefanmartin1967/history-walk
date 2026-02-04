@@ -131,39 +131,26 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 <div class="edit-controls" style="display:flex; gap:5px; justify-content:flex-end;">
                     ${gmapsButtonHtml}
                     ${adminButtonHtml}
-                    <button class="action-button edit-btn" title="Modifier le nom">${ICONS.pen}</button>
+                    <button class="action-button" id="btn-global-edit" title="Modifier le lieu">${ICONS.pen}</button>
                     <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
-                    <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
-                    <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
                 </div>
             </div>
         </div>
         <div class="panel-content">
             <div class="detail-section editable-field" data-field-id="short_desc">
-                <h3>Description du circuit
-                    <div class="edit-controls section-controls">
-                        <button class="action-button edit-btn">${ICONS.pen}</button>
-                        <button class="action-button save-btn" style="display: none;">${ICONS.check}</button>
-                        <button class="action-button cancel-btn" style="display: none;">${ICONS.x}</button>
-                    </div>
-                </h3>
+                <h3>Description du circuit</h3>
                 <div class="content">
                     <p id="panel-short-desc-display" class="editable-text short-text">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
-                    <input type="text" id="panel-short-desc-input" class="editable-input" style="display: none;" placeholder="Résumé pour l'export GPX..." maxlength="250">
                 </div>
             </div>
             <div class="detail-section editable-field description-section" data-field-id="description">
                 <h3>Description
                     <div class="edit-controls section-controls">
                         <button class="action-button speak-btn">${ICONS.volume}</button>
-                        <button class="action-button edit-btn">${ICONS.pen}</button>
-                        <button class="action-button save-btn" style="display: none;">${ICONS.check}</button>
-                        <button class="action-button cancel-btn" style="display: none;">${ICONS.x}</button>
                     </div>
                 </h3>
                 <div class="content">
                     <div id="panel-description-display" class="description-content editable-text">${(allProps.description || allProps.Description || '').replace(/\n/g, '<br>')}</div>
-                    <textarea id="panel-description-input" class="editable-input" style="display: none;" spellcheck="true"></textarea>
                     ${renderSource(allProps)}
                 </div>
             </div>
@@ -176,17 +163,13 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             <div class="detail-section editable-field notes-section" data-field-id="notes">
-                <h3>Notes Personnelles
+                <h3>Notes
                      <div class="edit-controls section-controls">
                         <button class="action-button speak-btn">${ICONS.volume}</button>
-                        <button class="action-button edit-btn">${ICONS.pen}</button>
-                        <button class="action-button save-btn" style="display: none;">${ICONS.check}</button>
-                        <button class="action-button cancel-btn" style="display: none;">${ICONS.x}</button>
                     </div>
                 </h3>
                 <div class="content">
                     <div id="panel-notes-display" class="description-content editable-text">${(allProps.notes || '').replace(/\n/g, '<br>')}</div>
-                    <textarea id="panel-notes-input" class="editable-input" placeholder="Ajoutez vos notes ici..." style="display:none;"></textarea>
                 </div>
             </div>
             <div class="detail-section photos-section">
@@ -228,32 +211,22 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                              ${gmapsButtonHtml}
                              ${adminButtonHtml}
                              <button id="mobile-move-poi-btn" class="action-button" title="Mettre à jour la position">${ICONS.locate}</button>
-                             <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
+                             <button class="action-button" id="btn-global-edit" title="Tout éditer">${ICONS.pen}</button>
                              <button class="action-button" id="btn-soft-delete" title="Supprimer (Corbeille)" style="color: var(--danger);">${ICONS.trash}</button>
-                             <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
-                             <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="detail-section editable-field" data-field-id="short_desc">
-                <h3>Description du circuit
-                    <div class="edit-controls section-controls">
-                        <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
-                        <button class="action-button save-btn" title="Sauvegarder" style="display: none;">${ICONS.check}</button>
-                        <button class="action-button cancel-btn" title="Annuler" style="display: none;">${ICONS.x}</button>
-                    </div>
-                </h3>
+                <h3>Description du circuit</h3>
                 <div class="content">
                     <p class="editable-text short-text">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
-                    <input type="text" class="editable-input" style="display: none;" placeholder="Résumé pour l'export GPX..." maxlength="250">
                 </div>
             </div>
             <div class="detail-section editable-field description-section" data-field-id="description">
                 <h3>Description
                     <div class="edit-controls section-controls">
                         <button class="action-button speak-btn" title="Lire la description">${ICONS.volume}</button>
-                        <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
                     </div>
                 </h3>
                 <div class="content">
@@ -270,10 +243,9 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             <div class="detail-section editable-field notes-section" data-field-id="notes">
-                <h3>Notes Personnelles
+                <h3>Notes
                     <div class="edit-controls section-controls">
                         <button class="action-button speak-btn" title="Lire les notes">${ICONS.volume}</button>
-                        <button class="action-button edit-btn" title="Éditer">${ICONS.pen}</button>
                     </div>
                 </h3>
                 <div class="content">

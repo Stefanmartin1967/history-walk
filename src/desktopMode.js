@@ -6,7 +6,7 @@ import { addPoiFeature, getPoiId } from './data.js';
 import { state } from './state.js';
 import { saveAppState, savePoiData } from './database.js';
 import { logModification } from './logger.js';
-import { DOM, closeDetailsPanel, openDetailsPanel } from './ui.js';
+import { DOM, closeDetailsPanel, openDetailsPanel, closeAllDropdowns } from './ui.js';
 import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords, clusterByLocation, calculateBarycenter, filterOutliers } from './utils.js';
 import { showToast } from './toast.js';
 import { showConfirm } from './modal.js';
@@ -293,7 +293,9 @@ export function setupDesktopTools() {
     if (btnTools && toolsMenu) {
         btnTools.addEventListener('click', (e) => {
             e.stopPropagation();
-            toolsMenu.classList.toggle('active');
+            const isActive = toolsMenu.classList.contains('active');
+            closeAllDropdowns();
+            if (!isActive) toolsMenu.classList.add('active');
         });
 
         // Fermeture au clic ailleurs
