@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx creator="Wikiloc - https://www.wikiloc.com" version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
-    <name>Circuit de la mosquée Sidi Sayed à l'église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni</name>
+    <name>Circuit de Mosquée Sidi Zayed à Église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni</name>
     <author>
       <name>Stefan Martin</name>
       <link href="https://www.wikiloc.com/wikiloc/user.do?id=9459417">
@@ -9,7 +9,7 @@
       </link>
     </author>
     <link href="https://www.wikiloc.com/hiking-trails/circuit-de-la-mosquee-sidi-sayed-a-leglise-saint-joseph-de-djerba-a-houmt-souk-238926852">
-      <text>Circuit de la mosquée Sidi Sayed à l'église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni on Wikiloc</text>
+      <text>Circuit de Mosquée Sidi Zayed à Église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni on Wikiloc</text>
     </link>
     <time>2025-11-04T15:30:57.956Z</time>
   
@@ -20,7 +20,7 @@
   <wpt lat="33.878142" lon="10.880305">
     <ele>.9</ele>
     <time>2025-11-04T13:26:50.979Z</time>
-    <name>Mosquée Sidi Sayed</name>
+    <name>Mosquée Sidi Zayed</name>
     <cmt>Mosquée au bord de la mer, à proximité de Houmt Souk</cmt>
     <desc>Mosquée au bord de la mer, à proximité de Houmt Souk</desc>
   </wpt>
@@ -111,7 +111,7 @@ Oui, ba9slava, avec un 9, vous m'en direz des nouvelles ...</desc>
     <desc>Eglise catholique construite en 1848 et agrandie en 1855 ur un terrain appartenant à la famillle Ben Ayed, sous la direction du père capucin Gaétant de Ferrera.</desc>
   </wpt>
   <trk>
-    <name>Circuit de la mosquée Sidi Sayed à l'église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni - Wikiloc</name>
+    <name>Circuit de Mosquée Sidi Zayed à Église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni - Wikiloc</name>
     <cmt>Petite balade d'une mosquée de bord de mer vers une des rares églises catholiques de Djerba</cmt>
     <desc>Petite balade d'une mosquée de bord de mer vers une des rares églises catholiques de Djerba</desc>
     <trkseg>
