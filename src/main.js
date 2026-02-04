@@ -513,6 +513,16 @@ function setupDesktopUIListeners() {
             const cMenu = document.getElementById('categoriesMenu');
             if (cMenu) cMenu.style.display = 'none';
         }
+        // Fermeture Tools Menu
+        if (!e.target.closest('#btn-tools-menu') && !e.target.closest('#tools-menu-content')) {
+            const tMenu = document.getElementById('tools-menu-content');
+            if (tMenu) tMenu.classList.remove('active');
+        }
+        // Fermeture Admin Menu
+        if (!e.target.closest('#btn-admin-menu') && !e.target.closest('#admin-menu-content')) {
+            const aMenu = document.getElementById('admin-menu-content');
+            if (aMenu) aMenu.classList.remove('active');
+        }
     });
 
     // Search Desktop

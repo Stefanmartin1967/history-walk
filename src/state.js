@@ -3,7 +3,7 @@ export const APP_VERSION = '3.1.1'; // Version en mode propre !
 export const MAX_CIRCUIT_POINTS = 15;
 
 export const POI_CATEGORIES = [
-    "A définir", "Autre", "Café", "Commerce", "Culture et tradition",
+    "A définir", "Commerce", "Culture et tradition",
     "Curiosité", "Hôtel", "Mosquée", "Parking", "Puits",
     "Restaurant", "Site historique", "Site religieux", "Taxi"
 ].sort();
