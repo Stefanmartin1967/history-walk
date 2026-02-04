@@ -196,7 +196,10 @@ export function renderExplorerList() {
 
         // Legacy distance fix
         let sortDistance = distance;
-        if (c.distance && typeof c.distance === 'string') {
+
+        // Only use the static JSON string if we DON'T have the real track loaded
+        // (Real track calculation is always more accurate than the cached string)
+        if (!c.realTrack && c.distance && typeof c.distance === 'string') {
             const parsed = parseFloat(c.distance.replace(',', '.'));
             if (!isNaN(parsed)) sortDistance = parsed * 1000;
         }
