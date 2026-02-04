@@ -338,6 +338,7 @@ function setupEventBusListeners() {
             console.log(`[Main] Mise à jour Desktop : ${visibleFeatures.length} lieux.`);
             refreshMapMarkers(visibleFeatures);
             populateZonesMenu();
+            populateCategoriesMenu();
         }
     });
 

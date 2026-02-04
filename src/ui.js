@@ -507,9 +507,7 @@ export function populateCategoriesMenu() {
     const menu = document.getElementById('categoriesMenu');
     if (!menu) return;
 
-    menu.innerHTML = '';
-
-    // DYNAMIC CATEGORIES
+    // 1. Déterminer les catégories disponibles (Data Source)
     let categories = [];
     if (state.loadedFeatures && state.loadedFeatures.length > 0) {
         const cats = new Set(
@@ -518,12 +516,27 @@ export function populateCategoriesMenu() {
                 .filter(c => c && c.trim() !== '')
         );
         categories = Array.from(cats).sort();
-
-        // Ensure "A définir" is present if there are undefined ones, or just rely on data
-        // User requested: "Uniquement celles présentes"
     } else {
         categories = POI_CATEGORIES;
     }
+
+    // 2. Vérifier si on doit reconstruire le DOM
+    // On regarde les labels existants pour éviter les rebuilds inutiles (clignotements, scroll reset)
+    const existingLabels = Array.from(menu.querySelectorAll('label')).map(l => l.innerText.trim());
+    const needsRebuild = existingLabels.length !== categories.length ||
+                         !existingLabels.every((l, i) => l === categories[i]);
+
+    if (!needsRebuild) {
+        // MAJ des checkboxes uniquement (Sync avec activeFilters)
+        const checkboxes = menu.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.checked = state.activeFilters.categories.includes(cb.value);
+        });
+        return;
+    }
+
+    // 3. Reconstruction (Si nécessaire)
+    menu.innerHTML = '';
 
     categories.forEach(cat => {
         const wrapper = document.createElement('label');
