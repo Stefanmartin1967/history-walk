@@ -1,5 +1,23 @@
 [
   {
+    "id": "HW-1770223953763",
+    "name": "Circuit de la mosquée Ouilhi à la mosquée Berdaoui via la mosquée Mourou",
+    "file": "djerba/Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou.gpx",
+    "description": "Une des plus ancienne mosquée de Djerba datant du 7ème siècle. Elle a retrouvé son éclat après sa restauration par l'ASSIDJE en collaboration avec l'Association des Architectes de Jerba. Son architecture simle est typique de Djerba. A noter qu'étant entourée de vergers, elle est réputée pour sa production de fruits.",
+    "distance": "0 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770223953764",
+    "name": "Circuit de la mosquée Sidi Sayed à l'église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni",
+    "file": "djerba/Circuit de Mosquée Sidi Zayed à Église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni.gpx",
+    "description": "Mosquée au bord de la mer, à proximité de Houmt Souk",
+    "distance": "0 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
     "id": "HW-1770146081698",
     "name": "Circuit du phare de Taguermess au bar de la plage du Rym Beach",
     "file": "djerba/circuit_de_phare_de_taguermess_rym_beach_via_mosqu_e_ibn_abass.gpx",
