@@ -1,12 +1,16 @@
 [
   {
     "id": "HW-1770223953763",
-    "name": "Circuit de la mosquée Ouilhi à la mosquée Berdaoui via la mosquée Mourou",
+    "name": "Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou",
     "file": "djerba/Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou.gpx",
     "description": "Une des plus ancienne mosquée de Djerba datant du 7ème siècle. Elle a retrouvé son éclat après sa restauration par l'ASSIDJE en collaboration avec l'Association des Architectes de Jerba. Son architecture simle est typique de Djerba. A noter qu'étant entourée de vergers, elle est réputée pour sa production de fruits.",
     "distance": "0 km",
     "isOfficial": true,
-    "poiIds": []
+    "poiIds": [
+      "HW-01K77WPE6MXA1DKNG7R2XWZQGJ",
+      "HW-01K77WPE6N6A0YBFFKMQQNQH0E",
+      "HW-01K77WPE6N6HF86MYJNJWFPNSV"
+    ]
   },
   {
     "id": "HW-1770223953764",
@@ -15,7 +19,11 @@
     "description": "Mosquée au bord de la mer, à proximité de Houmt Souk",
     "distance": "0 km",
     "isOfficial": true,
-    "poiIds": []
+    "poiIds": [
+      "HW-01K77WPE6F9K1DFXDYCR7CPAWN",
+      "HW-01K77WPE6GQX3PRD8TAKTDRNSZ",
+      "HW-01K77WPE6HV1767JVPMV1000YQ"
+    ]
   },
   {
     "id": "HW-1770146081698",
