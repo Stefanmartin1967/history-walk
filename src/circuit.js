@@ -9,7 +9,7 @@ import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './data
 import { isMobileView, renderMobilePoiList } from './mobile.js';
 import * as View from './circuit-view.js';
 import { showToast } from './toast.js';
-import { showConfirm, showAlert } from './modal.js';
+import { showConfirm, showAlert, showPrompt } from './modal.js';
 import { performCircuitDeletion } from './circuit-actions.js';
 import { eventBus } from './events.js';
 import QRCode from 'qrcode';
@@ -706,15 +706,22 @@ export function setupCircuitEventListeners() {
 
     const btnEditTitle = document.getElementById('edit-circuit-title-button');
     if (btnEditTitle) {
-        btnEditTitle.addEventListener('click', () => {
+        btnEditTitle.addEventListener('click', async () => {
              const currentTitle = DOM.circuitTitleText ? DOM.circuitTitleText.textContent : "";
-             const newTitle = prompt("Entrez le titre du circuit :", currentTitle);
+             const newTitle = await showPrompt("Renommer le circuit", "Nouveau titre :", currentTitle);
+
              if (newTitle !== null && newTitle.trim() !== "") {
                  const trimmed = newTitle.trim();
 
                  if (state.activeCircuitId) {
                      const idx = state.myCircuits.findIndex(c => c.id === state.activeCircuitId);
-                     if (idx > -1) state.myCircuits[idx].name = trimmed;
+                     if (idx > -1) {
+                         state.myCircuits[idx].name = trimmed;
+                         // SAUVEGARDE PERMANENTE
+                         await saveCircuit(state.myCircuits[idx]);
+                         showToast("Titre du circuit mis à jour", "success");
+                         eventBus.emit('circuit:list-updated');
+                     }
                  } else {
                      state.customDraftName = trimmed;
                  }

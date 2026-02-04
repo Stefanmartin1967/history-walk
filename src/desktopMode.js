@@ -2,7 +2,7 @@ import { getZonesData } from './circuit-actions.js';
 import { applyFilters } from './data.js';
 import { toggleSelectionMode, clearCircuit } from './circuit.js';
 import { map } from './map.js';
-import { addPoiFeature, getPoiId } from './data.js';
+import { addPoiFeature, getPoiId, updatePoiData } from './data.js';
 import { state } from './state.js';
 import { saveAppState, savePoiData } from './database.js';
 import { logModification } from './logger.js';
@@ -61,8 +61,8 @@ export async function handleDesktopPhotoImport(filesList) {
         }
 
         // --- ETAPE 2 : CLUSTERING (Regroupement) ---
-        // On groupe les photos distantes de moins de 50m
-        const clusters = clusterByLocation(validItems, 50);
+        // On groupe les photos distantes de moins de 80m (augmenté pour éviter le split abusif)
+        const clusters = clusterByLocation(validItems, 80);
 
         // On trie par taille : Les plus gros groupes d'abord ("Majorité")
         clusters.sort((a, b) => b.length - a.length);
@@ -83,7 +83,6 @@ export async function handleDesktopPhotoImport(filesList) {
                 // On garde le noyau principal
                 cluster = main;
                 // On ajoute les outliers comme un nouveau groupe à traiter plus tard
-                // (Ils seront ajoutés à la fin du tableau 'clusters', donc la boucle les traitera)
                 clusters.push(outliers);
 
                 showToast(`${outliers.length} photos écartées du groupe principal (distance excessive).`, "info");
@@ -96,56 +95,63 @@ export async function handleDesktopPhotoImport(filesList) {
             // Centrage Carte
             if (map) map.flyTo([center.lat, center.lng], 18, { duration: 1.0 });
 
-            // Recherche POI proche du BARYCENTRE de ce groupe
-            let nearestPoi = null;
-            let minDistance = 100; // Rayon de recherche 100m
-
+            // Recherche TOUS les POIs proches du BARYCENTRE (< 100m)
+            let nearbyPois = [];
             state.loadedFeatures.forEach(feature => {
-                // IGNORER LES POIS SUPPRIMÉS (Soft Delete)
                 const pId = getPoiId(feature);
                 if (state.hiddenPoiIds && state.hiddenPoiIds.includes(pId)) return;
 
                 if (feature.geometry && feature.geometry.coordinates) {
                     const [fLng, fLat] = feature.geometry.coordinates;
                     const dist = calculateDistance(center.lat, center.lng, fLat, fLng);
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        nearestPoi = feature;
+                    if (dist < 100) {
+                        nearbyPois.push({ feature, dist });
                     }
                 }
             });
 
-            if (nearestPoi) {
-                // CAS A : POI EXISTANT TROUVÉ
-                const poiName = getPoiName(nearestPoi);
+            // Tri par distance croissante
+            nearbyPois.sort((a, b) => a.dist - b.dist);
 
+            let assigned = false;
+
+            // CAS A : PROPOSITIONS ITÉRATIVES
+            if (nearbyPois.length > 0) {
                 if (loader) loader.style.display = 'none';
 
-                const confirmAdd = await showConfirm(
-                    "Ajout Photos",
-                    `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) détecté(es) près de "${poiName}" (${Math.round(minDistance)}m).\n\n` +
-                    `Voulez-vous les AJOUTER à ce lieu ?\n` +
-                    `(Annuler = Vérifier si création nécessaire)`,
-                    "Ajouter",
-                    "Vérifier"
-                );
+                for (let k = 0; k < nearbyPois.length; k++) {
+                    const { feature, dist } = nearbyPois[k];
+                    const poiName = getPoiName(feature);
 
-                if (confirmAdd) {
-                    if (loader) loader.style.display = 'flex';
-                    await addPhotosToPoi(nearestPoi, cluster);
-                    processedCount += cluster.length;
-                    continue; // On passe au cluster suivant
+                    const confirmAdd = await showConfirm(
+                        "Ajout Photos",
+                        `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) détecté(es) près de :\n` +
+                        `"${poiName}" (${Math.round(dist)}m).\n\n` +
+                        `Voulez-vous les AJOUTER à ce lieu ?\n` +
+                        (k < nearbyPois.length - 1 ? `(Vérifier = Voir le suivant)` : `(Vérifier = Créer nouveau)`),
+                        "Ajouter",
+                        "Vérifier"
+                    );
+
+                    if (confirmAdd) {
+                        if (loader) loader.style.display = 'flex';
+                        await addPhotosToPoi(feature, cluster);
+                        processedCount += cluster.length;
+                        assigned = true;
+                        break; // Sort de la boucle des POIs proches
+                    }
+                    // Si refus, on passe au POI suivant
                 }
+
+                if (assigned) continue; // On passe au cluster suivant
             }
 
-            // CAS B : PAS DE POI PROCHE OU REFUS D'AJOUT -> PROPOSITION DE CRÉATION
-            // On vérifie une dernière fois avec l'utilisateur
+            // CAS B : PAS DE POI PROCHE OU TOUS REFUSÉS -> PROPOSITION DE CRÉATION
             if (loader) loader.style.display = 'none';
 
             const confirmCreate = await showConfirm(
                 "Nouveau Lieu ?",
-                `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) à une position non rattachée.\n` +
-                `Aucun lieu correspondant accepté.\n\n` +
+                `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) non rattachées.\n` +
                 `Créer un NOUVEAU lieu ici ?`,
                 "Créer",
                 "Passer"
@@ -153,15 +159,10 @@ export async function handleDesktopPhotoImport(filesList) {
 
             if (confirmCreate) {
                 if (loader) loader.style.display = 'none';
-                // On lance la création
                 createDraftMarker(center.lat, center.lng, map, cluster);
-
                 showToast(`Placez le marqueur pour le groupe ${i+1}. L'import s'arrête ici.`, 'info');
-                // IMPORTANT : On doit arrêter la boucle ici car la création est manuelle
-                // L'utilisateur devra relancer l'import pour les autres groupes s'il y en a.
                 return;
             }
-            // Si refus de création, on ignore ce groupe et on passe au suivant (boucle continue)
         }
 
         if (loader) loader.style.display = 'none';
@@ -209,7 +210,8 @@ async function addPhotosToPoi(feature, clusterItems) {
     }
 
     if (added > 0) {
-        await savePoiData(state.currentMapId, poiId, state.userData[poiId]);
+        // Utilisation de updatePoiData pour garantir la sync Mémoire + DB + UI
+        await updatePoiData(poiId, 'photos', state.userData[poiId].photos);
         showToast(`${added} photos ajoutées (${duplicates} ignorées).`, 'success');
         
         // Refresh UI
