@@ -183,7 +183,28 @@ async function initializeApp() {
 
     // 1. Initialisation de base
     const versionEl = document.getElementById('app-version');
-    if (versionEl) versionEl.textContent = APP_VERSION;
+    if (versionEl) {
+        versionEl.textContent = APP_VERSION;
+
+        // GOD MODE TRIGGER (7 Clicks)
+        let clickCount = 0;
+        let clickTimeout;
+        versionEl.addEventListener('click', () => {
+            clickCount++;
+            clearTimeout(clickTimeout);
+
+            if (clickCount >= 7) {
+                state.isAdmin = !state.isAdmin;
+                showToast(`Mode GOD : ${state.isAdmin ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`, state.isAdmin ? 'success' : 'info');
+                import('./events.js').then(({ eventBus }) => eventBus.emit('admin:mode-toggled', state.isAdmin));
+                clickCount = 0;
+            } else {
+                clickTimeout = setTimeout(() => { clickCount = 0; }, 2000);
+            }
+        });
+        versionEl.style.cursor = 'pointer';
+        versionEl.title = "Cliquez 7 fois pour le mode Admin";
+    }
 
     initAdminMode(); // Initialisation des écouteurs Admin (God Mode)
     initializeDomReferences();
@@ -257,11 +278,8 @@ async function initializeApp() {
     function setupGlobalEventListeners() {
         console.log("[Main] Branchement des boutons de la Tour de Contrôle...");
 
-        // Bouton "Créer un circuit"
-        const btnSelect = document.getElementById('btn-select-mode');
-        if (btnSelect) {
-            btnSelect.addEventListener('click', () => toggleSelectionMode());
-        }
+        // Bouton "Créer un circuit" (Géré par desktopMode.js via btn-mode-selection)
+        // L'ancien btn-select-mode n'existe plus dans le DOM
 
         // Bouton "Vider le circuit"
         const btnClear = document.getElementById('btn-clear-circuit');

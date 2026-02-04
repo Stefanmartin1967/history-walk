@@ -13,10 +13,12 @@ import QRCode from 'qrcode';
 import { zonesData } from './zones.js';
 import { showToast } from './toast.js';
 import { showConfirm } from './modal.js';
+import { getSearchResults } from './search.js';
 
 let currentView = 'circuits'; 
 let mobileSort = 'date_desc'; // date_desc, date_asc, dist_asc, dist_desc
 let mobileFilterResto = false;
+// Note: state.activeFilters.zone is used for Zone filtering
 
 export function isMobileView() {
     return window.innerWidth <= 768;
@@ -250,6 +252,15 @@ export function renderMobileCircuitsList() {
     if (mobileFilterResto) {
         enrichedCircuits = enrichedCircuits.filter(c => c._hasRestaurant);
     }
+    if (state.activeFilters && state.activeFilters.zone) {
+        enrichedCircuits = enrichedCircuits.filter(c => {
+            if (c._validPois.length === 0) return false;
+            const startPoi = c._validPois[0];
+            const [lng, lat] = startPoi.geometry.coordinates;
+            const z = getZoneFromCoords(lat, lng);
+            return z === state.activeFilters.zone;
+        });
+    }
 
     // 4. Tri
     if (mobileSort === 'date_desc') {
@@ -413,6 +424,8 @@ function renderMobileToolbar() {
         ? (mobileSort === 'dist_desc' ? 'arrow-up-1-0' : 'arrow-down-0-1')
         : 'ruler';
 
+    const zoneActive = !!state.activeFilters.zone;
+
     toolbar.innerHTML = `
         <button id="mob-sort-date" class="toolbar-btn ${mobileSort.startsWith('date') ? 'active' : ''}">
             <i data-lucide="${dateIcon}"></i>
@@ -421,6 +434,9 @@ function renderMobileToolbar() {
             <i data-lucide="${distIcon}"></i>
         </button>
         <div class="toolbar-sep"></div>
+        <button id="mob-filter-zone" class="toolbar-btn ${zoneActive ? 'active' : ''}">
+            <i data-lucide="map-pin"></i>
+        </button>
         <button id="mob-filter-resto" class="toolbar-btn ${mobileFilterResto ? 'active' : ''}">
             <i data-lucide="utensils"></i>
         </button>
@@ -444,6 +460,9 @@ function renderMobileToolbar() {
         mobileSort = (mobileSort === 'dist_asc') ? 'dist_desc' : 'dist_asc';
         renderMobileCircuitsList();
     };
+    document.getElementById('mob-filter-zone').onclick = () => {
+        renderMobileZonesMenu();
+    };
     document.getElementById('mob-filter-resto').onclick = () => {
         mobileFilterResto = !mobileFilterResto;
         renderMobileCircuitsList();
@@ -460,6 +479,79 @@ function renderMobileToolbar() {
         state.filterCompleted = false;
         renderMobileCircuitsList();
     };
+}
+
+function renderMobileZonesMenu() {
+    // 1. Calcul des zones disponibles basées sur les circuits
+    const zonesMap = {};
+    const officialCircuits = state.officialCircuits || [];
+    const localCircuits = state.myCircuits || [];
+    const allCircuits = [...officialCircuits, ...localCircuits];
+
+    allCircuits.forEach(c => {
+        const validPois = c.poiIds
+            .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
+            .filter(f => f);
+
+        if (validPois.length > 0) {
+            const startPoi = validPois[0];
+            const [lng, lat] = startPoi.geometry.coordinates;
+            const z = getZoneFromCoords(lat, lng);
+            if (z) {
+                zonesMap[z] = (zonesMap[z] || 0) + 1;
+            }
+        }
+    });
+
+    const sortedZones = Object.keys(zonesMap).sort();
+
+    // 2. Construction de la modale
+    const content = document.createElement('div');
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.gap = '10px';
+    content.style.maxHeight = '60vh';
+    content.style.overflowY = 'auto';
+
+    // Option "Toutes"
+    const btnAll = document.createElement('button');
+    btnAll.className = 'mobile-list-item';
+    btnAll.innerHTML = `<span>Toutes les zones</span>`;
+    btnAll.onclick = () => {
+        state.activeFilters.zone = null;
+        renderMobileCircuitsList();
+        document.getElementById('custom-modal-overlay').classList.remove('active');
+    };
+    content.appendChild(btnAll);
+
+    sortedZones.forEach(zone => {
+        const btn = document.createElement('button');
+        btn.className = 'mobile-list-item';
+        btn.innerHTML = `<span style="flex:1;">${zone}</span> <span style="font-weight:bold; color:var(--ink-soft);">${zonesMap[zone]}</span>`;
+        if (state.activeFilters.zone === zone) {
+            btn.style.border = '2px solid var(--brand)';
+        }
+        btn.onclick = () => {
+            state.activeFilters.zone = zone;
+            renderMobileCircuitsList();
+            document.getElementById('custom-modal-overlay').classList.remove('active');
+        };
+        content.appendChild(btn);
+    });
+
+    // 3. Affichage via showConfirm (Hack) ou Custom Modal direct
+    // On utilise le Custom Modal direct pour plus de flexibilité
+    const modal = document.getElementById('custom-modal-overlay');
+    const titleEl = document.getElementById('custom-modal-title');
+    const msgEl = document.getElementById('custom-modal-message');
+    const actionsEl = document.getElementById('custom-modal-actions');
+
+    titleEl.textContent = "Filtrer par Zone";
+    msgEl.innerHTML = '';
+    msgEl.appendChild(content);
+    actionsEl.innerHTML = `<button class="custom-modal-btn secondary" onclick="document.getElementById('custom-modal-overlay').classList.remove('active')">Fermer</button>`;
+
+    modal.classList.add('active');
 }
 
 export function renderMobilePoiList(features) {
@@ -664,18 +756,13 @@ export function renderMobileSearch() {
     const resultsContainer = document.getElementById('mobile-search-results');
 
     input.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        if (term.length < 2) {
+        const term = e.target.value;
+        if (!term || term.length < 2) {
             resultsContainer.innerHTML = '';
             return;
         }
 
-        const matches = state.loadedFeatures.filter(f => {
-            const name = getPoiName(f).toLowerCase();
-            const id = getPoiId(f);
-            if (state.hiddenPoiIds && state.hiddenPoiIds.includes(id)) return false;
-            return name.includes(term);
-        });
+        const matches = getSearchResults(term);
 
         let html = '';
         matches.forEach(f => {
@@ -730,7 +817,7 @@ export function renderMobileMenu() {
             </button>
             <button class="mobile-list-item" id="mob-action-save">
                 <i data-lucide="save"></i>
-                <span>Sauvegarder</span>
+                <span>Sauvegarder (.txt)</span>
             </button>
             <div style="height:1px; background:var(--line); margin:10px 0;"></div>
              <button class="mobile-list-item" id="mob-action-geojson">
