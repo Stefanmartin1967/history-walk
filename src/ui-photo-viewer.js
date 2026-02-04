@@ -89,14 +89,20 @@ export function setupPhotoPanelListeners(poiId) {
 
     document.querySelectorAll('.photo-delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            if(!await showConfirm("Suppression", "Voulez-vous vraiment supprimer cette photo ?", "Supprimer", "Conserver", true)) return;
+            e.stopPropagation(); // Empêche le clic de remonter
 
+            // On récupère l'index
             const index = parseInt(e.currentTarget.dataset.index, 10);
+
+            if(!await showConfirm("Suppression", "Voulez-vous vraiment supprimer cette photo ?", "Supprimer", "Conserver", true)) return;
 
             const success = await handlePhotoDeletion(poiId, index);
 
             if (success) {
+                showToast("Photo supprimée", "success");
                 openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
+            } else {
+                showToast("Erreur lors de la suppression", "error");
             }
         });
     });

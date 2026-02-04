@@ -57,6 +57,8 @@ function processDirectory(mapId) {
         const nameMatch = content.match(/<name>(.*?)<\/name>/);
         if (nameMatch) {
             name = nameMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1'); // Handle CDATA
+            // CLEANUP: Remove Wikiloc branding
+            name = name.replace(/^Wikiloc\s*-\s*/i, '').replace(/Wikiloc/gi, '').trim();
         }
 
         // Extract Description

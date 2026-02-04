@@ -71,6 +71,74 @@ export function showConfirm(titleText, messageText, confirmLabel = "Oui", cancel
 }
 
 /**
+ * Affiche une modale de saisie de texte (Input).
+ * @param {string} titleText
+ * @param {string} messageText
+ * @param {string} defaultValue
+ * @returns {Promise<string|null>} - La valeur saisie ou null si annulé.
+ */
+export function showPrompt(titleText, messageText, defaultValue = "") {
+    return new Promise((resolve) => {
+        const { overlay, title, message, actions } = getElements();
+
+        if (!overlay) {
+            return resolve(window.prompt(messageText, defaultValue));
+        }
+
+        activeResolve = resolve;
+
+        title.textContent = titleText;
+        // On construit le HTML : Message + Input
+        message.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <span>${messageText}</span>
+                <input type="text" id="custom-modal-input" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:16px;">
+            </div>
+        `;
+
+        // Sécurité : Assignation via propriété (et non attribut HTML) pour éviter XSS et problèmes de quotes
+        const inputField = document.getElementById('custom-modal-input');
+        if (inputField) inputField.value = defaultValue;
+        actions.innerHTML = '';
+
+        const input = document.getElementById('custom-modal-input'); // Sera dispo après l'ajout au DOM via innerHTML ? Non, il faut append.
+        // innerHTML est synchrone, donc le DOM est mis à jour immédiatement mais getElementById doit chercher dans le document.
+        // Comme 'message' est dans le document, ça devrait marcher.
+
+        const btnConfirm = document.createElement('button');
+        btnConfirm.className = 'custom-modal-btn primary';
+        btnConfirm.textContent = "Valider";
+        btnConfirm.onclick = () => {
+            const val = document.getElementById('custom-modal-input').value;
+            closeModal();
+            resolve(val);
+        };
+
+        const btnCancel = document.createElement('button');
+        btnCancel.className = 'custom-modal-btn secondary';
+        btnCancel.textContent = "Annuler";
+        btnCancel.onclick = () => {
+            closeModal();
+            resolve(null);
+        };
+
+        actions.appendChild(btnConfirm);
+        actions.appendChild(btnCancel);
+
+        overlay.classList.add('active');
+
+        // Focus l'input
+        setTimeout(() => {
+            const inp = document.getElementById('custom-modal-input');
+            if(inp) {
+                inp.focus();
+                inp.select();
+            }
+        }, 50);
+    });
+}
+
+/**
  * Affiche une modale d'alerte simple.
  * @param {string} titleText
  * @param {string} messageText
