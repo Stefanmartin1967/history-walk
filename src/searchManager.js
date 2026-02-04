@@ -3,31 +3,19 @@ import { DOM, openDetailsPanel } from './ui.js';
 import { state } from './state.js';
 import { getPoiName, getPoiId } from './data.js'; // On réutilise les outils robustes de data.js
 import { map } from './map.js';
+import { getSearchResults } from './search.js';
 
 export function setupSearch() {
-    const query = DOM.searchInput.value.toLowerCase().trim();
+    const query = DOM.searchInput.value;
     
     // Nettoyage de l'interface si vide
     DOM.searchResults.innerHTML = '';
     DOM.searchResults.style.display = 'none';
     
-    if (query.length === 0) return;
+    if (!query || query.trim().length === 0) return;
     
-    // 1. Filtrage des résultats
-    const results = state.loadedFeatures.filter(f => {
-        const poiId = getPoiId(f); 
-        
-        // On ne montre pas les lieux cachés/supprimés
-        if (state.hiddenPoiIds && state.hiddenPoiIds.includes(poiId)) {
-            return false;
-        }
-
-        // Recherche sur le nom officiel OU le nom personnalisé par l'utilisateur
-        const originalName = f.properties['Nom du site FR']?.toLowerCase() || '';
-        const customName = f.properties.userData?.custom_title?.toLowerCase() || '';
-        
-        return originalName.includes(query) || customName.includes(query);
-    });
+    // 1. Filtrage des résultats (Logique centralisée)
+    const results = getSearchResults(query);
     
     // 2. Affichage des résultats
     if (results.length > 0) {
