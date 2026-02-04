@@ -1,0 +1,50 @@
+[
+  {
+    "id": "HW-1770221089920",
+    "name": "Circuit de Mosquée Sidi Zayed à Église Saint-Joseph de Djerba via Mosquée Sidi Brahim Eljomni",
+    "file": "circuit_de_mosqu_e_sidi_zayed_glise_saint_joseph_de_djerba_via_mosqu_e_sidi_brahim_eljomni.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "4.2 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6F9K1DFXDYCR7CPAWN",
+      "HW-01K77WPE6F1C25NNH5RAR2JPF6",
+      "HW-01K77WPE6G6C1H17E6WP518B3J",
+      "HW-01K77WPE6GQX3PRD8TAKTDRNSZ",
+      "HW-01K77WPE6G6RDSP8C7C5WQVJCN",
+      "HW-01K77WPE6P5C0194DPJWYMX9C1",
+      "HW-01K77WPE6HV1767JVPMV1000YQ"
+    ]
+  },
+  {
+    "id": "imported_1770222028254_0bjrmskkh",
+    "name": "Wikiloc - Circuit du phare de Taguermess au bar de la plage du Rym Beach",
+    "file": "wikiloc_circuit_du_phare_de_taguermess_au_bar_de_la_plage_du_rym_beach.gpx",
+    "description": "Pas de description.",
+    "distance": "3.8 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6722XTDVPGCQTPPBXR",
+      "HW-01K77WPE671G6V27VYYNMJV2NC",
+      "HW-01K77WPE6770BXCP2SW1Z2DTA2",
+      "HW-01K77WPE67RPHVJVH6A0PC0ZWD"
+    ]
+  },
+  {
+    "id": "HW-1770222781663",
+    "name": "Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou",
+    "file": "circuit_de_mosqu_e_ouilihi_mosqu_e_berdaoui_via_mosqu_e_mourou.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "6.8 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6MXA1DKNG7R2XWZQGJ",
+      "HW-01K77WPE6N293MG25FFQBH1G10",
+      "HW-01K77WPE6N0ZBXJK23NVJ2MQPX",
+      "HW-01K77WPE6N6A0YBFFKMQQNQH0E",
+      "HW-01K77WPE6NJ1X6TBWGCTV85QMM",
+      "HW-01K77WPE6RQNBBQXWYACNJTRAC",
+      "HW-01K77WPE6N6HF86MYJNJWFPNSV"
+    ]
+  }
+]
