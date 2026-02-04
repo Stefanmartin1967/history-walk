@@ -595,6 +595,17 @@ export function updateSelectionModeButton(isActive) {
     createIcons({ icons });
 }
 
+export function updateExportButtonLabel(mapId) {
+    const btn = document.getElementById('btn-save-circuits');
+    if (btn) {
+        const safeMapId = mapId || 'circuits';
+        // On met à jour le texte en conservant l'icône
+        btn.innerHTML = `<i data-lucide="share-2"></i> Exporter ${safeMapId}.json`;
+        // On force le rendu de l'icône pour ce bouton spécifique
+        createIcons({ icons, nameAttr: 'data-lucide', attrs: { 'class': "lucide" }, root: btn });
+    }
+}
+
 export function showLegendModal() {
     const title = "Légende des Marqueurs";
     const message = `

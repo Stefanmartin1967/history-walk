@@ -1,7 +1,7 @@
 // fileManager.js
 import { state } from './state.js';
 import { getPoiId, displayGeoJSON } from './data.js';
-import { DOM, closeDetailsPanel } from './ui.js';
+import { DOM, closeDetailsPanel, updateExportButtonLabel } from './ui.js';
 import { showToast } from './toast.js';
 import { saveAppState, savePoiData, saveCircuit, clearStore } from './database.js';
 import { processImportedGpx } from './gpx.js';
@@ -29,11 +29,13 @@ export function handleFileLoad(event) {
                     state.currentMapId = mapName;
                     await saveAppState('lastMapId', mapName);
                     await saveAppState('lastGeoJSON', json);
+                    updateExportButtonLabel(mapName);
                     showToast(`Carte "${mapName}" chargée (Mode Mobile).`, 'success');
                     switchMobileView('circuits');
                 } else {
                     // Desktop: Rendu Carte
                     await displayGeoJSON(json, mapName);
+                    updateExportButtonLabel(mapName);
                     // On cadre la vue sur la nouvelle carte
                     import('./map.js').then(m => m.fitMapToContent());
                     showToast(`Carte "${file.name}" chargée.`, 'success');
@@ -157,6 +159,7 @@ async function restoreBackup(json) {
         // 1. Restaurer la carte de base
         const mapId = json.mapId || 'RestoredMap';
         state.currentMapId = mapId;
+        updateExportButtonLabel(mapId);
         await saveAppState('lastMapId', mapId);
 
         if (json.baseGeoJSON) {
@@ -423,7 +426,8 @@ export async function exportOfficialCircuitsJSON() {
         const jsonString = JSON.stringify(exportArray, null, 2);
         const { downloadFile } = await import('./utils.js');
 
-        downloadFile('circuits.json', jsonString, 'application/json');
+        const fileName = `${state.currentMapId || 'circuits'}.json`;
+        downloadFile(fileName, jsonString, 'application/json');
 
         // RESET FLAG
         state.hasUnexportedChanges = false;

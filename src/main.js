@@ -19,7 +19,8 @@ import {
     openRestoreModal,
     updateSelectionModeButton,
     populateCircuitsMenu,
-    closeAllDropdowns
+    closeAllDropdowns,
+    updateExportButtonLabel
 } from './ui.js';
 import { showToast } from './toast.js';
 
@@ -77,6 +78,8 @@ function updateAppTitle(mapId) {
     document.title = title;
     const appTitle = document.getElementById('app-title');
     if (appTitle) appTitle.textContent = title;
+
+    updateExportButtonLabel(mapId);
 }
 
 async function mergeOfficialCircuits() {
