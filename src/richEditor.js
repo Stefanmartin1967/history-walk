@@ -30,7 +30,8 @@ const DOM_IDS = {
     BTNS: {
         SAVE: 'btn-save-rich-poi',
         CANCEL: 'btn-cancel-rich-poi',
-        CLOSE: 'close-rich-poi-modal'
+        CLOSE: 'close-rich-poi-modal',
+        EMAIL: 'btn-suggest-email'
     }
 };
 
@@ -58,6 +59,14 @@ export const RichEditor = {
         const newSaveBtn = saveBtn.cloneNode(true);
         saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
         newSaveBtn.addEventListener('click', handleSave);
+
+        // Email Suggestion
+        const emailBtn = document.getElementById(DOM_IDS.BTNS.EMAIL);
+        if (emailBtn) {
+            const newEmailBtn = emailBtn.cloneNode(true);
+            emailBtn.parentNode.replaceChild(newEmailBtn, emailBtn);
+            newEmailBtn.addEventListener('click', handleEmailSuggestion);
+        }
     },
 
     /**
@@ -281,7 +290,10 @@ async function executeEdit(data) {
     Object.assign(state.userData[poiId], data);
 
     await savePoiData(state.currentMapId, poiId, state.userData[poiId]);
-    await logModification(poiId, 'Edition (Admin)', 'All', null, `Mise à jour via Rich Editor`);
+
+    // Log adapté selon admin ou non
+    const logType = state.isAdmin ? 'Edition (Admin)' : 'Edition (User)';
+    await logModification(poiId, logType, 'All', null, `Mise à jour via Rich Editor`);
 
     // Force le rafraîchissement de l'interface si le panneau est ouvert
     if (state.currentFeatureId !== null) {
@@ -292,4 +304,32 @@ async function executeEdit(data) {
     }
 
     showToast("Modifications enregistrées.", "success");
+}
+
+function handleEmailSuggestion() {
+    const data = {
+        'Nom du site FR': getValue(DOM_IDS.INPUTS.NAME_FR),
+        'Nom du site arabe': getValue(DOM_IDS.INPUTS.NAME_AR),
+        'Catégorie': getValue(DOM_IDS.INPUTS.CATEGORY),
+        'Zone': getValue(DOM_IDS.INPUTS.ZONE),
+        'Description_courte': getValue(DOM_IDS.INPUTS.DESC_SHORT),
+        'description': getValue(DOM_IDS.INPUTS.DESC_LONG),
+        'notes': getValue(DOM_IDS.INPUTS.NOTES),
+        'timeH': parseInt(getValue(DOM_IDS.INPUTS.TIME_H)) || 0,
+        'timeM': parseInt(getValue(DOM_IDS.INPUTS.TIME_M)) || 0,
+        'price': parseFloat(getValue(DOM_IDS.INPUTS.PRICE)) || 0,
+        'Source': getValue(DOM_IDS.INPUTS.SOURCE)
+    };
+
+    const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Inconnue';
+    const poiName = data['Nom du site FR'] || 'Lieu';
+
+    const subject = encodeURIComponent(`History Walk - Modification [${mapName}] : ${poiName}`);
+
+    const bodyText = `Bonjour,\n\nVoici une suggestion de modification pour le lieu "${poiName}" sur la carte ${mapName}.\n\nDonnées JSON :\n${JSON.stringify(data, null, 2)}\n\nCordialement,`;
+    const body = encodeURIComponent(bodyText);
+
+    const mailtoLink = `mailto:history.walk.007@gmail.com?subject=${subject}&body=${body}`;
+
+    window.open(mailtoLink, '_blank');
 }

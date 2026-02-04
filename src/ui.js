@@ -98,114 +98,25 @@ export function initializeDomReferences() {
 
 // --- ÉDITION DE CONTENU ---
 
-function openFullscreenEditor(title, content, fieldId, poiId, onSave) {
-    DOM.editorTitle.textContent = `Éditer: ${title}`;
-    DOM.editorTextarea.value = content;
-    currentEditor = { fieldId, poiId, callback: onSave };
-    DOM.fullscreenEditor.style.display = 'flex';
-    DOM.editorTextarea.focus();
-}
-
-export function setupEditableField(fieldId, poiId) {
-    const container = document.querySelector(`.editable-field[data-field-id="${fieldId}"]`);
-    if (!container) return;
-    
-    const displayEl = container.querySelector('.editable-text, .editable-content');
-    const inputEl = container.querySelector('.editable-input');
-    const editBtn = container.querySelector('.edit-btn');
-    const saveBtn = container.querySelector('.save-btn');
-    const cancelBtn = container.querySelector('.cancel-btn');
-    const speakBtn = container.querySelector('.speak-btn');
-    const categorySelect = document.getElementById('panel-category-select');
-    
-    const saveValue = async (newValue) => {
-        const key = (fieldId === 'title') ? 'custom_title' : (fieldId === 'short_desc' ? 'Description_courte' : fieldId);
-        await updatePoiData(poiId, key, newValue.trim());
-        
-        if (fieldId === 'title' && categorySelect) {
-             const newCat = categorySelect.value;
-             await updatePoiData(poiId, 'Catégorie', newCat);
+export function closeAllDropdowns() {
+    const ids = ['zonesMenu', 'categoriesMenu', 'tools-menu-content', 'admin-menu-content'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = 'none'; // Pour ceux qui utilisent style.display
+            el.classList.remove('active'); // Pour ceux qui utilisent class active
         }
-        
-        openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
-    };
-    
-    if (editBtn) {
-        editBtn.addEventListener('click', () => {
-            // --- GOD MODE INTERCEPTION ---
-            // Si on est Admin et qu'on clique sur le crayon du titre, on ouvre la modale riche
-            if (state.isAdmin && fieldId === 'title') {
-                import('./richEditor.js').then(m => m.RichEditor.openForEdit(poiId));
-                return;
-            }
-
-            const currentFeature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-            if (!currentFeature) return;
-
-            const poiData = currentFeature.properties.userData || {};
-            
-            let content = '';
-            if (fieldId === 'title') content = poiData.custom_title || currentFeature.properties['Nom du site FR'] || '';
-            else if (fieldId === 'short_desc') content = poiData.Description_courte || currentFeature.properties.Desc_wpt || '';
-            else content = poiData[fieldId] || currentFeature.properties[fieldId] || currentFeature.properties[fieldId.charAt(0).toUpperCase() + fieldId.slice(1)] || '';
-            
-            // Mode Mobile Fullscreen pour les textes longs
-            if (isMobileView() && (fieldId === 'description' || fieldId === 'notes')) {
-                openFullscreenEditor(fieldId, content, fieldId, poiId, saveValue);
-            } else {
-                // Mode Inline Desktop
-                if (inputEl) {
-                    inputEl.value = content;
-                    inputEl.style.display = (inputEl.tagName === 'TEXTAREA') ? 'flex' : 'block';
-                    inputEl.focus();
-                }
-                
-                if (displayEl) displayEl.style.display = 'none';
-                
-                if (fieldId === 'title' && categorySelect) {
-                    categorySelect.style.display = 'block';
-                    categorySelect.value = currentFeature.properties['Catégorie'] || 'A définir';
-                }
-                
-                editBtn.style.display = 'none';
-                if(speakBtn) speakBtn.style.display = 'none';
-                if(saveBtn) saveBtn.style.display = 'inline-flex';
-                if(cancelBtn) cancelBtn.style.display = 'inline-flex';
-            }
-        });
-    }
-
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            if (displayEl) displayEl.style.display = (inputEl.tagName === 'TEXTAREA' || fieldId === 'title') ? '' : 'block';
-            if (fieldId === 'title' && displayEl) displayEl.style.display = 'block';
-            
-            if (fieldId === 'title' && categorySelect) categorySelect.style.display = 'none';
-
-            if (inputEl) inputEl.style.display = 'none';
-            if (editBtn) editBtn.style.display = 'inline-flex';
-            if (speakBtn) speakBtn.style.display = 'inline-flex';
-            if (saveBtn) saveBtn.style.display = 'none';
-            if (cancelBtn) cancelBtn.style.display = 'none';
-        });
-    }
-    
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => { 
-            if (inputEl) saveValue(inputEl.value); 
-        });
-    }
-
-    if (speakBtn) {
-        speakBtn.addEventListener('click', () => {
-            if (displayEl) speakText(displayEl.textContent, speakBtn);
-        });
-    }
+    });
 }
 
-function setupAllEditableFields(poiId) {
-    ['title', 'short_desc', 'description', 'notes'].forEach(fieldId => {
-        setupEditableField(fieldId, poiId);
+function setupGlobalEditButton(poiId) {
+    const editBtns = document.querySelectorAll('#btn-global-edit'); // querySelectorAll au cas où (PC/Mobile)
+    
+    editBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+             // Redirection directe vers Rich Editor
+             import('./richEditor.js').then(m => m.RichEditor.openForEdit(poiId));
+        });
     });
 }
 
@@ -362,7 +273,8 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
     
     // Ré-attachement des écouteurs (sur les nouveaux éléments uniquement)
     const poiId = getPoiId(feature);
-    setupAllEditableFields(poiId);
+    // setupAllEditableFields(poiId); // REMOVED: Inline editing removed
+    setupGlobalEditButton(poiId);  // ADDED: Global edit button
     setupDetailsEventListeners(poiId);
 
     // Initialisation icônes Lucide

@@ -365,8 +365,8 @@
                 </div>
 
                 <div class="input-group" style="flex-direction: column; align-items: stretch; gap: 5px;">
-                    <label for="rich-poi-notes" style="font-weight: 600; color: var(--brand);">Notes Admin (Privé)</label>
-                    <textarea id="rich-poi-notes" class="editable-input" rows="2" style="padding: 10px; border-color: var(--brand-light);"></textarea>
+                    <label for="rich-poi-notes" style="font-weight: 600;">Notes</label>
+                    <textarea id="rich-poi-notes" class="editable-input" rows="2" style="padding: 10px;"></textarea>
                 </div>
 
                 <!-- Footer -->
@@ -375,6 +375,9 @@
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="btn-suggest-email" class="action-btn" style="flex: 1; background: var(--surface-muted); color: var(--brand); border: 1px solid var(--brand);">
+                        <i data-lucide="mail"></i> Suggérer
+                    </button>
                     <button id="btn-cancel-rich-poi" class="action-btn" style="flex: 1; background: var(--surface-muted); color: var(--ink);">Annuler</button>
                     <button id="btn-save-rich-poi" class="action-btn" style="flex: 2; background: var(--brand); color: white;">
                         <i data-lucide="save"></i> Enregistrer
