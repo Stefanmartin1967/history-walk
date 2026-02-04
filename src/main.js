@@ -41,6 +41,7 @@ import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
 import { initAdminMode } from './admin.js';
+import { generateSyncQR, startGenericScanner } from './sync.js';
 
 // --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
 function setSaveButtonsState(enabled) {
@@ -544,6 +545,13 @@ function setupDesktopUIListeners() {
     if (btnImportPhotos && photoLoader) {
         btnImportPhotos.addEventListener('click', () => photoLoader.click());
     }
+
+    // --- SYNC / SCANNER (Desktop) ---
+    const btnSyncScan = document.getElementById('btn-sync-scan');
+    if (btnSyncScan) btnSyncScan.addEventListener('click', () => startGenericScanner());
+
+    const btnSyncShare = document.getElementById('btn-sync-share');
+    if (btnSyncShare) btnSyncShare.addEventListener('click', () => generateSyncQR());
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);

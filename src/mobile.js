@@ -6,10 +6,10 @@ import { loadCircuitById, clearCircuit, setCircuitVisitedState, loadCircuitFromI
 import { createIcons, icons } from 'lucide';
 import { saveUserData } from './fileManager.js'; 
 import { deleteDatabase, saveAppState } from './database.js';
-import { Html5Qrcode } from 'html5-qrcode';
-import QRCode from 'qrcode';
 import { getIconForFeature, getRealDistance, getOrthodromicDistance } from './map.js';
 import { isPointInPolygon, escapeHtml, getZoneFromCoords } from './utils.js';
+import { generateSyncQR, startGenericScanner } from './sync.js';
+import QRCode from 'qrcode';
 import { zonesData } from './zones.js';
 import { showToast } from './toast.js';
 import { showConfirm } from './modal.js';
@@ -716,9 +716,14 @@ export function renderMobileMenu() {
         </div>
         <div class="mobile-list actions-list" style="padding: 16px;">
             <button class="mobile-list-item" id="mob-action-scan">
-                <i data-lucide="qr-code"></i>
-                <span>Scanner un Circuit</span>
+                <i data-lucide="scan-line"></i>
+                <span>Scanner (Circuit / Sync)</span>
             </button>
+            <button class="mobile-list-item" id="mob-action-sync-share">
+                <i data-lucide="qr-code"></i>
+                <span>Partager ma progression (PC)</span>
+            </button>
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
             <button class="mobile-list-item" id="mob-action-restore">
                 <i data-lucide="folder-down"></i>
                 <span>Restaurer les données</span>
@@ -757,7 +762,8 @@ export function renderMobileMenu() {
         </div>
     `;
 
-    document.getElementById('mob-action-scan').addEventListener('click', handleScanClick);
+    document.getElementById('mob-action-scan').addEventListener('click', () => startGenericScanner());
+    document.getElementById('mob-action-sync-share').addEventListener('click', () => generateSyncQR());
     document.getElementById('mob-action-restore').addEventListener('click', () => DOM.restoreLoader.click());
     document.getElementById('mob-action-save').addEventListener('click', () => saveUserData());
     document.getElementById('mob-action-geojson').addEventListener('click', () => DOM.geojsonLoader.click());
@@ -798,48 +804,7 @@ async function handleShareAppClick() {
     }
 }
 
-async function handleScanClick() {
-    const overlay = document.createElement('div');
-    overlay.id = 'qr-scanner-overlay';
-
-    overlay.innerHTML = `
-        <div id="qr-reader"></div>
-        <button id="close-scanner-btn">×</button>
-    `;
-    document.body.appendChild(overlay);
-
-    const html5QrCode = new Html5Qrcode("qr-reader");
-
-    const closeScanner = async () => {
-        try {
-            if(html5QrCode.isScanning) await html5QrCode.stop();
-        } catch (e) { console.warn(e); }
-        if(document.body.contains(overlay)) document.body.removeChild(overlay);
-    };
-
-    document.getElementById('close-scanner-btn').addEventListener('click', closeScanner);
-
-    try {
-        await html5QrCode.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            async (decodedText, decodedResult) => {
-                // Supporte l'ancien format (hw:) et le nouveau (URL)
-                if (decodedText.startsWith('hw:') || decodedText.includes('import=')) {
-                    await closeScanner();
-                    loadCircuitFromIds(decodedText);
-                }
-            },
-            (errorMessage) => {
-                // Ignore parse errors
-            }
-        );
-    } catch (err) {
-        console.error(err);
-        showToast("Impossible d'accéder à la caméra ou annulé.", "error");
-        closeScanner();
-    }
-}
+// handleScanClick a été remplacé par startGenericScanner de sync.js
 
 export function updatePoiPosition(poiId) {
     if (!navigator.geolocation) return showToast("GPS non supporté", "error");
