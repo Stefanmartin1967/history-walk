@@ -61,6 +61,9 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
         applyFilters(); // Sur PC, on rafraîchit les filtres pour griser/cacher les lieux vus
     }
 
+    // Force la mise à jour des listes (PC Explorer + Modale) pour afficher le statut "Fait"
+    eventBus.emit('circuit:list-updated');
+
     showToast(isVisited ? "Circuit marqué comme fait" : "Circuit marqué comme non fait", "success");
 }
 

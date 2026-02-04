@@ -100,6 +100,10 @@ export function switchMobileView(viewName) {
     const container = document.getElementById('mobile-main-container');
     container.innerHTML = ''; 
     
+    // 1. On s'assure que le Dock est visible (Au cas où on vient de la vue détail masquée)
+    const dock = document.getElementById('mobile-dock');
+    if (dock) dock.style.display = 'flex';
+
     // Masquer toolbar si on change de vue
     const toolbar = document.getElementById('mobile-toolbar');
     if(toolbar) toolbar.style.display = (viewName === 'circuits') ? 'flex' : 'none';
@@ -462,6 +466,12 @@ export function renderMobilePoiList(features) {
     const listToDisplay = features || [];
     const container = document.getElementById('mobile-main-container');
     const isCircuit = state.activeCircuitId !== null;
+
+    // --- MASQUAGE DES MENUS (Optimisation Espace) ---
+    const dock = document.getElementById('mobile-dock');
+    if (dock) dock.style.display = 'none';
+    const toolbar = document.getElementById('mobile-toolbar');
+    if (toolbar) toolbar.style.display = 'none';
     
     let pageTitle = 'Lieux';
     let isAllVisited = false;
@@ -535,7 +545,8 @@ export function renderMobilePoiList(features) {
     if (isCircuit) {
         const footerDiv = document.createElement('div');
         footerDiv.style.flexShrink = '0';
-        footerDiv.style.padding = '16px 16px 80px 16px'; 
+        // Padding réduit car le dock est masqué (80px -> 20px)
+        footerDiv.style.padding = '16px 16px 20px 16px';
         footerDiv.style.borderTop = '1px solid var(--line)';
         footerDiv.style.backgroundColor = 'var(--surface)';
         footerDiv.style.zIndex = '10';
@@ -579,11 +590,31 @@ export function renderMobilePoiList(features) {
     const backBtn = document.getElementById('mobile-back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            container.style.display = '';
-            container.style.flexDirection = '';
-            container.style.overflow = '';
-            clearCircuit(false); 
-            renderMobileCircuitsList(); 
+            console.log("Mobile Back Button Clicked");
+            try {
+                container.style.display = '';
+                container.style.flexDirection = '';
+                container.style.overflow = '';
+
+                console.log("Clearing circuit...");
+                clearCircuit(false);
+
+                console.log("Rendering list...");
+                renderMobileCircuitsList();
+
+                // RESTAURATION DES MENUS (A la fin pour éviter les écrasements éventuels)
+                const d = document.getElementById('mobile-dock');
+                if (d) {
+                    d.style.display = 'flex';
+                    console.log("Dock restored to flex (Final)");
+                }
+
+                const t = document.getElementById('mobile-toolbar');
+                if (t) t.style.display = 'flex';
+
+            } catch (e) {
+                console.error("Error in back button:", e);
+            }
         });
     }
 
