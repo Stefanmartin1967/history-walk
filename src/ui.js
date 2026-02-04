@@ -40,7 +40,7 @@ export function initializeDomReferences() {
         'btn-clear-circuit', 'close-circuit-panel-btn',
         'btn-categories', 'btn-legend',
         'explorer-list', 'btn-open-my-circuits',
-        'btn-bmc'
+        'btn-bmc', 'btn-tools-menu'
     ];
     
     // Récupération sécurisée des éléments
@@ -52,8 +52,21 @@ export function initializeDomReferences() {
 
     if (DOM.btnOpenMyCircuits) {
         DOM.btnOpenMyCircuits.addEventListener('click', () => {
+            closeAllDropdowns();
             renderExplorerList();
             switchSidebarTab('explorer');
+        });
+    }
+
+    if (DOM.btnToolsMenu) {
+        DOM.btnToolsMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const toolsMenu = document.getElementById('tools-menu-content');
+            if (toolsMenu) {
+                const isActive = toolsMenu.classList.contains('active');
+                closeAllDropdowns();
+                if (!isActive) toolsMenu.classList.add('active');
+            }
         });
     }
 
@@ -496,7 +509,23 @@ export function populateCategoriesMenu() {
 
     menu.innerHTML = '';
 
-    POI_CATEGORIES.forEach(cat => {
+    // DYNAMIC CATEGORIES
+    let categories = [];
+    if (state.loadedFeatures && state.loadedFeatures.length > 0) {
+        const cats = new Set(
+            state.loadedFeatures
+                .map(f => f.properties['Catégorie'])
+                .filter(c => c && c.trim() !== '')
+        );
+        categories = Array.from(cats).sort();
+
+        // Ensure "A définir" is present if there are undefined ones, or just rely on data
+        // User requested: "Uniquement celles présentes"
+    } else {
+        categories = POI_CATEGORIES;
+    }
+
+    categories.forEach(cat => {
         const wrapper = document.createElement('label');
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';

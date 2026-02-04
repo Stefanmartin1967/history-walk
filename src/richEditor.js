@@ -7,6 +7,7 @@ import { saveAppState, savePoiData } from './database.js';
 import { logModification } from './logger.js';
 import { showToast } from './toast.js';
 import { openDetailsPanel, closeDetailsPanel } from './ui.js';
+import { showConfirm } from './modal.js';
 import { createIcons, icons } from 'lucide';
 
 // --- IDs DOM ---
@@ -50,8 +51,14 @@ export const RichEditor = {
         if (!modal) return;
 
         // Fermeture
-        document.getElementById(DOM_IDS.BTNS.CANCEL)?.addEventListener('click', RichEditor.close);
         document.getElementById(DOM_IDS.BTNS.CLOSE)?.addEventListener('click', RichEditor.close);
+
+        // Hide explicit Cancel and Suggest buttons (New workflow)
+        const btnCancel = document.getElementById(DOM_IDS.BTNS.CANCEL);
+        if (btnCancel) btnCancel.style.display = 'none';
+
+        const btnSuggest = document.getElementById(DOM_IDS.BTNS.EMAIL);
+        if (btnSuggest) btnSuggest.style.display = 'none';
 
         // Sauvegarde
         const saveBtn = document.getElementById(DOM_IDS.BTNS.SAVE);
@@ -59,14 +66,6 @@ export const RichEditor = {
         const newSaveBtn = saveBtn.cloneNode(true);
         saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
         newSaveBtn.addEventListener('click', handleSave);
-
-        // Email Suggestion
-        const emailBtn = document.getElementById(DOM_IDS.BTNS.EMAIL);
-        if (emailBtn) {
-            const newEmailBtn = emailBtn.cloneNode(true);
-            emailBtn.parentNode.replaceChild(newEmailBtn, emailBtn);
-            newEmailBtn.addEventListener('click', handleEmailSuggestion);
-        }
     },
 
     /**
@@ -91,6 +90,10 @@ export const RichEditor = {
         // Zone Automatique
         const autoZone = getZoneFromCoords(lat, lng);
         setValue(DOM_IDS.INPUTS.ZONE, autoZone || "");
+
+        // Lock Zone Input
+        const zoneInput = document.getElementById(DOM_IDS.INPUTS.ZONE);
+        if (zoneInput) zoneInput.disabled = true;
 
         setValue(DOM_IDS.INPUTS.DESC_SHORT, "");
         setValue(DOM_IDS.INPUTS.DESC_LONG, "");
@@ -135,7 +138,16 @@ export const RichEditor = {
         setValue(DOM_IDS.INPUTS.NAME_FR, merged['Nom du site FR'] || merged.name || "");
         setValue(DOM_IDS.INPUTS.NAME_AR, merged['Nom du site arabe'] || "");
         setValue(DOM_IDS.INPUTS.CATEGORY, merged['Catégorie'] || "A définir");
-        setValue(DOM_IDS.INPUTS.ZONE, merged['Zone'] || "");
+
+        // Recalculate Zone and Lock
+        let zoneVal = merged['Zone'] || "";
+        if (feature.geometry && feature.geometry.coordinates) {
+             const [lng, lat] = feature.geometry.coordinates;
+             zoneVal = getZoneFromCoords(lat, lng);
+        }
+        setValue(DOM_IDS.INPUTS.ZONE, zoneVal);
+        const zoneInput = document.getElementById(DOM_IDS.INPUTS.ZONE);
+        if (zoneInput) zoneInput.disabled = true;
 
         setValue(DOM_IDS.INPUTS.DESC_SHORT, merged['Description_courte'] || merged.Desc_wpt || "");
         setValue(DOM_IDS.INPUTS.DESC_LONG, merged['description'] || merged.Description || "");
@@ -232,6 +244,17 @@ async function handleSave() {
         'price': parseFloat(getValue(DOM_IDS.INPUTS.PRICE)) || 0,
         'Source': getValue(DOM_IDS.INPUTS.SOURCE)
     };
+
+    // Prompt for suggestion (Workflow update)
+    const isNew = currentMode === 'CREATE';
+    const msg = isNew
+        ? "Voulez-vous suggérer ce nouveau POI par email à l'administrateur ?"
+        : "Voulez-vous suggérer cette modification par email à l'administrateur ?";
+
+    // showConfirm returns true if primary button clicked
+    if (await showConfirm("Suggestion", msg, "Oui, suggérer", "Non, enregistrer seul", false)) {
+        handleEmailSuggestion();
+    }
 
     if (currentMode === 'CREATE') {
         await executeCreate(data);
