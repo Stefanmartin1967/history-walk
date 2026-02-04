@@ -295,6 +295,7 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
 
     if (isMobileView()) {
         targetPanel.style.display = 'block';
+        targetPanel.style.overflowY = 'auto'; // Fix for scrollbar issue
     } else {
         DOM.rightSidebar.style.display = 'flex';
         document.body.classList.add('sidebar-open');

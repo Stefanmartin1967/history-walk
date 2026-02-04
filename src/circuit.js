@@ -56,7 +56,10 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
 
     // Mise à jour de l'affichage pour l'utilisateur
     if (isMobileView()) {
-        renderMobilePoiList(state.loadedFeatures);
+        const listToRender = (state.activeCircuitId && state.currentCircuit && state.currentCircuit.length > 0)
+            ? state.currentCircuit
+            : state.loadedFeatures;
+        renderMobilePoiList(listToRender);
     } else {
         applyFilters(); // Sur PC, on rafraîchit les filtres pour griser/cacher les lieux vus
     }
