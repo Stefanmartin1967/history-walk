@@ -81,15 +81,15 @@ Il existe une dualité entre le nom de fichier "technique" et le nom "d'usage" :
 
 ### 5.2 Structure de Stockage (`public/circuits/`)
 
-Tous les circuits officiels sont actuellement stockés dans le répertoire `public/circuits/`.
+Tous les circuits officiels sont actuellement stockés dans le répertoire `public/circuits/` et organisés en sous-dossiers par carte.
 
-*   **Question de Performance** : "Avoir 300 fichiers dans un même dossier risque-t-il de ralentir l'application ?"
-    *   **Réponse : Non.**
-    *   **Explication** : Le client (le navigateur de l'utilisateur) ne liste jamais ce dossier directement. Il ne demande jamais "donne-moi tous les fichiers".
-    *   **Mécanisme de Lazy Loading** :
-        1.  L'application charge uniquement **l'index léger** (`djerba.json`). Ce fichier pèse quelques kilo-octets et contient la liste des 300 circuits (Titre, ID, Description).
-        2.  Le fichier GPX lourd (la trace réelle avec des milliers de points) n'est téléchargé que **si et seulement si** l'utilisateur clique explicitement sur un circuit pour le charger.
-    *   **Conclusion** : Que vous ayez 10 ou 1000 circuits stockés, le temps de chargement initial de l'application reste quasi identique.
+*   **Structure** :
+    *   `public/circuits/djerba/` : Contient les GPX pour Djerba.
+    *   `public/circuits/djerba.json` : Index généré automatiquement.
+*   **Automatisation (GitHub Actions)** :
+    *   Lorsqu'un fichier GPX est ajouté dans un sous-dossier, une Action GitHub (`update-circuits.yml`) se déclenche.
+    *   Elle génère/met à jour le fichier JSON correspondant (`djerba.json`).
+    *   Si le fichier GPX n'a pas d'`HW-ID` interne, l'action en génère un et **l'inscrit dans le fichier GPX** pour assurer un lien permanent même en cas de renommage.
 
 ### 5.3 Convention de Nommage (`djerba.json` vs `djerba.geojson`)
 
