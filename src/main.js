@@ -79,15 +79,12 @@ function updateAppTitle(mapId) {
 }
 
 async function mergeOfficialCircuits() {
-    // SÉCURITÉ : On ne charge les circuits officiels (Djerba) que si on est sur la carte Djerba
-    // TODO: À l'avenir, structurer circuits.json pour supporter plusieurs cartes
-    if (state.currentMapId !== 'djerba') {
-        console.log(`[Main] Carte '${state.currentMapId}' active : Ignore les circuits officiels (Djerba).`);
-        return;
-    }
+    // SÉCURITÉ : Chargement dynamique selon la carte active (ex: circuits/djerba.json)
+    const mapId = state.currentMapId || 'djerba';
+    const circuitsUrl = `./circuits/${mapId}.json`;
 
     try {
-        const response = await fetch('./circuits/circuits.json');
+        const response = await fetch(circuitsUrl);
         if (response.ok) {
             const officials = await response.json();
 
@@ -102,11 +99,13 @@ async function mergeOfficialCircuits() {
                 }
             });
 
-            console.log(`[Main] Circuits officiels fusionnés dans les circuits locaux.`);
+            console.log(`[Main] Circuits officiels (${mapId}) fusionnés dans les circuits locaux.`);
             import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
+        } else {
+             console.log(`[Main] Pas de circuits officiels trouvés pour '${mapId}' (Fichier manquant ou 404).`);
         }
     } catch (e) {
-        console.warn("[Main] Impossible de charger les circuits officiels :", e);
+        console.warn(`[Main] Erreur lors du chargement des circuits officiels pour ${mapId} :`, e);
     }
 }
 
