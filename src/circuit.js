@@ -388,6 +388,37 @@ export async function loadCircuitById(id) {
 
     if (!circuitToLoad) return;
 
+    // --- LAZY LOADING DE LA TRACE (OFFICIAL CIRCUITS) ---
+    if (circuitToLoad.file && (!circuitToLoad.realTrack || circuitToLoad.realTrack.length === 0)) {
+        try {
+            console.log(`[Circuit] Chargement de la trace depuis ${circuitToLoad.file}...`);
+            const response = await fetch(`./circuits/${circuitToLoad.file}`);
+            if (response.ok) {
+                const text = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, "text/xml");
+                const trkpts = xmlDoc.getElementsByTagName("trkpt");
+                const coordinates = [];
+                for (let i = 0; i < trkpts.length; i++) {
+                    const lat = parseFloat(trkpts[i].getAttribute("lat"));
+                    const lon = parseFloat(trkpts[i].getAttribute("lon"));
+                    coordinates.push([lat, lon]);
+                }
+
+                if (coordinates.length > 0) {
+                    circuitToLoad.realTrack = coordinates;
+                    // On sauvegarde pour persistance (IndexedDB)
+                    await saveCircuit(circuitToLoad);
+                    console.log(`[Circuit] Trace chargée (${coordinates.length} points) et sauvegardée.`);
+                }
+            } else {
+                console.warn(`[Circuit] Fichier GPX introuvable : ${circuitToLoad.file}`);
+            }
+        } catch (e) {
+            console.error(`[Circuit] Erreur chargement trace :`, e);
+        }
+    }
+
     // 1. Nettoyage de l'ancien état (sans confirmation)
     await clearCircuit(false);
 
