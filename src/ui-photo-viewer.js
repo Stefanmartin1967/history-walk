@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { changePhoto, setCurrentPhotos, handlePhotoUpload, handlePhotoDeletion } from './photo-manager.js';
+import { changePhoto, setCurrentPhotos, handlePhotoUpload, handlePhotoDeletion, handleAllPhotosDeletion } from './photo-manager.js';
 import { getPoiId } from './data.js';
 import { showToast } from './toast.js';
 import { openDetailsPanel } from './ui.js';
@@ -44,6 +44,23 @@ export function initPhotoViewer() {
 export function setupPhotoPanelListeners(poiId) {
     const photoInput = document.getElementById('panel-photo-input');
     const photoBtn = document.querySelector('.photo-placeholder');
+
+    // Listener pour suppression totale
+    const deleteAllBtn = document.getElementById('btn-delete-all-photos');
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if(!await showConfirm("Suppression totale", "Voulez-vous vraiment supprimer TOUTES les photos de ce lieu ?", "Tout supprimer", "Annuler", true)) return;
+
+            const success = await handleAllPhotosDeletion(poiId);
+            if (success) {
+                showToast("Toutes les photos ont été supprimées", "success");
+                openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
+            } else {
+                showToast("Erreur lors de la suppression", "error");
+            }
+        });
+    }
 
     if(photoBtn && photoInput) photoBtn.addEventListener('click', () => photoInput.click());
 

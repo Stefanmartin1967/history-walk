@@ -87,3 +87,14 @@ export async function handlePhotoDeletion(poiId, index) {
     return true;
 }
 
+/**
+ * Gère la suppression de TOUTES les photos d'un POI
+ */
+export async function handleAllPhotosDeletion(poiId) {
+    const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+    if (!feature) return false;
+
+    // On remplace par un tableau vide
+    await updatePoiData(poiId, 'photos', []);
+    return true;
+}

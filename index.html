@@ -309,7 +309,13 @@
     <div id="rich-poi-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 50px; overflow-y: auto;">
         <div class="modal-content" style="max-width: 600px; width: 95%; margin-bottom: 50px;">
             <div class="modal-header">
-                <h2 id="rich-poi-modal-title">Éditer le Lieu</h2>
+                <div style="display:flex; align-items:center; gap: 10px; flex-grow: 1;">
+                    <h2 id="rich-poi-modal-title" style="margin: 0;">Éditer le Lieu</h2>
+                    <div id="rich-poi-nav-controls" style="display:none; align-items:center; gap:5px; margin-left: 10px;">
+                        <button id="btn-rich-prev" class="header-btn" title="Précédent" style="padding: 5px;"><i data-lucide="chevron-left"></i></button>
+                        <button id="btn-rich-next" class="header-btn" title="Suivant" style="padding: 5px;"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
                 <button id="close-rich-poi-modal" class="header-btn"><i data-lucide="x"></i></button>
             </div>
             <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; padding-top: 20px;">

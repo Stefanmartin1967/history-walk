@@ -32,8 +32,11 @@ const DOM_IDS = {
         SAVE: 'btn-save-rich-poi',
         CANCEL: 'btn-cancel-rich-poi',
         CLOSE: 'close-rich-poi-modal',
-        EMAIL: 'btn-suggest-email'
-    }
+        EMAIL: 'btn-suggest-email',
+        PREV: 'btn-rich-prev',
+        NEXT: 'btn-rich-next'
+    },
+    NAV_CONTROLS: 'rich-poi-nav-controls'
 };
 
 let currentMode = 'CREATE'; // 'CREATE' | 'EDIT'
@@ -53,6 +56,10 @@ export const RichEditor = {
 
         // Fermeture
         document.getElementById(DOM_IDS.BTNS.CLOSE)?.addEventListener('click', () => RichEditor.close());
+
+        // Navigation
+        document.getElementById(DOM_IDS.BTNS.PREV)?.addEventListener('click', () => navigate(-1));
+        document.getElementById(DOM_IDS.BTNS.NEXT)?.addEventListener('click', () => navigate(1));
 
         // Hide explicit Cancel and Suggest buttons (New workflow)
         const btnCancel = document.getElementById(DOM_IDS.BTNS.CANCEL);
@@ -134,6 +141,10 @@ export const RichEditor = {
         const coordsEl = document.getElementById(DOM_IDS.COORDS);
         if (coordsEl) coordsEl.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
+        // Hide navigation in create mode
+        const navControls = document.getElementById(DOM_IDS.NAV_CONTROLS);
+        if (navControls) navControls.style.display = 'none';
+
         showModal();
     },
 
@@ -203,6 +214,7 @@ export const RichEditor = {
             coordsEl.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
         }
 
+        updateNavigationControls(poiId);
         showModal();
     },
 
@@ -219,6 +231,54 @@ export const RichEditor = {
 };
 
 // --- PRIVATE HELPERS ---
+
+function updateNavigationControls(currentPoiId) {
+    const navControls = document.getElementById(DOM_IDS.NAV_CONTROLS);
+    const prevBtn = document.getElementById(DOM_IDS.BTNS.PREV);
+    const nextBtn = document.getElementById(DOM_IDS.BTNS.NEXT);
+
+    if (!navControls) return;
+
+    // Check if we are in a circuit context
+    if (!state.currentCircuit || state.currentCircuit.length === 0) {
+        navControls.style.display = 'none';
+        return;
+    }
+
+    // Find index in current circuit
+    const index = state.currentCircuit.findIndex(f => getPoiId(f) === currentPoiId);
+
+    if (index === -1) {
+        navControls.style.display = 'none';
+        return;
+    }
+
+    // Show controls
+    navControls.style.display = 'flex';
+
+    // Update buttons
+    if (prevBtn) prevBtn.disabled = index === 0;
+    if (nextBtn) nextBtn.disabled = index === state.currentCircuit.length - 1;
+}
+
+async function navigate(direction) {
+    if (isDirty) {
+        if (!await showConfirm("Modifications non enregistrées", "Voulez-vous changer de lieu sans enregistrer ?", "Changer sans sauver", "Annuler", true)) {
+            return;
+        }
+    }
+
+    const index = state.currentCircuit.findIndex(f => getPoiId(f) === currentFeatureId);
+    if (index === -1) return;
+
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= state.currentCircuit.length) return;
+
+    const newFeature = state.currentCircuit[newIndex];
+    if (newFeature) {
+        RichEditor.openForEdit(getPoiId(newFeature));
+    }
+}
 
 function showModal() {
     isDirty = false; // Reset on open

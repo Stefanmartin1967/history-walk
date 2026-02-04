@@ -173,7 +173,12 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             <div class="detail-section photos-section">
-                <h3>Photos (${photos.length})</h3>
+                <h3>Photos (${photos.length})
+                    ${photos.length > 0 ? `
+                    <div class="edit-controls section-controls">
+                        <button class="action-button" id="btn-delete-all-photos" title="Tout supprimer" style="color: var(--danger);">${ICONS.trash}</button>
+                    </div>` : ''}
+                </h3>
                 <div class="content">
                     <div class="photos-grid-scroller">
                         ${photosHtml}
@@ -253,7 +258,12 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             <div class="detail-section photos-section">
-                <h3>Photos (${photos.length})</h3>
+                <h3>Photos (${photos.length})
+                    ${photos.length > 0 ? `
+                    <div class="edit-controls section-controls">
+                        <button class="action-button" id="btn-delete-all-photos" title="Tout supprimer" style="color: var(--danger);">${ICONS.trash}</button>
+                    </div>` : ''}
+                </h3>
                 <div class="content">
                     <div class="photos-grid-scroller">
                         ${photosHtml}
