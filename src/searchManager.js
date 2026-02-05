@@ -2,7 +2,7 @@
 import { DOM, openDetailsPanel } from './ui.js';
 import { state } from './state.js';
 import { getPoiName, getPoiId } from './data.js'; // On réutilise les outils robustes de data.js
-import { map } from './map.js';
+import { map, clearMarkerHighlights } from './map.js';
 import { getSearchResults } from './search.js';
 
 export function setupSearch() {
@@ -33,12 +33,15 @@ export function setupSearch() {
 
                 // A. Zoom sur la carte (CORRECTIF ROBUSTE)
                 // On cherche le layer par son ID et non par référence d'objet
+                clearMarkerHighlights();
                 state.geojsonLayer.eachLayer(layer => {
                     if (layer.feature && getPoiId(layer.feature) === targetId) {
                         map.flyTo(layer.getLatLng(), 16);
                         
-                        // Optionnel : Ouvre le popup si on veut insister sur la position
-                        // layer.openPopup(); 
+                        // Ajout de la mise en valeur visuelle
+                        if (layer.getElement()) {
+                            layer.getElement().classList.add('marker-highlight');
+                        }
                     }
                 });
 

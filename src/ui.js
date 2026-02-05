@@ -6,7 +6,7 @@ import { escapeXml } from './gpx.js';
 import { eventBus } from './events.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';
-import { map } from './map.js';
+import { map, clearMarkerHighlights } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList, switchMobileView } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
@@ -316,6 +316,7 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
 }
 
 export function closeDetailsPanel(goBackToList = false) {
+    clearMarkerHighlights();
     if (window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
     if (isDictationActive()) stopDictation();
     
@@ -621,7 +622,7 @@ export function showLegendModal() {
             <span><strong>Visité</strong> (Lieu marqué comme vu)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #F97316; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);"></div>
+            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #3B82F6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);"></div>
             <span><strong>Planifié</strong> (Ajouté à un circuit)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
