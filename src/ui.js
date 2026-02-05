@@ -618,17 +618,16 @@ export function showLegendModal() {
     const message = `
     <div style="text-align: left; display: flex; flex-direction: column; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #10B981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);"></div>
+            <div style="width: 24px; height: 24px; background: #FFFFFF; border-radius: 50%; border: 3px solid #10B981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);"></div>
             <span><strong>Visité</strong> (Lieu marqué comme vu)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #3B82F6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);"></div>
+            <div style="width: 24px; height: 24px; background: #FFFFFF; border-radius: 50%; border: 3px solid #3B82F6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);"></div>
             <span><strong>Planifié</strong> (Ajouté à un circuit)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="width: 28px; height: 28px; display: flex; justify-content: center; align-items: center;">
                 <div style="width: 100%; height: 100%; background: #FEF08A; clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25));">
-                    <i data-lucide="gem" style="color: #422006; width: 16px; height: 16px;"></i>
                 </div>
             </div>
             <span><strong>Incontournable</strong> (Lieu VIP à ne pas manquer)</span>
