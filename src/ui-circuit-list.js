@@ -67,12 +67,30 @@ function renderExplorerHeader() {
 
     const mapName = state.currentMapId ? (state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1)) : 'Circuits';
 
-    // Simple Header with Title
+    // Header with Title and Close Button
     header.innerHTML = `
-        <div style="display:flex; align-items:center; justify-content:center; width:100%; height: 100%;">
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%; height: 100%; padding: 0 10px;">
+            <div style="width: 32px;"></div> <!-- Spacer to center title visually -->
             <h2 style="margin:0; font-size:18px;">${mapName}</h2>
+            <button class="action-button" id="close-explorer-btn" title="Fermer" style="background:none; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:4px;">
+                <i data-lucide="x" style="width:20px; height:20px;"></i>
+            </button>
         </div>
     `;
+
+    const closeBtn = header.querySelector('#close-explorer-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('mouseenter', () => closeBtn.style.backgroundColor = 'var(--surface-hover)');
+        closeBtn.addEventListener('mouseleave', () => closeBtn.style.backgroundColor = 'transparent');
+
+        closeBtn.addEventListener('click', () => {
+             const sidebar = document.getElementById('right-sidebar');
+             if(sidebar) sidebar.style.display = 'none';
+             document.body.classList.remove('sidebar-open');
+        });
+    }
+
+    createIcons({ icons });
 }
 
 // --- EXPLORER TOOLBAR (NEW) ---
