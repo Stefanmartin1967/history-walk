@@ -8,6 +8,40 @@ import { showToast } from './toast.js';
 import { downloadFile } from './utils.js';
 import { updatePolylines } from './map.js';
 
+// --- HELPER : Analyse de proximité ---
+function findFeaturesOnTrack(trackCoords, features, threshold = 0.0006) {
+    const detected = [];
+
+    // Pour chaque lieu chargé, on regarde s'il est proche de la trace
+    features.forEach(f => {
+        const [fLon, fLat] = f.geometry.coordinates;
+
+        let minDist = Infinity;
+        let closestIndex = -1;
+
+        // Optimisation possible : ne pas scanner tous les points si trop loin
+        // Mais pour < 5000 points et < 500 features, c'est instantané.
+        for (let i = 0; i < trackCoords.length; i += 2) { // Un point sur 2 suffit pour la précision
+            const [tLat, tLon] = trackCoords[i];
+            const d = Math.sqrt(Math.pow(tLat - fLat, 2) + Math.pow(tLon - fLon, 2));
+            if (d < minDist) {
+                minDist = d;
+                closestIndex = i;
+            }
+        }
+
+        // Seuil 0.0006 deg ~= 60-70m
+        if (minDist < threshold) {
+            detected.push({ feature: f, index: closestIndex });
+        }
+    });
+
+    // Tri chronologique (selon l'ordre de passage sur la trace)
+    detected.sort((a, b) => a.index - b.index);
+
+    return detected.map(d => d.feature);
+}
+
 export function escapeXml(unsafe) {
     if (unsafe === null || unsafe === undefined) return '';
     // String(unsafe) garantit que .replace existe toujours
@@ -279,8 +313,6 @@ export async function processImportedGpx(file, circuitId) {
                     if (circuitId && foundHwId === circuitId) {
                         canImport = true;
                     } else if (!circuitId) {
-                        // Import Nouveau Circuit avec ID existant -> On garde l'ID ? Ou on considère comme nouveau ?
-                        // Pour éviter les conflits, on considère comme une copie
                         canImport = true;
                     } else {
                         await showAlert(
@@ -303,13 +335,12 @@ export async function processImportedGpx(file, circuitId) {
                             .filter(Boolean);
 
                         if (circuitFeatures.length > 0) {
-                            // ÉTAPE 1 : Tentative via Waypoints (si présents)
+                            // ÉTAPE 1 : Tentative via Waypoints
                             if (wpts.length > 0) {
                                 for (let i = 0; i < wpts.length; i++) {
                                     const lat = parseFloat(wpts[i].getAttribute("lat"));
                                     const lon = parseFloat(wpts[i].getAttribute("lon"));
 
-                                    // Vérifie la proximité (~60m)
                                     const isMatch = circuitFeatures.some(f => {
                                         const fLat = f.geometry.coordinates[1];
                                         const fLon = f.geometry.coordinates[0];
@@ -320,17 +351,14 @@ export async function processImportedGpx(file, circuitId) {
                                 }
                             }
 
-                            // ÉTAPE 2 : Fallback sur la trace (Si échec ou absence de Waypoints)
+                            // ÉTAPE 2 : Fallback sur la trace
                             if (matchCount === 0 && coordinates.length > 0) {
-                                // On inverse la logique : Pour chaque POI du circuit, est-il proche de la trace ?
                                 circuitFeatures.forEach(f => {
                                     const [fLon, fLat] = f.geometry.coordinates;
-
                                     const isNearTrace = coordinates.some(([tLat, tLon]) => {
                                         const d = Math.sqrt(Math.pow(tLat - fLat, 2) + Math.pow(tLon - fLon, 2));
-                                        return d < 0.0006; // Seuil ~60m
+                                        return d < 0.0006;
                                     });
-
                                     if (isNearTrace) matchCount++;
                                 });
                             }
@@ -361,18 +389,53 @@ export async function processImportedGpx(file, circuitId) {
                     return;
                 }
 
-                // 4. SAUVEGARDE
+                // 4. SAUVEGARDE ET MISE À JOUR INTELLIGENTE
                 if (circuitId) {
                     // Mise à jour d'un circuit existant
                     const circuitIndex = state.myCircuits.findIndex(c => c.id === circuitId);
                     if (circuitIndex !== -1) {
+                        const currentCircuit = state.myCircuits[circuitIndex];
+                        let shouldUpdatePois = false;
+
+                        // --- ANALYSE INTELLIGENTE ---
+                        const detectedFeatures = findFeaturesOnTrack(coordinates, state.loadedFeatures);
+                        const currentIds = new Set(currentCircuit.poiIds);
+
+                        // Combien de NOUVEAUX points (non présents actuellement) ?
+                        const newPoints = detectedFeatures.filter(f => !currentIds.has(getPoiId(f)));
+
+                        if (newPoints.length > 0) {
+                             const confirmMsg = `La trace passe par ${detectedFeatures.length} lieux connus, dont ${newPoints.length} absent(s) de votre circuit.\n\nVoulez-vous mettre à jour la liste des étapes pour correspondre au tracé ?`;
+
+                             if (await showConfirm("Mise à jour des étapes", confirmMsg, "Mettre à jour", "Garder mes étapes")) {
+                                 shouldUpdatePois = true;
+                             }
+                        } else if (detectedFeatures.length > 0 && detectedFeatures.length !== currentCircuit.poiIds.length) {
+                             // Cas où on a moins de points (ex: raccourci), on propose aussi
+                             if (await showConfirm("Mise à jour des étapes", "La trace semble différente de vos étapes actuelles. Voulez-vous réaligner les étapes sur le tracé ?", "Réaligner", "Garder")) {
+                                 shouldUpdatePois = true;
+                             }
+                        }
+
+                        // --- APPLICATION ---
                         state.myCircuits[circuitIndex].realTrack = coordinates;
+
+                        if (shouldUpdatePois) {
+                            state.myCircuits[circuitIndex].poiIds = detectedFeatures.map(getPoiId);
+                            showToast(`Trace importée et ${detectedFeatures.length} étapes mises à jour !`, "success");
+                        } else {
+                            showToast("Trace importée (étapes conservées).", "success");
+                        }
+
                         await saveCircuit(state.myCircuits[circuitIndex]);
 
+                        // RAFFRAÎCHISSEMENT UI COMPLET (ESSENTIEL)
                         if (state.activeCircuitId === circuitId) {
+                            await loadCircuitById(circuitId);
+                        } else {
                             updatePolylines();
                         }
-                        showToast("Trace importée et mise à jour !", "success");
+
                         resolve();
                     } else {
                         throw new Error("Circuit cible introuvable.");
@@ -380,12 +443,16 @@ export async function processImportedGpx(file, circuitId) {
                 } else {
                     // Création d'un NOUVEAU circuit
                     const newId = `HW-${Date.now()}`;
+
+                    // On détecte aussi les POIs pour le nouveau circuit
+                    const detectedFeatures = findFeaturesOnTrack(coordinates, state.loadedFeatures);
+
                     const newCircuit = {
                         id: newId,
                         mapId: state.currentMapId,
                         name: "Trace Importée",
                         description: "Circuit créé à partir d'un import GPX.",
-                        poiIds: [],
+                        poiIds: detectedFeatures.map(getPoiId), // On remplit auto !
                         realTrack: coordinates,
                         transport: {}
                     };
@@ -393,9 +460,8 @@ export async function processImportedGpx(file, circuitId) {
                     state.myCircuits.push(newCircuit);
                     await saveCircuit(newCircuit);
 
-                    // On charge ce nouveau circuit
                     await loadCircuitById(newId);
-                    showToast("Nouveau circuit créé depuis la trace GPX", "success");
+                    showToast(`Nouveau circuit créé avec ${detectedFeatures.length} étapes détectées`, "success");
                     resolve();
                 }
             } catch (err) {
