@@ -14,7 +14,7 @@ import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
 import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
 import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
 import { initCircuitListUI, renderExplorerList } from './ui-circuit-list.js';
-import { showConfirm } from './modal.js';
+import { showConfirm, showAlert } from './modal.js';
 import { RichEditor } from './richEditor.js';
 
 // Re-exports for external use
@@ -633,7 +633,7 @@ export function showLegendModal() {
         </div>
     </div>`;
 
-    showConfirm(title, message, "Fermer", null, false).catch(() => {});
+    showAlert(title, message, "Fermer").catch(() => {});
 }
 
 export function openRestoreModal() {
