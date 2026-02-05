@@ -16,17 +16,24 @@ import { isMobileView } from './mobile.js';
  */
 export async function performCircuitDeletion(id) {
     try {
-        // 0. Sécurité : Interdiction de supprimer un circuit officiel
-        if (state.officialCircuits && state.officialCircuits.some(c => c.id === id)) {
-            return { success: false, message: "Impossible de supprimer un circuit officiel." };
-        }
+        // 0. Gestion suppression (Officiel vs Local)
+        const isOfficial = state.officialCircuits && state.officialCircuits.some(c => c.id === id);
 
-        // 1. Suppression logique (Corbeille)
-        await softDeleteCircuit(id);
-        
-        // 2. Mise à jour de la mémoire (state)
-        const circuit = state.myCircuits.find(c => c.id === id);
-        if (circuit) circuit.isDeleted = true;
+        if (isOfficial) {
+            if (!state.isAdmin) {
+                return { success: false, message: "Impossible de supprimer un circuit officiel." };
+            }
+            // ADMIN : Suppression Mémoire Uniquement (Pour Export)
+            state.officialCircuits = state.officialCircuits.filter(c => c.id !== id);
+            // On ne touche pas à softDeleteCircuit (DB) car ils n'y sont pas.
+        } else {
+            // STANDARD : Suppression logique (Corbeille)
+            await softDeleteCircuit(id);
+
+            // Mise à jour de la mémoire (state) pour les locaux
+            const circuit = state.myCircuits.find(c => c.id === id);
+            if (circuit) circuit.isDeleted = true;
+        }
         
         // FLAG CHANGEMENT
         state.hasUnexportedChanges = true;
