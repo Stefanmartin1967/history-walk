@@ -634,6 +634,12 @@ export function showLegendModal() {
     </div>`;
 
     showAlert(title, message, "Fermer").catch(() => {});
+
+    // Force l'affichage des icônes dans la modale
+    const modalMessage = document.getElementById('custom-modal-message');
+    if (modalMessage) {
+        createIcons({ icons, root: modalMessage });
+    }
 }
 
 export function openRestoreModal() {
