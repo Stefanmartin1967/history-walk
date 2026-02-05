@@ -26,9 +26,8 @@ Exemple de structure :
 
 ## 2. `circuits.json`
 
-*   **Statut :** **Obsolète / Legacy**.
-*   **Rôle :** Ancien fichier d'index utilisé avant la prise en charge du multi-cartes (`[mapId].json`).
-*   **Usage actuel :** Il est conservé pour éviter des erreurs si d'anciennes versions du code tentent d'y accéder, mais il doit rester vide (`[]`) ou être synchronisé avec `djerba.json` si nécessaire. L'application privilégie désormais `djerba.json`.
+*   **Statut :** **Supprimé**.
+*   **Rôle :** Ancien fichier d'index utilisé avant la prise en charge du multi-cartes (`[mapId].json`). Il n'est plus présent dans le projet.
 
 ## 3. Circuits Utilisateurs (Pas de fichier JSON serveur)
 
