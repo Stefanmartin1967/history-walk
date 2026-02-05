@@ -53,6 +53,12 @@ export function initializeDomReferences() {
     if (DOM.btnOpenMyCircuits) {
         DOM.btnOpenMyCircuits.addEventListener('click', () => {
             closeAllDropdowns();
+
+            if (DOM.rightSidebar && DOM.rightSidebar.style.display === 'none') {
+                DOM.rightSidebar.style.display = 'flex';
+                document.body.classList.add('sidebar-open');
+            }
+
             renderExplorerList();
             switchSidebarTab('explorer');
         });

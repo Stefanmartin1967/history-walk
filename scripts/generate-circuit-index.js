@@ -19,6 +19,48 @@ function escapeXml(unsafe) {
     }[c]));
 }
 
+// Haversine formula to calculate distance between two points
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+}
+
+function calculateTrackDistance(gpxContent) {
+    // Robust parsing: Find all trkpt tags, then extract attributes regardless of order
+    const trkptMatches = gpxContent.match(/<trkpt[\s\S]*?>/g);
+    if (!trkptMatches) return 0;
+
+    const coords = [];
+
+    trkptMatches.forEach(tag => {
+        const latMatch = tag.match(/lat="([^"]+)"/);
+        const lonMatch = tag.match(/lon="([^"]+)"/);
+
+        if (latMatch && lonMatch) {
+             coords.push([parseFloat(latMatch[1]), parseFloat(lonMatch[1])]);
+        }
+    });
+
+    if (coords.length < 2) return 0;
+
+    let totalDist = 0;
+    for (let i = 0; i < coords.length - 1; i++) {
+        totalDist += getDistance(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]);
+    }
+
+    return totalDist; // in meters
+}
+
 function processDirectory(mapId) {
     const dirPath = path.join(CIRCUITS_DIR, mapId);
     const indexFilePath = path.join(CIRCUITS_DIR, `${mapId}.json`);
@@ -113,14 +155,18 @@ function processDirectory(mapId) {
             fileChanged = true;
         }
 
-        // 3. Build New Entry
+        // 3. Calculate Distance
+        const distanceMeters = calculateTrackDistance(content);
+        const distanceStr = (distanceMeters / 1000).toFixed(1) + ' km';
+
+        // 4. Build New Entry
         // Merge with existing data to preserve manual fields (poiIds, transport)
         const entry = {
             id: id,
             name: name,
             file: `${mapId}/${filename}`, // Relative path for the app
             description: description,
-            distance: existingEntry ? existingEntry.distance : "0 km", // Keep old distance or default (could calc from track but expensive here)
+            distance: distanceStr, // Updated with calculated distance
             isOfficial: true,
             poiIds: existingEntry ? existingEntry.poiIds : [],
             transport: existingEntry && existingEntry.transport ? existingEntry.transport : undefined
