@@ -370,7 +370,7 @@ export async function exportFullBackupPC() {
 
 /**
  * EXPORT CIRCUITS OFFICIELS (JSON uniquement)
- * Génère un fichier circuits.json basé sur les circuits locaux actuels
+ * Génère un fichier [mapId].json basé sur les circuits locaux actuels
  */
 export async function exportOfficialCircuitsJSON() {
     try {
