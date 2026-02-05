@@ -2,7 +2,7 @@
 import { DOM, openDetailsPanel } from './ui.js';
 import { state } from './state.js';
 import { getPoiName, getPoiId } from './data.js'; // On réutilise les outils robustes de data.js
-import { map } from './map.js';
+import { map, highlightMarker } from './map.js';
 import { getSearchResults } from './search.js';
 
 export function setupSearch() {
@@ -36,9 +36,7 @@ export function setupSearch() {
                 state.geojsonLayer.eachLayer(layer => {
                     if (layer.feature && getPoiId(layer.feature) === targetId) {
                         map.flyTo(layer.getLatLng(), 16);
-                        
-                        // Optionnel : Ouvre le popup si on veut insister sur la position
-                        // layer.openPopup(); 
+                        highlightMarker(targetId); // <--- Effet visuel immédiat
                     }
                 });
 

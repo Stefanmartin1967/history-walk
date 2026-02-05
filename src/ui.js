@@ -6,7 +6,7 @@ import { escapeXml } from './gpx.js';
 import { eventBus } from './events.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';
-import { map } from './map.js';
+import { map, clearHighlight } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList, switchMobileView } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
@@ -14,7 +14,7 @@ import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
 import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
 import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
 import { initCircuitListUI, renderExplorerList } from './ui-circuit-list.js';
-import { showConfirm } from './modal.js';
+import { showConfirm, showAlert } from './modal.js';
 import { RichEditor } from './richEditor.js';
 
 // Re-exports for external use
@@ -316,6 +316,8 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
 }
 
 export function closeDetailsPanel(goBackToList = false) {
+    clearHighlight(); // Nettoyage visuel de la recherche
+
     if (window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
     if (isDictationActive()) stopDictation();
     
@@ -615,24 +617,32 @@ export function updateExportButtonLabel(mapId) {
 export function showLegendModal() {
     const title = "Légende des Marqueurs";
     const message = `
-    <div style="text-align: left; display: flex; flex-direction: column; gap: 10px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #10B981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);"></div>
+    <div style="text-align: left; display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; border: 3px solid #10B981; background: var(--surface); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center;">
+                 <i data-lucide="map-pin" style="width: 18px; height: 18px; color: var(--ink);"></i>
+            </div>
             <span><strong>Visité</strong> (Lieu marqué comme vu)</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid #F97316; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);"></div>
-            <span><strong>Planifié</strong> (Ajouté à un circuit)</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; border: 3px solid #3B82F6; background: var(--surface); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); display: flex; align-items: center; justify-content: center;">
+                 <i data-lucide="map-pin" style="width: 18px; height: 18px; color: var(--ink);"></i>
+            </div>
+            <span><strong>Planifié</strong> (Ajouté au circuit)</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
-                <i data-lucide="gem" style="color: #FFD700; fill: #FFD700; width: 20px; height: 20px;"></i>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 100%; height: 100%; background: #FEF08A; clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.25));">
+                    <i data-lucide="gem" style="color: #422006; width: 20px; height: 20px;"></i>
+                </div>
             </div>
             <span><strong>Incontournable</strong> (Lieu VIP à ne pas manquer)</span>
         </div>
     </div>`;
 
-    showConfirm(title, message, "Fermer", null, false).catch(() => {});
+    showAlert(title, message, "Fermer");
+    // On doit régénérer les icônes car showAlert modifie le DOM
+    setTimeout(() => createIcons({ icons }), 0);
 }
 
 export function openRestoreModal() {

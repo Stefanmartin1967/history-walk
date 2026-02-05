@@ -7,6 +7,7 @@ import { getPoiId } from './data.js';
 import { createIcons, icons } from 'lucide';
 
 export let map;
+let highlightedFeatureId = null;
 
 // --- DÉFINITION DES ICÔNES ---
 const ICON_BINOCULARS_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-binoculars-icon lucide-binoculars"><path d="M10 10h4"/><path d="M19 7V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3"/><path d="M20 21a2 2 0 0 0 2-2v-3.851c0-1.39-2-2.962-2-4.829V8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2z"/><path d="M 22 16 L 2 16"/><path d="M4 21a2 2 0 0 1-2-2v-3.851c0-1.39 2-2.962 2-4.829V8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2z"/><path d="M9 7V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v3"/></svg>';
@@ -124,6 +125,8 @@ export function getIconForFeature(feature) {
 }
 
 export function handleMarkerClick(feature) {
+    clearHighlight(); // Nettoyage visuel si on clique sur un marqueur
+
     if (state.isSelectionModeActive) {
         // --- MODE SELECTION (ON) ---
         const poiId = getPoiId(feature);
@@ -274,6 +277,13 @@ export function refreshMapMarkers(visibleFeatures) {
                 icon.options.className += ' marker-planned';
             }
 
+            // Persistance du highlight lors d'un refresh
+            try {
+                if (getPoiId(feature) === highlightedFeatureId) {
+                    icon.options.className += ' marker-highlight';
+                }
+            } catch (e) { /* ignore */ }
+
             const marker = L.marker(latlng, { icon: icon });
             
             marker.on('click', (e) => {
@@ -292,6 +302,41 @@ export function refreshMapMarkers(visibleFeatures) {
     }
 
     createIcons({ icons });
+}
+
+// --- GESTION DU HIGHLIGHT (RECHERCHE) ---
+
+export function highlightMarker(poiId) {
+    clearHighlight(); // Supprime l'ancien highlight s'il existe
+
+    highlightedFeatureId = poiId;
+
+    if (!state.geojsonLayer) return;
+
+    state.geojsonLayer.eachLayer(layer => {
+        if (layer.feature && getPoiId(layer.feature) === poiId) {
+             const el = layer.getElement();
+             if (el) {
+                 L.DomUtil.addClass(el, 'marker-highlight');
+             }
+        }
+    });
+}
+
+export function clearHighlight() {
+    if (highlightedFeatureId === null) return;
+
+    if (state.geojsonLayer) {
+        state.geojsonLayer.eachLayer(layer => {
+            if (layer.feature && getPoiId(layer.feature) === highlightedFeatureId) {
+                const el = layer.getElement();
+                if (el) {
+                    L.DomUtil.removeClass(el, 'marker-highlight');
+                }
+            }
+        });
+    }
+    highlightedFeatureId = null;
 }
 
 // --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT ---

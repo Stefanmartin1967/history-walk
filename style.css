@@ -2102,8 +2102,8 @@ input[type=range] {
 }
 
 .leaflet-marker-icon.marker-planned:not(.marker-vip) {
-    border: 3px solid #F97316 !important; /* Orange */
-    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+    border: 3px solid #3B82F6 !important; /* Bleu Brand */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
 /* Si VIP est visité ou planifié : Simulation de bordure via Drop Shadow */
@@ -2114,8 +2114,21 @@ input[type=range] {
 }
 .leaflet-marker-icon.marker-vip.marker-planned .hw-icon-wrapper {
     background: #FEF08A !important;
-    /* Double shadow pour simuler une bordure nette orange + ombre */
-    filter: drop-shadow(0 0 2px #F97316) drop-shadow(0 0 2px #F97316) drop-shadow(0 4px 3px rgba(0,0,0,0.3));
+    /* Double shadow pour simuler une bordure nette bleue + ombre */
+    filter: drop-shadow(0 0 2px #3B82F6) drop-shadow(0 0 2px #3B82F6) drop-shadow(0 4px 3px rgba(0,0,0,0.3));
+}
+
+/* --- ETAT RECHERCHÉ (CARRÉ PULSANT) --- */
+.leaflet-marker-icon.marker-highlight {
+    border-radius: 8px !important; /* Forme carrée arrondie */
+    z-index: 2000 !important;
+    animation: highlight-pulse 2s infinite;
+}
+
+@keyframes highlight-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); border-color: #3B82F6; }
+    50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); border-color: #60a5fa; }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); border-color: #3B82F6; }
 }
 
 /* --- HEADER REORGANISE --- */
