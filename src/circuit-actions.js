@@ -16,6 +16,11 @@ import { isMobileView } from './mobile.js';
  */
 export async function performCircuitDeletion(id) {
     try {
+        // 0. Sécurité : Interdiction de supprimer un circuit officiel
+        if (state.officialCircuits && state.officialCircuits.some(c => c.id === id)) {
+            return { success: false, message: "Impossible de supprimer un circuit officiel." };
+        }
+
         // 1. Suppression logique (Corbeille)
         await softDeleteCircuit(id);
         

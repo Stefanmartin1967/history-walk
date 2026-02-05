@@ -195,11 +195,13 @@ export function renderExplorerList() {
     const listContainer = document.getElementById('explorer-list');
     if (!listContainer) return;
 
-    // 1. Data Prep
-    const visibleCircuits = (state.myCircuits || []).filter(c => !c.isDeleted);
+    // 1. Data Prep : Fusion des circuits officiels et utilisateur
+    const officials = state.officialCircuits || [];
+    const locals = (state.myCircuits || []).filter(c => !c.isDeleted);
+    const allCircuits = [...officials, ...locals];
 
     // 2. Enrichment
-    const enrichedCircuits = visibleCircuits.map(c => {
+    const enrichedCircuits = allCircuits.map(c => {
         const ids = c.poiIds || [];
         const features = ids
             .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
@@ -292,16 +294,26 @@ export function renderExplorerList() {
                 ? `<span style="color:var(--ok); font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i data-lucide="check-square" style="width:14px; height:14px;"></i> Fait</span>`
                 : `${c.poiCount} POI`;
 
-            const actionsHtml = `
-                <button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
-                    <i data-lucide="trash-2"></i>
-                </button>`;
+            // Indicateur Officiel
+            const officialIcon = c.isOfficial
+                ? `<i data-lucide="star" style="width:14px; height:14px; color:var(--primary); fill:var(--primary); margin-left:4px;"></i>`
+                : '';
+
+            // Actions : Suppression interdite pour les officiels
+            const deleteBtn = !c.isOfficial
+                ? `<button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
+                        <i data-lucide="trash-2"></i>
+                   </button>`
+                : '';
+
+            const actionsHtml = deleteBtn;
 
             return `
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
                     <div class="explorer-item-name" title="${escapeXml(c.name)}">
                         ${escapeXml(displayName)}
+                        ${officialIcon}
                     </div>
                     <div class="explorer-item-meta">
                         ${metaInfo} • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}
@@ -339,11 +351,13 @@ function renderCircuitsList() {
     const container = getEl('circuits-list-container');
     if (!container) return;
 
-    const visibleCircuits = state.myCircuits.filter(c => !c.isDeleted);
+    const officials = state.officialCircuits || [];
+    const locals = (state.myCircuits || []).filter(c => !c.isDeleted);
+    const allCircuits = [...officials, ...locals];
 
-    container.innerHTML = (visibleCircuits.length === 0)
+    container.innerHTML = (allCircuits.length === 0)
         ? '<p class="empty-list-info">Aucun circuit sauvegardé pour cette carte.</p>'
-        : visibleCircuits.map(c => {
+        : allCircuits.map(c => {
             const existingFeatures = c.poiIds
                 .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
                 .filter(f => f);
@@ -354,10 +368,19 @@ function renderCircuitsList() {
 
             const checkState = allVisited ? 'checked' : '';
 
+            // Badge Officiel
+            const officialBadge = c.isOfficial
+                ? '<i data-lucide="star" style="width:14px; height:14px; color:var(--primary); fill:var(--primary); margin-left:6px; vertical-align:middle;"></i>'
+                : '';
+
+            const deleteBtn = !c.isOfficial
+                ? `<button class="btn-delete" data-action="delete" title="Supprimer le circuit">${ICONS.trash}</button>`
+                : '';
+
             return `
             <div class="circuit-item" data-id="${c.id}">
                 <div style="flex:1;">
-                    <span class="circuit-item-name">${escapeXml(c.name)}</span>
+                    <span class="circuit-item-name">${escapeXml(c.name)} ${officialBadge}</span>
                 </div>
 
                 <div class="circuit-item-actions">
@@ -367,7 +390,7 @@ function renderCircuitsList() {
                     </label>
                     <button class="btn-import" data-action="import" title="Importer un tracé réel">${ICONS.upload}</button>
                     <button class="btn-load" data-action="load" title="Charger le circuit">${ICONS.play}</button>
-                    <button class="btn-delete" data-action="delete" title="Supprimer le circuit">${ICONS.trash}</button>
+                    ${deleteBtn}
                 </div>
             </div>`;
         }).join('');

@@ -82,7 +82,7 @@ function updateAppTitle(mapId) {
     updateExportButtonLabel(mapId);
 }
 
-async function mergeOfficialCircuits() {
+async function loadOfficialCircuits() {
     // SÉCURITÉ : Chargement dynamique selon la carte active (ex: circuits/djerba.json)
     const mapId = state.currentMapId || 'djerba';
     const circuitsUrl = `./circuits/${mapId}.json`;
@@ -92,24 +92,24 @@ async function mergeOfficialCircuits() {
         if (response.ok) {
             const officials = await response.json();
 
-            if (!state.myCircuits) state.myCircuits = [];
+            // CLEAN SLATE : On charge dans state.officialCircuits, PAS dans state.myCircuits
+            // Cela évite de polluer les sauvegardes utilisateur avec des données statiques.
+            state.officialCircuits = officials.map(off => ({
+                ...off,
+                isOfficial: true,
+                // On s'assure d'avoir un ID unique s'il n'est pas fourni (bien que le générateur JSON le fasse déjà)
+                id: off.id || `official_${off.name.replace(/\s+/g, '_')}`
+            }));
 
-            officials.forEach(off => {
-                // Fusion intelligente : on n'ajoute que ceux qui n'existent pas déjà (basé sur le nom)
-                const exists = state.myCircuits.some(c => c.name === off.name);
-                if (!exists) {
-                     const localCopy = { ...off, id: `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, isOfficial: false };
-                     state.myCircuits.push(localCopy);
-                }
-            });
-
-            console.log(`[Main] Circuits officiels (${mapId}) fusionnés dans les circuits locaux.`);
+            console.log(`[Main] ${state.officialCircuits.length} circuits officiels chargés.`);
             import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
         } else {
              console.log(`[Main] Pas de circuits officiels trouvés pour '${mapId}' (Fichier manquant ou 404).`);
+             state.officialCircuits = [];
         }
     } catch (e) {
         console.warn(`[Main] Erreur lors du chargement des circuits officiels pour ${mapId} :`, e);
+        state.officialCircuits = [];
     }
 }
 
@@ -140,7 +140,7 @@ async function loadDefaultMap() {
         try {
             state.userData = await getAllPoiDataForMap(mapId) || {};
             state.myCircuits = await getAllCircuitsForMap(mapId) || [];
-            await mergeOfficialCircuits(); // Fusion immédiate
+            await loadOfficialCircuits(); // Chargement séparé
         } catch (dbErr) {
             console.warn("Aucune donnée utilisateur antérieure ou erreur DB:", dbErr);
             state.myCircuits = [];
@@ -246,7 +246,7 @@ async function initializeApp() {
             try {
                 state.userData = await getAllPoiDataForMap(lastMapId) || {};
                 state.myCircuits = await getAllCircuitsForMap(lastMapId) || [];
-                await mergeOfficialCircuits(); // Fusion immédiate
+                await loadOfficialCircuits(); // Chargement séparé
             } catch (e) { console.error("Erreur DB secondaire:", e); }
 
             // 3. Affichage de la carte
