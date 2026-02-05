@@ -124,6 +124,7 @@ export function getIconForFeature(feature) {
 }
 
 export function handleMarkerClick(feature) {
+    clearMarkerHighlights();
     if (state.isSelectionModeActive) {
         // --- MODE SELECTION (ON) ---
         const poiId = getPoiId(feature);
@@ -155,6 +156,16 @@ export function handleMarkerClick(feature) {
 
 // --- LE NOUVEAU PEINTRE ---
 let currentDrawnLine = null; 
+
+export function clearMarkerHighlights() {
+    if (state.geojsonLayer) {
+        state.geojsonLayer.eachLayer(layer => {
+            if (layer.getElement()) {
+                layer.getElement().classList.remove('marker-highlight');
+            }
+        });
+    }
+}
 
 export function clearMapLines() {
     if (currentDrawnLine) {
