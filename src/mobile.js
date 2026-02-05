@@ -17,7 +17,6 @@ import { getSearchResults } from './search.js';
 
 let currentView = 'circuits'; 
 let mobileSort = 'date_desc'; // date_desc, date_asc, dist_asc, dist_desc
-let mobileFilterResto = false;
 // Note: state.activeFilters.zone is used for Zone filtering
 
 export function isMobileView() {
@@ -249,9 +248,6 @@ export function renderMobileCircuitsList() {
     if (state.filterCompleted) {
         enrichedCircuits = enrichedCircuits.filter(c => !c._allVisited);
     }
-    if (mobileFilterResto) {
-        enrichedCircuits = enrichedCircuits.filter(c => c._hasRestaurant);
-    }
     if (state.activeFilters && state.activeFilters.zone) {
         enrichedCircuits = enrichedCircuits.filter(c => {
             if (c._validPois.length === 0) return false;
@@ -335,6 +331,10 @@ export function renderMobileCircuitsList() {
                 ? '<i data-lucide="star" style="color:var(--primary); width:14px; height:14px; margin-left:5px; fill:var(--primary);"></i>'
                 : '';
 
+            const restoIcon = circuit._hasRestaurant
+                ? `<i data-lucide="utensils" style="width:14px; height:14px; margin-left:4px; vertical-align:text-bottom;"></i>`
+                : '';
+
             // Bouton de téléchargement GPX (Seulement pour les officiels)
             let downloadAction = '';
             if (circuit.isOfficial && circuit.file) {
@@ -352,8 +352,8 @@ export function renderMobileCircuitsList() {
                                 <span style="font-weight:700; font-size:16px; color:var(--ink);">${escapeHtml(displayName)}</span>
                                 ${badgeHtml}
                             </div>
-                            <div style="font-size:13px; color:var(--ink-soft); margin-top:4px;">
-                                ${total} POI • ${distDisplay} • ${zoneName}
+                            <div style="font-size:13px; color:var(--ink-soft); margin-top:4px; display:flex; align-items:center; flex-wrap:wrap;">
+                                ${total} POI • ${distDisplay} • ${zoneName}${restoIcon}
                             </div>
                         </div>
 
@@ -379,7 +379,6 @@ export function renderMobileCircuitsList() {
         resetBtn.addEventListener('click', () => {
             // Reset toolbar state
             state.filterCompleted = false;
-            mobileFilterResto = false;
             mobileSort = 'date_desc';
             renderMobileCircuitsList();
         });
@@ -437,9 +436,6 @@ function renderMobileToolbar() {
         <button id="mob-filter-zone" class="toolbar-btn ${zoneActive ? 'active' : ''}">
             <i data-lucide="map-pin"></i>
         </button>
-        <button id="mob-filter-resto" class="toolbar-btn ${mobileFilterResto ? 'active' : ''}">
-            <i data-lucide="utensils"></i>
-        </button>
         <button id="mob-filter-todo" class="toolbar-btn ${state.filterCompleted ? 'active' : ''}">
             <i data-lucide="${state.filterCompleted ? 'list-todo' : 'list-checks'}"></i>
         </button>
@@ -463,10 +459,6 @@ function renderMobileToolbar() {
     document.getElementById('mob-filter-zone').onclick = () => {
         renderMobileZonesMenu();
     };
-    document.getElementById('mob-filter-resto').onclick = () => {
-        mobileFilterResto = !mobileFilterResto;
-        renderMobileCircuitsList();
-    };
     document.getElementById('mob-filter-todo').onclick = () => {
         state.filterCompleted = !state.filterCompleted;
         if(state.filterCompleted) showToast("Circuits terminés masqués", "info");
@@ -475,7 +467,6 @@ function renderMobileToolbar() {
     };
     document.getElementById('mob-reset').onclick = () => {
         mobileSort = 'date_desc';
-        mobileFilterResto = false;
         state.filterCompleted = false;
         renderMobileCircuitsList();
     };

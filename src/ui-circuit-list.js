@@ -13,7 +13,6 @@ const getEl = (id) => document.getElementById(id);
 // --- LOCAL STATE ---
 // Sort: 'date_desc' (Recents first), 'date_asc', 'dist_asc' (Shortest first), 'dist_desc'
 let currentSort = 'date_desc';
-let filterRestaurant = false;
 let filterTodo = false; // true = Show only circuits with unvisited points
 
 export function openCircuitsModal() {
@@ -129,9 +128,6 @@ function renderExplorerToolbar() {
 
         <div class="separator-vertical"></div>
 
-        <button id="btn-filter-resto" class="footer-btn icon-only ${filterRestaurant ? 'active' : ''}" title="Avec Restaurant">
-            <i data-lucide="utensils"></i>
-        </button>
         <button id="btn-filter-todo" class="footer-btn icon-only ${filterTodo ? 'active' : ''}" title="A faire">
             <i data-lucide="${filterTodo ? 'list-todo' : 'list-checks'}"></i>
         </button>
@@ -158,11 +154,6 @@ function renderExplorerToolbar() {
         refreshExplorer();
     });
 
-    footer.querySelector('#btn-filter-resto').addEventListener('click', () => {
-        filterRestaurant = !filterRestaurant;
-        refreshExplorer();
-    });
-
     footer.querySelector('#btn-filter-todo').addEventListener('click', () => {
         filterTodo = !filterTodo;
         refreshExplorer();
@@ -170,7 +161,6 @@ function renderExplorerToolbar() {
 
     footer.querySelector('#btn-reset-filters').addEventListener('click', () => {
         currentSort = 'date_desc';
-        filterRestaurant = false;
         filterTodo = false;
         refreshExplorer();
     });
@@ -257,10 +247,6 @@ export function renderExplorerList() {
     // 3. Filter
     let processedCircuits = enrichedCircuits;
 
-    if (filterRestaurant) {
-        processedCircuits = processedCircuits.filter(c => c.hasRestaurant);
-    }
-
     if (filterTodo) {
         // Show only those NOT all visited (at least one unvisited)
         processedCircuits = processedCircuits.filter(c => !c.allVisited);
@@ -308,6 +294,10 @@ export function renderExplorerList() {
 
             const actionsHtml = deleteBtn;
 
+            const restoIcon = c.hasRestaurant
+                ? `<i data-lucide="utensils" style="width:14px; height:14px; vertical-align:text-bottom; margin-left:4px;" title="Restaurant présent"></i>`
+                : '';
+
             return `
             <div class="explorer-item" data-id="${c.id}">
                 <div class="explorer-item-content">
@@ -316,7 +306,7 @@ export function renderExplorerList() {
                         ${officialIcon}
                     </div>
                     <div class="explorer-item-meta">
-                        ${metaInfo} • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}
+                        ${metaInfo} • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}${restoIcon}
                     </div>
                 </div>
                 ${actionsHtml}
