@@ -377,12 +377,15 @@ export async function exportOfficialCircuitsJSON() {
         const { getRealDistance, getOrthodromicDistance } = await import('./map.js');
         const { getPoiId } = await import('./data.js');
 
-        // On prend UNIQUEMENT les circuits créés localement (non officiels)
-        // car le but est de transformer le travail local en futur officiel.
-        const sourceCircuits = state.myCircuits.filter(c => !c.isDeleted);
+        // On fusionne les circuits locaux (futurs officiels) ET les circuits officiels existants
+        // (moins ceux qui ont été supprimés de la mémoire via God Mode)
+        const localCircuits = state.myCircuits.filter(c => !c.isDeleted);
+        const officialCircuits = state.officialCircuits || [];
+
+        const sourceCircuits = [...officialCircuits, ...localCircuits];
 
         if (sourceCircuits.length === 0) {
-            showToast("Aucun circuit local à exporter.", "warning");
+            showToast("Aucun circuit à exporter.", "warning");
             return;
         }
 
@@ -394,23 +397,32 @@ export async function exportOfficialCircuitsJSON() {
 
             let distDisplay = "0 km";
             if (circuitFeatures.length > 0) {
-                let d = 0;
-                if (c.realTrack) {
-                    d = getRealDistance(c);
+                // Si distance déjà stockée et pas de trace chargée, on garde l'existant (précision)
+                if (c.distance && !c.realTrack) {
+                     distDisplay = c.distance;
                 } else {
-                    d = getOrthodromicDistance(circuitFeatures);
+                    let d = 0;
+                    if (c.realTrack) {
+                        d = getRealDistance(c);
+                    } else {
+                        d = getOrthodromicDistance(circuitFeatures);
+                    }
+                    distDisplay = (d / 1000).toFixed(1) + ' km';
                 }
-                distDisplay = (d / 1000).toFixed(1) + ' km';
+            } else if (c.distance) {
+                // Fallback si features pas chargés mais distance existe
+                distDisplay = c.distance;
             }
 
-            // Génération d'un nom de fichier GPX théorique
-            // Ex: "Circuit Djerba Hood" -> "circuit_djerba_hood.gpx"
-            const safeName = c.name
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '_')
-                .replace(/^_+|_+$/g, '');
-
-            const fileName = `${safeName}.gpx`;
+            // Génération d'un nom de fichier GPX théorique si absent
+            let fileName = c.file;
+            if (!fileName) {
+                const safeName = c.name
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '_')
+                    .replace(/^_+|_+$/g, '');
+                fileName = `${safeName}.gpx`;
+            }
 
             return {
                 id: c.id, // On garde l'ID original (HW-...) pour la robustesse

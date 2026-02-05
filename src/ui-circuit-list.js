@@ -299,8 +299,8 @@ export function renderExplorerList() {
                 ? `<i data-lucide="star" style="width:14px; height:14px; color:var(--primary); fill:var(--primary); margin-left:4px;"></i>`
                 : '';
 
-            // Actions : Suppression interdite pour les officiels
-            const deleteBtn = !c.isOfficial
+            // Actions : Suppression interdite pour les officiels (sauf Admin)
+            const deleteBtn = (!c.isOfficial || state.isAdmin)
                 ? `<button class="explorer-item-delete" data-id="${c.id}" title="Supprimer">
                         <i data-lucide="trash-2"></i>
                    </button>`
@@ -373,7 +373,7 @@ function renderCircuitsList() {
                 ? '<i data-lucide="star" style="width:14px; height:14px; color:var(--primary); fill:var(--primary); margin-left:6px; vertical-align:middle;"></i>'
                 : '';
 
-            const deleteBtn = !c.isOfficial
+            const deleteBtn = (!c.isOfficial || state.isAdmin)
                 ? `<button class="btn-delete" data-action="delete" title="Supprimer le circuit">${ICONS.trash}</button>`
                 : '';
 
