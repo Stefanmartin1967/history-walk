@@ -12,26 +12,7 @@ export default defineConfig({
       base: '/history-walk/', 
       scope: '/history-walk/',
 
-      manifest: {
-        name: 'History Walk',
-        short_name: 'HistoryWalk',
-        start_url: '/history-walk/',
-        display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#000000',
-        icons: [
-          {
-            src: 'icons/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      },
+      manifest: false, // On utilise public/manifest.json manuellement
       workbox: {
         // Ajout explicite pour être sûr que fusion.html est mis en cache
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,geojson}']
