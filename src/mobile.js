@@ -424,14 +424,12 @@ function renderMobileToolbar() {
         <button id="mob-sort-dist" class="toolbar-btn ${mobileSort.startsWith('dist') ? 'active' : ''}">
             <i data-lucide="${distIcon}"></i>
         </button>
-        <div class="toolbar-sep"></div>
         <button id="mob-filter-zone" class="toolbar-btn ${zoneActive ? 'active' : ''}">
             <i data-lucide="map-pin"></i>
         </button>
         <button id="mob-filter-todo" class="toolbar-btn ${state.filterCompleted ? 'active' : ''}">
             <i data-lucide="${state.filterCompleted ? 'list-todo' : 'list-checks'}"></i>
         </button>
-        <div class="toolbar-sep"></div>
         <button id="mob-reset" class="toolbar-btn">
             <i data-lucide="rotate-ccw"></i>
         </button>

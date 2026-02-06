@@ -2524,16 +2524,15 @@ input[type=range] {
     border-top: none;
     border-bottom: 1px solid var(--line);
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
-    padding: 8px 16px;
-    gap: 12px;
+    padding: 8px 0;
     z-index: 100;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .toolbar-btn {
-    width: 42px;
+    flex: 1;
     height: 42px;
     border-radius: 12px;
     border: none;
@@ -2544,7 +2543,6 @@ input[type=range] {
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
-    flex-shrink: 0;
 }
 
 .toolbar-btn:active {
@@ -2559,10 +2557,4 @@ input[type=range] {
 .toolbar-btn svg {
     width: 20px;
     height: 20px;
-}
-
-.toolbar-sep {
-    width: 1px;
-    height: 24px;
-    background: var(--line);
 }
