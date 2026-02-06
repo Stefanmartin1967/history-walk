@@ -109,25 +109,25 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     // --- TEMPLATE PC ---
     const pcHtml = `
-        <div class="panel-header editable-field pc-layout" data-field-id="title" style="display:flex; flex-direction:column; gap:10px; align-items:stretch; padding-bottom:12px;">
+        <div class="panel-header editable-field pc-layout" data-field-id="title" style="display:flex; flex-direction:column; gap:0; align-items:stretch; padding-bottom:4px;">
             <!-- ROW 1: Title + Close -->
-            <div style="display:flex; justify-content:space-between; align-items:start; width:100%;">
-                <div class="left-text-block" style="flex:1; min-width:0; margin-right:10px;">
-                     <h2 id="panel-title-fr" title="${escapeXml(poiName)}" style="margin:0; font-size:20px; font-weight:700; color:var(--ink);">${escapeXml(poiName)}</h2>
-                     <h2 id="panel-title-ar" style="display:none; margin:0; font-size:20px; font-weight:700; color:var(--ink); text-align:right;" dir="rtl">${escapeXml(arName)}</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">
+                <div class="left-text-block" style="flex:1; min-width:0; margin-right:10px; overflow:hidden;">
+                     <h2 id="panel-title-fr" title="${escapeXml(poiName)}" style="margin:0; font-size:20px; font-weight:700; color:var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeXml(poiName)}</h2>
+                     <h2 id="panel-title-ar" style="display:none; margin:0; font-size:20px; font-weight:700; color:var(--ink); text-align:right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" dir="rtl">${escapeXml(arName)}</h2>
                 </div>
                 <div style="flex-shrink:0;">
-                     <button class="action-button" id="close-details-button" title="Fermer">${ICONS.x}</button>
+                     <button class="action-button" id="close-details-button" title="Fermer" style="margin:0;">${ICONS.x}</button>
                 </div>
             </div>
 
             <!-- ROW 2: Actions Toolbar -->
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-top: 8px;">
                 <!-- Left: Tools -->
                 <div style="display:flex; gap:5px; align-items:center;">
+                     <button class="action-button" id="btn-toggle-lang" title="Afficher le titre arabe" ${hasAr ? '' : 'disabled'} style="${hasAr ? '' : 'opacity:0.5; cursor:not-allowed;'}">${ICONS.languages}</button>
                      <button class="action-button btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
                      ${gmapsButtonHtml}
-                     <button class="action-button" id="btn-toggle-lang" title="Afficher le titre arabe" ${hasAr ? '' : 'disabled'} style="${hasAr ? '' : 'opacity:0.5; cursor:not-allowed;'}">${ICONS.languages}</button>
                      <button class="action-button" id="btn-global-edit" title="Modifier le lieu">${ICONS.pen}</button>
                      <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
                 </div>
@@ -202,14 +202,14 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     const mobileHtml = `
         <div class="panel-content" style="padding-bottom: 100px;">
-            <div class="detail-section editable-field" data-field-id="title">
-                <div class="content" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="detail-section editable-field" data-field-id="title" style="padding-bottom:12px;">
+                <div class="content" style="display:flex; flex-direction:column; gap:0;">
 
                     <!-- ROW 1: Title + Close -->
-                    <div style="display:flex; justify-content:space-between; align-items:start; width:100%;">
-                        <div class="title-names" style="flex:1; min-width:0;">
-                             <h2 id="mobile-title-fr" class="editable-text" style="margin:0; font-size:20px; font-weight:700;">${escapeXml(poiName)}</h2>
-                             <h2 id="mobile-title-ar" style="display:none; margin:0; font-size:22px; font-weight:700; text-align:right;" dir="rtl">${escapeXml(arName)}</h2>
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; margin-bottom: 10px;">
+                        <div class="title-names" style="flex:1; min-width:0; overflow:hidden;">
+                             <h2 id="mobile-title-fr" class="editable-text" style="margin:0; font-size:20px; font-weight:700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeXml(poiName)}</h2>
+                             <h2 id="mobile-title-ar" style="display:none; margin:0; font-size:20px; font-weight:700; text-align:right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" dir="rtl">${escapeXml(arName)}</h2>
                         </div>
                         <div style="flex-shrink:0; margin-left:10px;">
                              <button id="details-close-btn" class="action-button" style="${mobileBtnStyle}">${ICONS.x}</button>
@@ -220,9 +220,9 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                     <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                          <!-- Left: Tools -->
                          <div style="display:flex; gap:6px; align-items:center;">
+                             <button class="action-button" id="mobile-btn-toggle-lang" title="Arabe" ${hasAr ? '' : 'disabled'} style="${mobileBtnStyle} ${hasAr ? '' : 'opacity:0.5;'}">${ICONS.languages}</button>
                              <button class="action-button btn-web-search" id="btn-web-search" title="Google" style="${mobileBtnStyle}">${ICONS.globe}</button>
                              ${mobileGmapsBtn}
-                             <button class="action-button" id="mobile-btn-toggle-lang" title="Arabe" ${hasAr ? '' : 'disabled'} style="${mobileBtnStyle} ${hasAr ? '' : 'opacity:0.5;'}">${ICONS.languages}</button>
                              <button class="action-button" id="btn-global-edit" title="Editer" style="${mobileBtnStyle}">${ICONS.pen}</button>
                              <button class="action-button" id="btn-soft-delete" title="Supprimer" style="${mobileBtnStyle} color: var(--danger);">${ICONS.trash}</button>
                          </div>

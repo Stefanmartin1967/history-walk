@@ -222,31 +222,14 @@ body {
 /* === FIX SPECIFICITY FOR PC DETAILS PANEL === */
 /* ========================================================= */
 
+/* REMOVED FOR NEW LAYOUT (Split Header)
 #details-panel .panel-header.pc-layout {
     display: flex !important;
     flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
 }
-
-#details-panel .pc-text-block {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    margin-right: 10px !important;
-    min-width: 0 !important;
-}
-
-#details-panel .pc-text-block h2 {
-    text-align: left !important;
-    margin: 0 !important;
-}
-
-#details-panel .pc-text-block .panel-nom-arabe {
-    text-align: left !important;
-    margin-top: 2px !important;
-}
+*/
 
 .btn:hover:not(:disabled) {
     transform: translateY(-1px);
