@@ -39,6 +39,29 @@ function findFeaturesOnTrack(trackCoords, features, threshold = 0.0006) {
     // Tri chronologique (selon l'ordre de passage sur la trace)
     detected.sort((a, b) => a.index - b.index);
 
+    // Détection de boucle : Si la trace revient au départ, on duplique le premier POI à la fin
+    if (trackCoords.length > 1) {
+        const startPoint = trackCoords[0];
+        const endPoint = trackCoords[trackCoords.length - 1];
+
+        // Calcul distance Start-End (trace fermée ?)
+        const loopDist = Math.sqrt(Math.pow(startPoint[0] - endPoint[0], 2) + Math.pow(startPoint[1] - endPoint[1], 2));
+
+        if (loopDist < threshold && detected.length > 0) {
+            const firstDet = detected[0];
+            // Vérifie si ce premier POI est géographiquement cohérent avec la fin de la trace
+            const [fLon, fLat] = firstDet.feature.geometry.coordinates;
+            const distToEnd = Math.sqrt(Math.pow(endPoint[0] - fLat, 2) + Math.pow(endPoint[1] - fLon, 2));
+
+            if (distToEnd < threshold) {
+                detected.push({
+                    feature: firstDet.feature,
+                    index: trackCoords.length // On le place à la fin
+                });
+            }
+        }
+    }
+
     return detected.map(d => d.feature);
 }
 
@@ -232,28 +255,17 @@ export async function processImportedGpx(file, circuitId) {
         reader.onload = async (e) => {
             try {
                 const text = e.target.result;
+
+                // 1. EXTRACTION HW-ID (SÉCURITÉ)
+                // Utilisation d'une Regex sur le texte brut pour éviter les problèmes de parsing XML/Namespace
+                let foundHwId = null;
+                const idMatch = text.match(/\[HW-ID:(HW-\d+)\]/);
+                if (idMatch) {
+                    foundHwId = idMatch[1];
+                }
+
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(text, "text/xml");
-                
-                // 1. EXTRACTION HW-ID (SÉCURITÉ)
-                let foundHwId = null;
-
-                // Recherche EXCLUSIVE dans <link><text> (Format V5 - Compatible GPX Studio)
-                const metadataNodes = xmlDoc.getElementsByTagName("metadata");
-                if (metadataNodes.length > 0) {
-                    const linkNodes = metadataNodes[0].getElementsByTagName("link");
-                    for (let i = 0; i < linkNodes.length; i++) {
-                        const textNodes = linkNodes[i].getElementsByTagName("text");
-                        if (textNodes.length > 0) {
-                            const linkText = textNodes[0].textContent;
-                            const match = linkText.match(/\[HW-ID:(HW-\d+)\]/);
-                            if (match) {
-                                foundHwId = match[1];
-                                break;
-                            }
-                        }
-                    }
-                }
 
                 // 2. EXTRACTION TRACE
                 const trkpts = xmlDoc.getElementsByTagName("trkpt");
