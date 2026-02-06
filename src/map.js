@@ -127,20 +127,11 @@ export function handleMarkerClick(feature) {
     clearMarkerHighlights();
     if (state.isSelectionModeActive) {
         // --- MODE SELECTION (ON) ---
-        const poiId = getPoiId(feature);
-        const isInCircuit = state.currentCircuit.some(f => getPoiId(f) === poiId);
-
-        if (isInCircuit) {
-             const globalIndex = state.loadedFeatures.findIndex(f => f.properties.HW_ID === feature.properties.HW_ID);
-             const circuitIndex = state.currentCircuit.findIndex(f => getPoiId(f) === poiId);
-             openDetailsPanel(globalIndex, circuitIndex);
-             return;
-        }
-
-        if (state.currentCircuit.length >= 15) {
-            showToast("Circuit plein (15 points max) !", "warning");
-            return;
-        }
+        // On délègue toute la logique (ajout, bouclage, limitation) à addPoiToCircuit
+        // Cela permet de :
+        // 1. Ignorer le dernier point (déjà géré dans addPoiToCircuit)
+        // 2. Boucler sur le premier point (déjà géré)
+        // 3. Ajouter des points intermédiaires (forme de 8)
 
         const added = addPoiToCircuit(feature);
         if (added) {
