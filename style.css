@@ -399,11 +399,11 @@ body.sidebar-open #map {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    gap: 8px;
+    gap: 4px;
 }
 
 .detail-section {
-    margin-bottom: 12px;
+    margin-bottom: 4px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
@@ -416,7 +416,7 @@ body.sidebar-open #map {
 }
 
 .detail-section h3 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink);
     text-transform: uppercase;
@@ -425,11 +425,21 @@ body.sidebar-open #map {
     display: flex;
     align-items: center;
     /* Header Fin et Coloré */
-    padding: 6px 16px;
+    padding: 2px 12px;
     background-color: var(--brand-soft);
     border-radius: 0;
     border-bottom: 1px solid var(--line);
-    min-height: 32px;
+    min-height: 24px;
+}
+
+.detail-section h3 .action-button {
+    width: 24px;
+    height: 24px;
+}
+
+.detail-section h3 .action-button svg {
+    width: 14px;
+    height: 14px;
 }
 
 .detail-section .content {
@@ -437,7 +447,7 @@ body.sidebar-open #map {
     box-shadow: none;
     border-radius: 0;
     /* Espace réduit en haut */
-    padding: 10px 16px 16px 16px;
+    padding: 6px 12px 10px 12px;
     display: flex;
     flex-direction: column;
     margin-top: 0;
@@ -473,8 +483,8 @@ body.sidebar-open #map {
 }
 
 .description-content {
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.4;
     white-space: pre-wrap;
 }
 
@@ -685,7 +695,8 @@ body.sidebar-open #map {
     border: 1px solid var(--brand);
     border-radius: 8px;
     padding: 8px;
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.4;
     background-color: var(--surface);
     box-sizing: border-box;
     font-family: inherit;
@@ -704,8 +715,8 @@ body.sidebar-open #map {
 .editable-field .editable-text {
     min-height: 24px;
     color: var(--ink);
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .editable-text.short-text {
@@ -1543,27 +1554,29 @@ textarea.editable-input {
     cursor: not-allowed;
 }
 
-.detail-section {
-    margin-bottom: 10px;
-}
+@media (max-width: 768px) {
+    .detail-section {
+        margin-bottom: 6px;
+    }
 
-.detail-section h3 {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-    color: var(--ink-soft);
-    text-transform: uppercase;
-    /* On garde le style desktop (background coloré) */
-}
+    .detail-section h3 {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+        color: var(--ink-soft);
+        text-transform: uppercase;
+        /* On garde le style desktop (background coloré) */
+    }
 
-.detail-section .content {
-    /* Reset du style "boîte séparée" mobile pour coller au design unifié */
-    padding: 12px 16px;
-    border-radius: 0;
-    box-shadow: none;
-    background: var(--surface);
+    .detail-section .content {
+        /* Reset du style "boîte séparée" mobile pour coller au design unifié */
+        padding: 6px 12px 10px 12px;
+        border-radius: 0;
+        box-shadow: none;
+        background: var(--surface);
+    }
 }
 
 .title-section-line {
