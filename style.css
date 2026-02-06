@@ -1324,7 +1324,7 @@ textarea.editable-input {
 .mobile-view-header {
     flex-shrink: 0;
     background-color: var(--surface);
-    padding: 12px 8px;
+    padding: 12px 16px; /* Increased side padding */
     border-bottom: 1px solid var(--line);
     box-shadow: var(--shadow-soft);
     display: flex;
@@ -1333,6 +1333,10 @@ textarea.editable-input {
     min-height: 56px;
     box-sizing: border-box;
     gap: 8px;
+    /* Edge-to-edge hack for padded container */
+    margin-left: -8px;
+    margin-right: -8px;
+    width: calc(100% + 16px);
 }
 
 .header-title-mobile,
@@ -1975,7 +1979,7 @@ input[type=range] {
 /* --- PATCH POUR LA LISTE (Marges aérées pour scroll confortable) --- */
 @media (max-width: 768px) {
     .mobile-list {
-        padding: 12px 12px 80px 12px !important;
+        padding: 12px 12px calc(80px + env(safe-area-inset-bottom)) 12px !important;
     }
 
     /* 80px en bas pour ne pas cacher le dernier élément */
@@ -1994,15 +1998,16 @@ input[type=range] {
         display: flex;
         flex-direction: column;
         position: fixed;
-        bottom: 16px;
-        left: 16px;
-        right: 16px;
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: var(--surface-muted);
+        border-top: 1px solid var(--line);
+        border-radius: 0;
+        box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.03);
         z-index: 2000;
-        overflow: hidden;
+        overflow: visible;
         padding-bottom: env(safe-area-inset-bottom);
     }
 
@@ -2510,18 +2515,21 @@ input[type=range] {
 
 /* --- MOBILE TOOLBAR --- */
 .mobile-toolbar {
-    position: static;
-    width: 100%;
-    background: transparent;
+    position: sticky;
+    top: 0;
+    width: calc(100% + 16px);
+    margin-left: -8px;
+    margin-right: -8px;
+    background: var(--surface);
     border-top: none;
-    border-bottom: 1px solid var(--line); /* Séparateur */
+    border-bottom: 1px solid var(--line);
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 8px 16px;
     gap: 12px;
-    z-index: auto;
-    box-shadow: none;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .toolbar-btn {
