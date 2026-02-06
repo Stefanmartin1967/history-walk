@@ -236,6 +236,22 @@ if (chkInc) {
         });
     });
 
+    // --- TOGGLE LANGUE (FR/AR) ---
+    const toggleLangBtn = document.getElementById('btn-toggle-lang') || document.getElementById('mobile-btn-toggle-lang');
+    if (toggleLangBtn) {
+        toggleLangBtn.addEventListener('click', () => {
+            // On cible large (PC et Mobile)
+            const fr = document.getElementById('panel-title-fr') || document.getElementById('mobile-title-fr');
+            const ar = document.getElementById('panel-title-ar') || document.getElementById('mobile-title-ar');
+
+            if (fr && ar) {
+                const isFrVisible = fr.style.display !== 'none';
+                fr.style.display = isFrVisible ? 'none' : '';
+                ar.style.display = isFrVisible ? '' : 'none';
+            }
+        });
+    }
+
     // (Ancien bouton Admin supprimé - géré par le crayon standard en God Mode)
 
     // Gestion Photos DÉLÉGUÉE
