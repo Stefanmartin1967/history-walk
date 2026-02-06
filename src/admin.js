@@ -5,6 +5,10 @@ import { showToast } from './toast.js';
 import { closeAllDropdowns } from './ui.js';
 
 export function initAdminMode() {
+    // Initial check
+    console.log("[Admin] Init mode. Is Admin?", state.isAdmin);
+    toggleAdminUI(state.isAdmin);
+
     eventBus.on('admin:mode-toggled', (isAdmin) => {
         toggleAdminUI(isAdmin);
     });

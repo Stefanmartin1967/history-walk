@@ -5,7 +5,7 @@ import { generateCircuitName, loadCircuitById } from './circuit.js';
 import { DOM } from './ui.js';
 import { getAllPoiDataForMap, getAllCircuitsForMap, saveCircuit, batchSavePoiData, getAppState } from './database.js';
 import { showToast } from './toast.js';
-import { downloadFile } from './utils.js';
+import { downloadFile, escapeXml } from './utils.js';
 import { updatePolylines } from './map.js';
 
 // --- HELPER : Analyse de proximité ---
@@ -40,18 +40,6 @@ function findFeaturesOnTrack(trackCoords, features, threshold = 0.0006) {
     detected.sort((a, b) => a.index - b.index);
 
     return detected.map(d => d.feature);
-}
-
-export function escapeXml(unsafe) {
-    if (unsafe === null || unsafe === undefined) return '';
-    // String(unsafe) garantit que .replace existe toujours
-    return String(unsafe).replace(/[<>&'"]/g, c => ({
-        '<': '&lt;',
-        '>': '&gt;',
-        '&': '&amp;',
-        "'": '&apos;',
-        '"': '&quot;'
-    }[c]));
 }
 
 function generateAndDownloadGPX(circuit, id, name, description, realTrack = null) {

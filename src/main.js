@@ -177,6 +177,7 @@ async function loadDefaultMap() {
 async function initializeApp() {
     // 0. Détection Mode Admin (God Mode)
     const urlParams = new URLSearchParams(window.location.search);
+    console.log("[Main] Checking Admin Mode. Params:", window.location.search);
     if (urlParams.get('mode') === 'admin' || urlParams.get('admin') === 'true') {
         state.isAdmin = true;
         console.warn("🛡️ GOD MODE ACTIVATED (ADMIN) 🛡️");

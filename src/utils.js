@@ -132,6 +132,18 @@ export function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
+export function escapeXml(unsafe) {
+    if (unsafe === null || unsafe === undefined) return '';
+    // String(unsafe) garantit que .replace existe toujours
+    return String(unsafe).replace(/[<>&'"]/g, c => ({
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        "'": '&apos;',
+        '"': '&quot;'
+    }[c]));
+}
+
 // --- CLUSTERING PHOTOS GPS ---
 
 export function calculateBarycenter(coordsList) {
