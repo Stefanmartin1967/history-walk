@@ -170,11 +170,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             <div class="detail-section editable-field notes-section" data-field-id="notes">
-                <h3>Notes
-                     <div class="edit-controls section-controls">
-                        <button class="action-button speak-btn">${ICONS.volume}</button>
-                    </div>
-                </h3>
+                <h3>Notes</h3>
                 <div class="content">
                     <div id="panel-notes-display" class="description-content editable-text">${(allProps.notes || '').replace(/\n/g, '<br>')}</div>
                 </div>
@@ -266,11 +262,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             <div class="detail-section editable-field notes-section" data-field-id="notes">
-                <h3>Notes
-                    <div class="edit-controls section-controls">
-                        <button class="action-button speak-btn" title="Lire les notes">${ICONS.volume}</button>
-                    </div>
-                </h3>
+                <h3>Notes</h3>
                 <div class="content">
                     <div class="description-content editable-text">${(allProps.notes || '').replace(/\n/g, '<br>')}</div>
                 </div>
