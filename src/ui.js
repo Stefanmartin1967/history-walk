@@ -298,7 +298,6 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
     
     // Ré-attachement des écouteurs (sur les nouveaux éléments uniquement)
     const poiId = getPoiId(feature);
-    // setupAllEditableFields(poiId); // REMOVED: Inline editing removed
     setupGlobalEditButton(poiId);  // ADDED: Global edit button
     setupDetailsEventListeners(poiId);
 
