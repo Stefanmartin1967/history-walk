@@ -198,7 +198,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     const mobileHtml = `
         <div class="panel-content" style="padding-bottom: 100px;">
-            <div class="detail-section editable-field" data-field-id="title" style="padding-bottom:12px;">
+            <div class="detail-section editable-field" data-field-id="title" style="position:sticky; top:0; z-index:20; background:var(--surface-muted); padding-bottom:12px; margin-bottom:0; border-bottom:1px solid var(--line);">
                 <div class="content" style="display:flex; flex-direction:column; gap:0;">
 
                     <!-- ROW 1: Title + Close -->

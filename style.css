@@ -414,10 +414,11 @@ body.sidebar-open #map {
     color: var(--ink-soft);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 0 0 2px 0;
+    margin: 0;
     display: flex;
     align-items: center;
-    padding: 2px 8px;
+    padding: 0 8px;
+    height: 28px;
 }
 
 .detail-section .content {
@@ -1514,6 +1515,7 @@ textarea.editable-input {
 #mobile-main-container .panel-content {
     padding: 0;
     gap: 0;
+    overflow-y: visible; /* Allows sticky elements to work relative to parent scroller */
 }
 
 .details-header-nav {
