@@ -110,10 +110,6 @@ export function switchMobileView(viewName) {
     const dock = document.getElementById('mobile-dock');
     if (dock) dock.style.display = 'flex';
 
-    // Masquer toolbar si on change de vue
-    const toolbar = document.getElementById('mobile-toolbar');
-    if(toolbar) toolbar.style.display = (viewName === 'circuits') ? 'flex' : 'none';
-
     switch (viewName) {
         case 'circuits':
             renderMobileCircuitsList();
@@ -280,6 +276,7 @@ export function renderMobileCircuitsList() {
         <div class="mobile-view-header">
             <h1>Mes Circuits</h1>
         </div>
+        <div id="mobile-toolbar-container"></div>
         <div class="panel-content" style="padding: 10px 10px 140px 10px;">
     `;
 
@@ -398,26 +395,16 @@ export function renderMobileCircuitsList() {
 }
 
 function renderMobileToolbar() {
-    let toolbar = document.getElementById('mobile-toolbar');
-    if (!toolbar) {
-        toolbar = document.createElement('div');
-        toolbar.id = 'mobile-toolbar';
-        toolbar.className = 'mobile-toolbar';
+    // On cible le conteneur spécifique injecté par renderMobileCircuitsList
+    const container = document.getElementById('mobile-toolbar-container');
+    if (!container) return;
 
-        // Insérer DANS le dock, avant le nav (pour qu'il soit au-dessus visuellement ou empilé)
-        const dock = document.getElementById('mobile-dock');
-        if (dock) {
-            dock.prepend(toolbar);
-        } else {
-            document.body.appendChild(toolbar);
-        }
-    }
-    
-    // Si on n'est pas sur la vue circuits, on cache la toolbar
-    if (currentView !== 'circuits') {
-        toolbar.style.display = 'none';
-        return;
-    }
+    // Nettoyage préventif
+    container.innerHTML = '';
+
+    const toolbar = document.createElement('div');
+    toolbar.id = 'mobile-toolbar';
+    toolbar.className = 'mobile-toolbar';
     toolbar.style.display = 'flex';
 
     const dateIcon = mobileSort.startsWith('date')
@@ -450,27 +437,28 @@ function renderMobileToolbar() {
         </button>
     `;
 
+    container.appendChild(toolbar);
     createIcons({ icons, root: toolbar });
 
-    // Listeners
-    document.getElementById('mob-sort-date').onclick = () => {
+    // Listeners (sur le nouvel élément toolbar)
+    toolbar.querySelector('#mob-sort-date').onclick = () => {
         mobileSort = (mobileSort === 'date_desc') ? 'date_asc' : 'date_desc';
         renderMobileCircuitsList();
     };
-    document.getElementById('mob-sort-dist').onclick = () => {
+    toolbar.querySelector('#mob-sort-dist').onclick = () => {
         mobileSort = (mobileSort === 'dist_asc') ? 'dist_desc' : 'dist_asc';
         renderMobileCircuitsList();
     };
-    document.getElementById('mob-filter-zone').onclick = () => {
+    toolbar.querySelector('#mob-filter-zone').onclick = () => {
         renderMobileZonesMenu();
     };
-    document.getElementById('mob-filter-todo').onclick = () => {
+    toolbar.querySelector('#mob-filter-todo').onclick = () => {
         state.filterCompleted = !state.filterCompleted;
         if(state.filterCompleted) showToast("Circuits terminés masqués", "info");
         else showToast("Tous les circuits affichés", "info");
         renderMobileCircuitsList();
     };
-    document.getElementById('mob-reset').onclick = () => {
+    toolbar.querySelector('#mob-reset').onclick = () => {
         mobileSort = 'date_desc';
         state.filterCompleted = false;
         renderMobileCircuitsList();
@@ -558,8 +546,7 @@ export function renderMobilePoiList(features) {
     // --- MASQUAGE DES MENUS (Optimisation Espace) ---
     const dock = document.getElementById('mobile-dock');
     if (dock) dock.style.display = 'none';
-    const toolbar = document.getElementById('mobile-toolbar');
-    if (toolbar) toolbar.style.display = 'none';
+    // Toolbar is automatically removed as it is part of content
     
     let pageTitle = 'Lieux';
     let isAllVisited = false;
@@ -696,9 +683,6 @@ export function renderMobilePoiList(features) {
                     d.style.display = 'flex';
                     console.log("Dock restored to flex (Final)");
                 }
-
-                const t = document.getElementById('mobile-toolbar');
-                if (t) t.style.display = 'flex';
 
             } catch (e) {
                 console.error("Error in back button:", e);
