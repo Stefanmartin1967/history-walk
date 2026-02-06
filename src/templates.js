@@ -4,7 +4,6 @@ import { escapeXml } from './utils.js';
 import { POI_CATEGORIES, state } from './state.js';
 import { isMobileView } from './mobile.js';
 
-// On rapatrie les icônes ici car c'est le "visuel"
 export const ICONS = {
     mosque: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H4v-7a8 8 0 0 1 16 0z"/><path d="M12 5V2"/><circle cx="12" cy="8" r="2"/></svg>`,    
     pen: `<i data-lucide="pencil" style="width:18px;height:18px;"></i>`,
@@ -25,7 +24,8 @@ export const ICONS = {
     play: `<i data-lucide="play" style="width:18px;height:18px;"></i>`,
     trash: `<i data-lucide="trash-2" style="width:18px;height:18px;"></i>`,
     googleMaps: `<i data-lucide="map-pin" style="width:18px;height:18px;"></i>`,
-    globe: `<i data-lucide="globe" style="width:18px;height:18px;"></i>`
+    globe: `<i data-lucide="globe" style="width:18px;height:18px;"></i>`,
+    languages: `<i data-lucide="languages" style="width:18px;height:18px;"></i>`
 };
 
 export function renderSource(allProps) {
@@ -48,6 +48,10 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
     const inCircuit = circuitIndex !== null;
     const currentCat = allProps['Catégorie'] || '';
 
+    // Extraction Titre AR
+    const arName = allProps['Nom du site arabe'] || allProps['Nom du site AR'] || '';
+    const hasAr = !!arName && arName.trim() !== '';
+
     const categoryOptions = POI_CATEGORIES.map(c => 
         `<option value="${c}" ${c === currentCat ? 'selected' : ''}>${c}</option>`
     ).join('');
@@ -65,7 +69,6 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
     const priceValue = allProps.price !== undefined ? allProps.price : (parseFloat(allProps['Prix d\'entrée']) || '');
     const isVuChecked = allProps.vu ? 'checked' : '';
     const isIncontournableChecked = allProps.incontournable ? 'checked' : '';
-    const isVerifiedChecked = allProps.verified ? 'checked' : '';
 
     const photos = allProps.photos || [];
     let photosHtml = photos.map((src, index) => `
@@ -98,9 +101,6 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     const gmapsButtonHtml = `<button class="action-button" id="open-gmaps-btn" title="Itinéraire Google Maps">${ICONS.googleMaps}</button>`;
     
-    // BOUTON ADMIN (GOD MODE) - Supprimé car fusionné avec le crayon standard
-    const adminButtonHtml = '';
-
     const categorySelectHtml = `
         <select id="panel-category-select" class="editable-input header-input" style="display:none; margin-top:5px; width:100%; font-size:14px;">
             ${categoryOptions}
@@ -109,33 +109,40 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
     // --- TEMPLATE PC ---
     const pcHtml = `
-        <div class="panel-header editable-field pc-layout" data-field-id="title" style="display:flex; justify-content:space-between; align-items:center;">
-
-            <div class="left-text-block pc-text-block" style="flex:1; margin-right: 10px; display:flex; flex-direction:column;">
-                 <div class="editable-content">
-                    <h2 id="panel-title-display" title="${escapeXml(poiName)}">${escapeXml(poiName)}</h2>
-                    <p class="panel-nom-arabe">${escapeXml(allProps['Nom du site arabe'] || '')}</p>
-                 </div>
-                 <input type="text" id="panel-title-input" class="editable-input header-input" style="display: none; width:100%; margin-top:5px;">
-                 ${categorySelectHtml}
-            </div>
-
-            <div class="right-icon-block" style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0;">
-                <div class="details-nav" style="display:flex; gap:4px;">
-                    <button class="action-button btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
-                    ${inCircuit ? `<button class="action-button" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
-                                  <button class="action-button" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
-                    <button class="action-button" id="close-details-button" title="Fermer">${ICONS.x}</button>
+        <div class="panel-header editable-field pc-layout" data-field-id="title" style="display:flex; flex-direction:column; gap:10px; align-items:stretch; padding-bottom:12px;">
+            <!-- ROW 1: Title + Close -->
+            <div style="display:flex; justify-content:space-between; align-items:start; width:100%;">
+                <div class="left-text-block" style="flex:1; min-width:0; margin-right:10px;">
+                     <h2 id="panel-title-fr" title="${escapeXml(poiName)}" style="margin:0; font-size:20px; font-weight:700; color:var(--ink);">${escapeXml(poiName)}</h2>
+                     <h2 id="panel-title-ar" style="display:none; margin:0; font-size:20px; font-weight:700; color:var(--ink); text-align:right;" dir="rtl">${escapeXml(arName)}</h2>
                 </div>
-
-                <div class="edit-controls" style="display:flex; gap:5px; justify-content:flex-end;">
-                    ${gmapsButtonHtml}
-                    ${adminButtonHtml}
-                    <button class="action-button" id="btn-global-edit" title="Modifier le lieu">${ICONS.pen}</button>
-                    <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
+                <div style="flex-shrink:0;">
+                     <button class="action-button" id="close-details-button" title="Fermer">${ICONS.x}</button>
                 </div>
             </div>
+
+            <!-- ROW 2: Actions Toolbar -->
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                <!-- Left: Tools -->
+                <div style="display:flex; gap:5px; align-items:center;">
+                     <button class="action-button btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
+                     ${gmapsButtonHtml}
+                     <button class="action-button" id="btn-toggle-lang" title="Afficher le titre arabe" ${hasAr ? '' : 'disabled'} style="${hasAr ? '' : 'opacity:0.5; cursor:not-allowed;'}">${ICONS.languages}</button>
+                     <button class="action-button" id="btn-global-edit" title="Modifier le lieu">${ICONS.pen}</button>
+                     <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
+                </div>
+                <!-- Right: Navigation -->
+                <div style="display:flex; gap:5px; align-items:center;">
+                     ${inCircuit ? `<button class="action-button" id="prev-poi-button" title="Précédent" ${circuitIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
+                                    <button class="action-button" id="next-poi-button" title="Suivant" ${circuitIndex === state.currentCircuit.length - 1 ? 'disabled' : ''}>${ICONS.chevronRight}</button>` : ''}
+                </div>
+            </div>
+
+            <!-- Hidden Inputs -->
+            <input type="text" id="panel-title-input" class="editable-input header-input" style="display: none;">
+            ${categorySelectHtml}
         </div>
+
         <div class="panel-content">
             <div class="detail-section editable-field" data-field-id="short_desc">
                 <h3>Description du circuit</h3>
@@ -190,38 +197,49 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
         </div>`;
     
     // --- TEMPLATE MOBILE ---
+    const mobileBtnStyle = 'width:36px; height:36px; background:var(--surface-muted); padding:0; border-radius:8px; border:none; display:grid; place-items:center;';
+    const mobileGmapsBtn = gmapsButtonHtml.replace('class="action-button"', `class="action-button" style="${mobileBtnStyle}"`);
+
     const mobileHtml = `
         <div class="panel-content" style="padding-bottom: 100px;">
             <div class="detail-section editable-field" data-field-id="title">
-                <div class="content">
-                    <div class="title-section-line">
-                        <div class="title-names editable-content">
-                            <h2 class="editable-text">${escapeXml(poiName)}</h2>
+                <div class="content" style="display:flex; flex-direction:column; gap:12px;">
+
+                    <!-- ROW 1: Title + Close -->
+                    <div style="display:flex; justify-content:space-between; align-items:start; width:100%;">
+                        <div class="title-names" style="flex:1; min-width:0;">
+                             <h2 id="mobile-title-fr" class="editable-text" style="margin:0; font-size:20px; font-weight:700;">${escapeXml(poiName)}</h2>
+                             <h2 id="mobile-title-ar" style="display:none; margin:0; font-size:22px; font-weight:700; text-align:right;" dir="rtl">${escapeXml(arName)}</h2>
                         </div>
-                        <div class="title-actions details-header-nav">
-                            <button class="btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
-                            <button id="details-prev-btn" data-direction="-1" ${(!inCircuit || circuitIndex === 0) ? 'disabled' : ''}>${ICONS.chevronLeft}</button>
-                            <button id="details-next-btn" data-direction="1" ${(!inCircuit || circuitIndex === state.currentCircuit.length - 1) ? 'disabled' : ''}>${ICONS.chevronRight}</button>
-                            <button id="details-close-btn">${ICONS.x}</button>
-                        </div>
-                    </div>
-                     <input type="text" class="editable-input" style="display: none;" value="${escapeXml(poiName)}">
-                     ${categorySelectHtml}
-                     
-                    <div class="title-section-line">
-                        <div class="title-names">
-                             <p class="panel-nom-arabe editable-text">${escapeXml(allProps['Nom du site arabe'] || '')}</p>
-                        </div>
-                        <div class="title-actions edit-controls">
-                             ${gmapsButtonHtml}
-                             ${adminButtonHtml}
-                             <button id="mobile-move-poi-btn" class="action-button" title="Mettre à jour la position">${ICONS.locate}</button>
-                             <button class="action-button" id="btn-global-edit" title="Tout éditer">${ICONS.pen}</button>
-                             <button class="action-button" id="btn-soft-delete" title="Supprimer (Corbeille)" style="color: var(--danger);">${ICONS.trash}</button>
+                        <div style="flex-shrink:0; margin-left:10px;">
+                             <button id="details-close-btn" class="action-button" style="${mobileBtnStyle}">${ICONS.x}</button>
                         </div>
                     </div>
+
+                    <!-- ROW 2: Toolbar -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                         <!-- Left: Tools -->
+                         <div style="display:flex; gap:6px; align-items:center;">
+                             <button class="action-button btn-web-search" id="btn-web-search" title="Google" style="${mobileBtnStyle}">${ICONS.globe}</button>
+                             ${mobileGmapsBtn}
+                             <button class="action-button" id="mobile-btn-toggle-lang" title="Arabe" ${hasAr ? '' : 'disabled'} style="${mobileBtnStyle} ${hasAr ? '' : 'opacity:0.5;'}">${ICONS.languages}</button>
+                             <button class="action-button" id="btn-global-edit" title="Editer" style="${mobileBtnStyle}">${ICONS.pen}</button>
+                             <button class="action-button" id="btn-soft-delete" title="Supprimer" style="${mobileBtnStyle} color: var(--danger);">${ICONS.trash}</button>
+                         </div>
+
+                         <!-- Right: Navigation -->
+                         <div style="display:flex; gap:6px; align-items:center;">
+                             <button id="details-prev-btn" data-direction="-1" ${(!inCircuit || circuitIndex === 0) ? 'disabled' : ''} style="${mobileBtnStyle}">${ICONS.chevronLeft}</button>
+                             <button id="details-next-btn" data-direction="1" ${(!inCircuit || circuitIndex === state.currentCircuit.length - 1) ? 'disabled' : ''} style="${mobileBtnStyle}">${ICONS.chevronRight}</button>
+                         </div>
+                    </div>
+
+                    <!-- Hidden Stuff -->
+                    <input type="text" class="editable-input" style="display: none;" value="${escapeXml(poiName)}">
+                    ${categorySelectHtml}
                 </div>
             </div>
+
             <div class="detail-section editable-field" data-field-id="short_desc">
                 <h3>Description du circuit</h3>
                 <div class="content">
