@@ -460,28 +460,15 @@ body.sidebar-open #map {
 .notes-section {
     display: flex;
     flex-direction: column;
-    flex-basis: 0;
-}
-
-.description-section {
-    flex-grow: 6.5;
-}
-
-.notes-section {
-    flex-grow: 3.5;
 }
 
 .description-section .content,
 .notes-section .content {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .description-content {
-    flex-grow: 1;
-    overflow-y: auto;
     font-size: 15px;
     line-height: 1.6;
     white-space: pre-wrap;
