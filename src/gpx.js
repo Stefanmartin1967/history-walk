@@ -114,6 +114,14 @@ export async function recalculatePlannedCountersForMap(mapId) {
         const poiDataForMap = await getAllPoiDataForMap(mapId);
         const circuitsForMap = await getAllCircuitsForMap(mapId);
         
+        // FIX: On ne prend que les circuits NON supprimés
+        const activeLocalCircuits = circuitsForMap.filter(c => !c.isDeleted);
+
+        // FIX: On inclut aussi les circuits officiels (qui ne sont pas en base)
+        const officialCircuits = state.officialCircuits || [];
+
+        const allCircuits = [...activeLocalCircuits, ...officialCircuits];
+
         const counters = {};
         
         // Etape 1 : On initialise tout à 0 (même les supprimés s'ils sont chargés)
@@ -121,8 +129,9 @@ export async function recalculatePlannedCountersForMap(mapId) {
             counters[getPoiId(f)] = 0;
         });
 
-        circuitsForMap.forEach(circuit => {
-            [...new Set(circuit.poiIds)].forEach(poiId => {
+        allCircuits.forEach(circuit => {
+            const poiIds = circuit.poiIds || [];
+            [...new Set(poiIds)].forEach(poiId => {
                 // Etape 2 : On vérifie l'existence et l'état du POI
                 if (counters.hasOwnProperty(poiId)) {
                     const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
