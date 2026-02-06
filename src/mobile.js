@@ -26,6 +26,11 @@ export function isMobileView() {
 export function initMobileMode() {
     document.body.classList.add('mobile-mode');
     
+    // Tentative de masquage de la barre d'adresse (Hack Android/iOS)
+    setTimeout(() => {
+        window.scrollTo(0, 1);
+    }, 0);
+
     // Gestion des boutons de navigation
     const navButtons = document.querySelectorAll('.mobile-nav-btn[data-view]');
     navButtons.forEach(btn => {

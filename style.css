@@ -10,7 +10,7 @@ html[data-theme="maritime"] {
     --ink-soft: #627D98;
     --line: #D9E2EC;
     --brand: #3B82F6;
-    --brand-soft: #D6EAFE;
+    --brand-soft: #F0F9FF; /* Plus clair que la mer */
     --ok: #10B981;
     --warn: #F59E0B;
     --danger: #EF4444;
@@ -403,29 +403,37 @@ body.sidebar-open #map {
 }
 
 .detail-section {
-    margin-bottom: 0;
+    margin-bottom: 12px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    /* Nouveau design : bloc coloré unifié */
+    background-color: var(--brand-soft);
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--line);
+    overflow: hidden;
 }
 
 .detail-section h3 {
-    font-size: 13px;
-    color: var(--ink-soft);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0;
     display: flex;
     align-items: center;
-    padding: 4px 8px;
-    background-color: var(--brand-soft);
-    border-radius: 6px;
+    padding: 12px 16px;
+    background-color: transparent;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Ligne de séparation */
 }
 
 .detail-section .content {
-    background: var(--surface);
-    box-shadow: var(--shadow-soft);
-    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
     padding: 16px;
     display: flex;
     flex-direction: column;
