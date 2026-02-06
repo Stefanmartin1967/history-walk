@@ -1,6 +1,6 @@
 // templates.js
 import { getPoiName } from './data.js';
-import { escapeXml } from './gpx.js';
+import { escapeXml } from './utils.js';
 import { POI_CATEGORIES, state } from './state.js';
 import { isMobileView } from './mobile.js';
 

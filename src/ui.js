@@ -2,7 +2,7 @@
 import { state, POI_CATEGORIES } from './state.js';
 import { getPoiId, getPoiName, applyFilters, updatePoiData } from './data.js';
 import { restoreCircuit, saveAppState } from './database.js';
-import { escapeXml } from './gpx.js';
+import { escapeXml } from './utils.js';
 import { eventBus } from './events.js';
 import { speakText, stopDictation, isDictationActive } from './voice.js';
 import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';

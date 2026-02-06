@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { getPoiId } from './data.js';
 import { ICONS } from './templates.js';
-import { escapeXml } from './gpx.js';
+import { escapeXml } from './utils.js';
 import { eventBus } from './events.js';
 import { showConfirm } from './modal.js';
 import { getZoneFromCoords } from './utils.js';
