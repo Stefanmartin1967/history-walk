@@ -1,0 +1,9 @@
+
+> version-suppression-poi-douce@1.0.0 dev
+> vite --host 0.0.0.0 --port 3000
+
+
+  VITE v7.3.1  ready in 381 ms
+
+  ➜  Local:   http://localhost:3000/history-walk/
+  ➜  Network: http://192.168.0.2:3000/history-walk/
