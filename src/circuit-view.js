@@ -1,5 +1,5 @@
 // circuit-view.js
-import { DOM, openDetailsPanel, switchSidebarTab } from './ui.js';
+import { DOM, openDetailsPanel } from './ui.js';
 import { getPoiName, getPoiId } from './data.js';
 import { state } from './state.js';
 import { showToast } from './toast.js';

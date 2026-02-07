@@ -14,6 +14,7 @@ export function initAdminMode() {
     });
 
     setupAdminListeners();
+    setupGodModeListener();
 }
 
 function toggleAdminUI(isAdmin) {
@@ -46,7 +47,7 @@ function setupAdminListeners() {
     const btnScout = document.getElementById('btn-admin-scout');
     if (btnScout) {
         btnScout.addEventListener('click', () => {
-            window.open('scout.html', '_blank');
+            window.open('tools/scout.html', '_blank');
         });
     }
 
@@ -54,6 +55,34 @@ function setupAdminListeners() {
     if (btnExport) {
         btnExport.addEventListener('click', exportMasterGeoJSON);
     }
+}
+
+function setupGodModeListener() {
+    let buffer = [];
+    let timeout;
+
+    window.addEventListener('keydown', (e) => {
+        // Ignorer si on est dans un champ texte
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        const key = e.key.toLowerCase();
+        buffer.push(key);
+
+        // Reset buffer si pause trop longue
+        clearTimeout(timeout);
+        timeout = setTimeout(() => { buffer = []; }, 1000);
+
+        // Check sequence "god"
+        if (buffer.join('').endsWith('god')) {
+            state.isAdmin = !state.isAdmin;
+            showToast(`Mode GOD : ${state.isAdmin ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`, state.isAdmin ? 'success' : 'info');
+
+            // Émettre un événement pour que l'UI se mette à jour
+            eventBus.emit('admin:mode-toggled', state.isAdmin);
+
+            buffer = []; // Reset
+        }
+    });
 }
 
 function exportMasterGeoJSON() {

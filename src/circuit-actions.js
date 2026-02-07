@@ -117,16 +117,3 @@ export function getZonesData() {
         sortedZones: Object.keys(zoneCounts).sort()
     };
 }
-
-/**
- * Calcule le nouveau temps pour un POI (Heures/Minutes)
- */
-export function calculateAdjustedTime(currentH, currentM, minutesToAdd) {
-    let totalMinutes = (parseInt(currentH) || 0) * 60 + (parseInt(currentM) || 0) + minutesToAdd;
-    if (totalMinutes < 0) totalMinutes = 0;
-    
-    return {
-        h: Math.floor(totalMinutes / 60),
-        m: totalMinutes % 60
-    };
-}

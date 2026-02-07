@@ -8,8 +8,8 @@ Ce document recense les divergences fonctionnelles et ergonomiques identifiées 
 
 | Fonctionnalité | Mobile | Desktop (PC) |
 | :--- | :--- | :--- |
-| **Marquer "Fait"** | ✅ **Bouton dédié** en bas de la liste des étapes ("Circuit terminé" / "Marquer comme fait"). | ❌ **Inaccessible**. L'indicateur visuel existe dans la barre latérale, mais aucune case à cocher ou bouton n'est disponible pour changer l'état. (L'ancienne modale qui le permettait n'est plus accessible). |
-| **Inverser le sens** | ✅ **Bouton "Inverser"** (Double flèche) dans l'en-tête du circuit. Inverse l'ordre de visite. | ❌ **Absent (Intentionnel)**. Le circuit est créé sur PC puis importé. L'inversion est utile sur le terrain (Mobile), mais pas lors de l'édition initiale. |
+| **Marquer "Fait"** | ✅ **Bouton dédié** en bas de la liste des étapes ("Circuit terminé" / "Marquer comme fait"). | ✅ **Disponible**. Bouton "Cercle/Check" dans la liste Explorer pour basculer l'état. |
+| **Inverser le sens** | ❌ **Supprimé**. Fonctionnalité abandonnée. | ❌ **Absent**. Fonctionnalité abandonnée. |
 | **Filtre par Zone** | ✅ **Disponible**. Via le bouton "Œil" ou la barre d'outils contextuelle. | ❌ **Absent de la liste (Intentionnel)**. Utile sur Mobile pour la géolocalisation ("près de moi"). Sur PC, l'Explorer global suffit. |
 | **Indicateur Restaurant** | ✅ Icône "Couverts" visible dans la liste des circuits. | ✅ Icône "Couverts" visible dans la liste Explorer. |
 | **Suppression** | ✅ Glissement ou Menu contextuel (selon OS). | ✅ Bouton "Corbeille" au survol dans la liste Explorer. |
@@ -40,7 +40,6 @@ Ce document recense les divergences fonctionnelles et ergonomiques identifiées 
 | **Synchronisation** | **Emetteur & Récepteur**. Peut générer un QR ou en scanner un. | **Emetteur**. Génère un QR code de synchronisation pour transférer l'état vers le mobile. |
 | **Export GPX** | ✅ Disponible pour les circuits. | ✅ Disponible pour les circuits. |
 
-## Synthèse des manques (Desktop)
+## Synthèse
 
-Le point suivant est le plus critique pour aligner l'expérience Desktop sur le Mobile :
-1.  **Rétablir la possibilité de marquer un circuit comme "Fait/Non Fait"** depuis la barre latérale Explorer.
+L'expérience est désormais alignée sur les fonctionnalités critiques. La version Desktop offre des outils d'édition et de gestion plus puissants (Photos, Import GPX avancé), tandis que la version Mobile se concentre sur l'usage terrain (GPS, Scanner, Liste simple).

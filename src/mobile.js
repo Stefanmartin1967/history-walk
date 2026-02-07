@@ -551,13 +551,6 @@ export function renderMobilePoiList(features) {
         }
     }
 
-    // Le bouton n'apparaît que si c'est un circuit ET qu'il n'est pas encore terminé
-    const reverseBtnHtml = (isCircuit && !isAllVisited)
-        ? `<button id="mobile-reverse-btn" style="margin-left:auto; background:none; border:none; color:var(--brand); cursor:pointer;" title="Inverser le sens du circuit">
-             <i data-lucide="arrow-up-down"></i>
-           </button>` 
-        : '';
-
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.overflow = 'hidden'; 
@@ -575,7 +568,6 @@ export function renderMobilePoiList(features) {
             ${isCircuit ? '<button id="mobile-back-btn" style="margin-right:10px;"><i data-lucide="arrow-left"></i></button>' : ''}
             <h1 style="margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">${escapeHtml(pageTitle)}</h1>
         </div>
-        ${reverseBtnHtml}
     `;
     container.appendChild(headerDiv);
 
@@ -678,16 +670,6 @@ export function renderMobilePoiList(features) {
             } catch (e) {
                 console.error("Error in back button:", e);
             }
-        });
-    }
-
-    const reverseBtn = document.getElementById('mobile-reverse-btn');
-    if (reverseBtn) {
-        reverseBtn.addEventListener('click', () => {
-            if(!state.currentCircuit || state.currentCircuit.length < 2) return;
-            state.currentCircuit.reverse();
-            showToast("Circuit inversé ⇅", "info");
-            renderMobilePoiList(state.currentCircuit);
         });
     }
 
