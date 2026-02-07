@@ -71,6 +71,7 @@ export async function handleDesktopPhotoImport(filesList) {
 
         // --- ETAPE 3 : TRAITEMENT SÉQUENTIEL DES GROUPES ---
         let processedCount = 0;
+        let totalDuplicates = 0;
 
         for (let i = 0; i < clusters.length; i++) {
             let cluster = clusters[i];
@@ -86,6 +87,18 @@ export async function handleDesktopPhotoImport(filesList) {
                 clusters.push(outliers);
 
                 showToast(`${outliers.length} photos écartées du groupe principal (distance excessive).`, "info");
+            }
+
+            // --- PRÉ-TRAITEMENT : CALCUL BASE64 POUR DÉTECTION DOUBLONS ---
+            // On le fait ici pour le cluster actif afin de comparer avec les photos existantes des POIs
+            for (let item of cluster) {
+                if (!item.base64) {
+                    try {
+                        item.base64 = await resizeImage(item.file);
+                    } catch (e) {
+                        console.error("Erreur pré-calcul base64:", e);
+                    }
+                }
             }
 
             const center = calculateBarycenter(cluster.map(c => c.coords));
@@ -122,13 +135,33 @@ export async function handleDesktopPhotoImport(filesList) {
                 for (let k = 0; k < nearbyPois.length; k++) {
                     const { feature, dist } = nearbyPois[k];
                     const poiName = getPoiName(feature);
+                    const poiId = getPoiId(feature);
+
+                    // --- FILTRAGE DES DOUBLONS ---
+                    const existingPhotos = (state.userData[poiId] && state.userData[poiId].photos) || [];
+                    const uniqueCluster = cluster.filter(item => item.base64 && !existingPhotos.includes(item.base64));
+                    const duplicateCount = cluster.length - uniqueCluster.length;
+
+                    // Si TOUT le cluster est en doublon
+                    if (uniqueCluster.length === 0) {
+                         showToast(`Déjà présentes dans "${poiName}" (${duplicateCount} photos). Ignorées.`, "warning");
+                         totalDuplicates += duplicateCount;
+                         assigned = true; // On considère que c'était le bon endroit, donc on arrête
+                         break;
+                    }
+
+                    // Si PARTIELLEMENT doublon
+                    if (duplicateCount > 0) {
+                        showToast(`${duplicateCount} photos ignorées (déjà présentes dans "${poiName}").`, "warning");
+                    }
 
                     const selectedPhotos = await showPhotoSelectionModal(
                         "Ajout Photos",
                         `Groupe ${i+1}/${clusters.length} détecté près de :\n` +
                         `"${poiName}" (${Math.round(dist)}m).\n` +
+                        (duplicateCount > 0 ? `(${duplicateCount} doublons masqués)\n` : '') +
                         `Sélectionnez les photos à AJOUTER à ce lieu :`,
-                        cluster,
+                        uniqueCluster,
                         "Ajouter"
                     );
 
@@ -136,6 +169,7 @@ export async function handleDesktopPhotoImport(filesList) {
                         if (loader) loader.style.display = 'flex';
                         await addPhotosToPoi(feature, selectedPhotos);
                         processedCount += selectedPhotos.length;
+                        totalDuplicates += duplicateCount; // On compte les doublons qu'on a filtrés
                         assigned = true;
                         break; // Sort de la boucle des POIs proches
                     }
@@ -167,19 +201,42 @@ export async function handleDesktopPhotoImport(filesList) {
             });
 
             let extraAction = null;
+            let duplicateCountForNearest = 0;
+            let uniqueClusterForNearest = cluster;
+
             if (absoluteNearest) {
                 const nName = getPoiName(absoluteNearest);
-                extraAction = {
-                    label: `Ajouter à "${nName}" (${Math.round(minDistance)}m)`,
-                    value: 'FORCE_ADD'
-                };
+                const nId = getPoiId(absoluteNearest);
+
+                // Vérification doublons pour Force Add
+                const existingPhotos = (state.userData[nId] && state.userData[nId].photos) || [];
+                uniqueClusterForNearest = cluster.filter(item => item.base64 && !existingPhotos.includes(item.base64));
+                duplicateCountForNearest = cluster.length - uniqueClusterForNearest.length;
+
+                if (uniqueClusterForNearest.length > 0) {
+                    extraAction = {
+                        label: `Ajouter à "${nName}" (${Math.round(minDistance)}m)`,
+                        value: 'FORCE_ADD'
+                    };
+                }
             }
+
+            // Si tout le cluster est doublon pour le nearest et qu'on n'a pas trouvé d'autre POI avant...
+            // On peut afficher le toast mais on doit quand même proposer "Créer Lieu" au cas où l'utilisateur
+            // veut créer un NOUVEAU lieu à côté.
+            // Mais si l'utilisateur voulait l'ajouter au nearest, c'est déjà fait.
 
             const selectionResult = await showPhotoSelectionModal(
                 "Nouveau Lieu ?",
                 `Groupe ${i+1}/${clusters.length} non rattaché.\n` +
                 `Sélectionnez les photos pour créer un NOUVEAU lieu :`,
-                cluster,
+                uniqueClusterForNearest, // On propose par défaut les uniques (pour Force Add)
+                // MAIS pour "Créer Lieu", on devrait peut-être proposer TOUT ?
+                // Non, car "Créer Lieu" utilise la sélection retournée.
+                // Si on crée un nouveau lieu, il n'y a pas de notion de doublon car le lieu est vide.
+                // Donc on peut ré-afficher tout le cluster si on veut créer un nouveau lieu.
+                // COMPROMIS : On affiche uniqueClusterForNearest pour être cohérent avec Force Add.
+                // Si l'utilisateur choisit "Créer Lieu", il créera avec ces photos.
                 "Créer Lieu",
                 extraAction
             );
@@ -190,20 +247,31 @@ export async function handleDesktopPhotoImport(filesList) {
                      if (loader) loader.style.display = 'flex';
                      await addPhotosToPoi(absoluteNearest, selectionResult);
                      processedCount += selectionResult.length;
+                     totalDuplicates += duplicateCountForNearest;
                      // On continue la boucle vers le prochain cluster
                 }
                 // Cas 2 : Création (Comportement par défaut)
                 else {
                     if (loader) loader.style.display = 'none';
+                    // Si on crée un nouveau lieu, on utilise selectionResult.
+                    // (On ignore duplicateCountForNearest car ça concernait un autre lieu)
                     createDraftMarker(center.lat, center.lng, map, selectionResult);
                     showToast(`Placez le marqueur pour le groupe ${i+1}. L'import s'arrête ici.`, 'info');
                     return;
                 }
+            } else if (duplicateCountForNearest > 0 && uniqueClusterForNearest.length === 0) {
+                 // Cas où tout est doublon pour le nearest et l'utilisateur a annulé (ou liste vide)
+                 showToast(`Ignoré : Déjà présentes dans le lieu le plus proche.`, "warning");
+                 totalDuplicates += duplicateCountForNearest;
             }
         }
 
         if (loader) loader.style.display = 'none';
-        if (processedCount > 0) showToast(`${processedCount} photos importées au total.`, 'success');
+
+        // Résumé final
+        const msg = `Import terminé. ${processedCount} photos ajoutées.`;
+        const dupMsg = totalDuplicates > 0 ? ` ${totalDuplicates} déjà présentes (ignorées).` : "";
+        showToast(msg + dupMsg, processedCount > 0 ? 'success' : 'info', 6000);
 
     } catch (error) {
         if (loader) loader.style.display = 'none';
@@ -232,9 +300,10 @@ export async function addPhotosToPoi(feature, clusterItems) {
 
     for (const item of clusterItems) {
         try {
-            const resizedBase64 = await resizeImage(item.file);
+            // Utilisation du base64 pré-calculé si disponible, sinon on redimensionne
+            const resizedBase64 = item.base64 || await resizeImage(item.file);
 
-            // DÉTECTION DOUBLON (Bonus demandé)
+            // DÉTECTION DOUBLON
             if (state.userData[poiId].photos.includes(resizedBase64)) {
                 duplicates++;
             } else {
