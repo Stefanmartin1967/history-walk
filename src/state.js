@@ -3,9 +3,9 @@ export const APP_VERSION = '3.1.1'; // Version en mode propre !
 export const MAX_CIRCUIT_POINTS = 15;
 
 export const POI_CATEGORIES = [
-    "A définir", "Commerce", "Culture et tradition",
-    "Curiosité", "Hôtel", "Mosquée", "Parking", "Puits",
-    "Restaurant", "Site historique", "Site religieux", "Taxi"
+    "A définir", "Café", "Commerce", "Culture et tradition",
+    "Curiosité", "Hôtel", "Mosquée", "Pâtisserie", "Photo", "Puits",
+    "Restaurant", "Salon de thé", "Site historique", "Site religieux", "Taxi"
 ].sort();
 
 // --- 1. LE FRIGO (L'État Global) ---
