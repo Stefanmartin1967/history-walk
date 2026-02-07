@@ -16,8 +16,12 @@ import QRCode from 'qrcode';
 
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
-    // On récupère le circuit dans la mémoire
-    const circuit = state.myCircuits.find(c => c.id === circuitId);
+    // On récupère le circuit dans la mémoire (Local OU Officiel)
+    let circuit = state.myCircuits.find(c => c.id === circuitId);
+    if (!circuit && state.officialCircuits) {
+        circuit = state.officialCircuits.find(c => c.id === circuitId);
+    }
+
     if (!circuit) return;
 
     // On crée un panier vide pour y mettre nos modifications

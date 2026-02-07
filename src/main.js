@@ -8,8 +8,6 @@ import {
     initializeDomReferences,
     setupTabs,
     DOM,
-    openCircuitsModal,
-    closeCircuitsModal,
     populateZonesMenu,
     populateCategoriesMenu,
     openDetailsPanel,
@@ -160,6 +158,8 @@ async function loadDefaultMap() {
         } else {
             // MODE DESKTOP : On affiche la carte Leaflet
             await displayGeoJSON(geojsonData, mapId);
+            // Rafraîchir la liste des circuits maintenant que les features sont chargées (pour calcul Visité/Distance)
+            import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
         }
 
         if (DOM.btnRestoreData) DOM.btnRestoreData.disabled = false;
