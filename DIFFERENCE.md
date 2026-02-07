@@ -9,8 +9,8 @@ Ce document recense les divergences fonctionnelles et ergonomiques identifiées 
 | Fonctionnalité | Mobile | Desktop (PC) |
 | :--- | :--- | :--- |
 | **Marquer "Fait"** | ✅ **Bouton dédié** en bas de la liste des étapes ("Circuit terminé" / "Marquer comme fait"). | ❌ **Inaccessible**. L'indicateur visuel existe dans la barre latérale, mais aucune case à cocher ou bouton n'est disponible pour changer l'état. (L'ancienne modale qui le permettait n'est plus accessible). |
-| **Inverser le sens** | ✅ **Bouton "Inverser"** (Double flèche) dans l'en-tête du circuit. Inverse l'ordre de visite. | ❌ **Absent**. Seul le réordonnancement manuel point par point est possible via les flèches "Haut/Bas" dans le panneau d'édition. |
-| **Filtre par Zone** | ✅ **Disponible**. Via le bouton "Œil" ou la barre d'outils contextuelle. | ❌ **Absent de la liste**. Le panneau Explorer permet de filtrer par "À faire", "Date" ou "Distance", mais pas par Zone géographique. (Le filtre Zone existe uniquement lors de la *création* via le Wizard). |
+| **Inverser le sens** | ✅ **Bouton "Inverser"** (Double flèche) dans l'en-tête du circuit. Inverse l'ordre de visite. | ❌ **Absent (Intentionnel)**. Le circuit est créé sur PC puis importé. L'inversion est utile sur le terrain (Mobile), mais pas lors de l'édition initiale. |
+| **Filtre par Zone** | ✅ **Disponible**. Via le bouton "Œil" ou la barre d'outils contextuelle. | ❌ **Absent de la liste (Intentionnel)**. Utile sur Mobile pour la géolocalisation ("près de moi"). Sur PC, l'Explorer global suffit. |
 | **Indicateur Restaurant** | ✅ Icône "Couverts" visible dans la liste des circuits. | ✅ Icône "Couverts" visible dans la liste Explorer. |
 | **Suppression** | ✅ Glissement ou Menu contextuel (selon OS). | ✅ Bouton "Corbeille" au survol dans la liste Explorer. |
 
@@ -42,7 +42,5 @@ Ce document recense les divergences fonctionnelles et ergonomiques identifiées 
 
 ## Synthèse des manques (Desktop)
 
-Les points suivants sont les plus critiques pour aligner l'expérience Desktop sur le Mobile :
+Le point suivant est le plus critique pour aligner l'expérience Desktop sur le Mobile :
 1.  **Rétablir la possibilité de marquer un circuit comme "Fait/Non Fait"** depuis la barre latérale Explorer.
-2.  Ajouter le **bouton "Inverser le circuit"** dans le panneau d'édition de circuit.
-3.  Ajouter le **filtre par Zone** dans la barre d'outils de l'Explorer (Footer du panneau).
