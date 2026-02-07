@@ -160,7 +160,6 @@ async function loadDefaultMap() {
         } else {
             // MODE DESKTOP : On affiche la carte Leaflet
             await displayGeoJSON(geojsonData, mapId);
-            showToast('Carte de Djerba chargée par défaut.', 'success');
         }
 
         if (DOM.btnRestoreData) DOM.btnRestoreData.disabled = false;

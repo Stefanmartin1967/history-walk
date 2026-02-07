@@ -140,11 +140,7 @@ export function handleMarkerClick(feature) {
         // 2. Boucler sur le premier point (déjà géré)
         // 3. Ajouter des points intermédiaires (forme de 8)
 
-        const added = addPoiToCircuit(feature);
-        if (added) {
-            showToast("Ajouté au circuit", "success");
-        }
-
+        addPoiToCircuit(feature);
     } else {
         // --- MODE CONSULTATION (OFF) ---
         const globalIndex = state.loadedFeatures.findIndex(f => f.properties.HW_ID === feature.properties.HW_ID);

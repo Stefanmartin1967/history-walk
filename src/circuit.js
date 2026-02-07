@@ -66,8 +66,6 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
 
     // Force la mise à jour des listes (PC Explorer + Modale) pour afficher le statut "Fait"
     eventBus.emit('circuit:list-updated');
-
-    showToast(isVisited ? "Circuit marqué comme fait" : "Circuit marqué comme non fait", "success");
 }
 
 // ... LE RESTE DU FICHIER RESTE IDENTIQUE ...
@@ -158,7 +156,6 @@ export function toggleSelectionMode(forceValue) {
         }
         switchSidebarTab('circuit');
         renderCircuitPanel();
-        showToast("Mode sélection activé : Cliquez sur la carte pour ajouter des points", "info");
     } else {
         if (DOM.rightSidebar) {
             DOM.rightSidebar.style.display = 'none';
@@ -166,7 +163,6 @@ export function toggleSelectionMode(forceValue) {
         }
         if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
         if (state.realTrackPolyline) state.realTrackPolyline.remove();
-        showToast("Mode sélection désactivé", "info");
     }
 
     applyFilters();
@@ -719,7 +715,6 @@ export function setupCircuitEventListeners() {
                          state.myCircuits[idx].name = trimmed;
                          // SAUVEGARDE PERMANENTE
                          await saveCircuit(state.myCircuits[idx]);
-                         showToast("Titre du circuit mis à jour", "success");
                          eventBus.emit('circuit:list-updated');
                      }
                  } else {
