@@ -420,7 +420,6 @@ async function executeCreate(data) {
     }
 
     await logModification(newPoiId, 'Création (Admin)', 'All', null, `Nouveau lieu : ${data['Nom du site FR']}`);
-    showToast(`Lieu créé avec succès !`, "success");
 }
 
 async function executeEdit(data) {
@@ -448,8 +447,6 @@ async function executeEdit(data) {
             openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
         }
     }
-
-    showToast("Modifications enregistrées.", "success");
 }
 
 function handleEmailSuggestion() {

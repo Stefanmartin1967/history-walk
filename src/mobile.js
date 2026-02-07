@@ -68,13 +68,6 @@ export function initMobileMode() {
                 <span>${labelText}</span>
             `;
 
-            // 4. Message Toast
-            if (state.filterCompleted) {
-                showToast("Circuits terminés masqués", "info");
-            } else {
-                showToast("Tous les circuits affichés", "info");
-            }
-            
             // 5. Rafraîchissement
             if (currentView === 'circuits') {
                 renderMobileCircuitsList();
@@ -454,8 +447,6 @@ function renderMobileToolbar() {
     };
     toolbar.querySelector('#mob-filter-todo').onclick = () => {
         state.filterCompleted = !state.filterCompleted;
-        if(state.filterCompleted) showToast("Circuits terminés masqués", "info");
-        else showToast("Tous les circuits affichés", "info");
         renderMobileCircuitsList();
     };
     toolbar.querySelector('#mob-reset').onclick = () => {
@@ -842,7 +833,6 @@ export function renderMobileMenu() {
     });
     document.getElementById('mob-action-theme').addEventListener('click', () => {
         document.getElementById('btn-theme-selector').click(); 
-        showToast("Thème changé", "success");
     });
     document.getElementById('mob-action-share-app').addEventListener('click', handleShareAppClick);
     document.getElementById('mob-action-bmc').addEventListener('click', () => {

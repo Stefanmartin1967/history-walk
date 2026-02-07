@@ -86,8 +86,6 @@ export async function handleDesktopPhotoImport(filesList) {
                 cluster = main;
                 // On ajoute les outliers comme un nouveau groupe à traiter plus tard
                 clusters.push(outliers);
-
-                showToast(`${outliers.length} photos écartées du groupe principal (distance excessive).`, "info");
             }
 
             // --- PRÉ-TRAITEMENT : CALCUL BASE64 POUR DÉTECTION DOUBLONS ---
@@ -145,15 +143,9 @@ export async function handleDesktopPhotoImport(filesList) {
 
                     // Si TOUT le cluster est en doublon
                     if (uniqueCluster.length === 0) {
-                         showToast(`Déjà présentes dans "${poiName}" (${duplicateCount} photos). Ignorées.`, "warning");
                          totalDuplicates += duplicateCount;
                          assigned = true; // On considère que c'était le bon endroit, donc on arrête
                          break;
-                    }
-
-                    // Si PARTIELLEMENT doublon
-                    if (duplicateCount > 0) {
-                        showToast(`${duplicateCount} photos ignorées (déjà présentes dans "${poiName}").`, "warning");
                     }
 
                     const selectedPhotos = await showPhotoSelectionModal(
@@ -265,7 +257,6 @@ export async function handleDesktopPhotoImport(filesList) {
                 }
             } else if (duplicateCountForNearest > 0 && uniqueClusterForNearest.length === 0) {
                  // Cas où tout est doublon pour le nearest et l'utilisateur a annulé (ou liste vide)
-                 showToast(`Ignoré : Déjà présentes dans le lieu le plus proche.`, "warning");
                  totalDuplicates += duplicateCountForNearest;
             }
         }
@@ -322,7 +313,6 @@ export async function addPhotosToPoi(feature, clusterItems) {
     if (added > 0) {
         // Utilisation de updatePoiData pour garantir la sync Mémoire + DB + UI
         await updatePoiData(poiId, 'photos', state.userData[poiId].photos);
-        showToast(`${added} photos ajoutées (${duplicates} ignorées).`, 'success');
         
         // Refresh UI
         closeDetailsPanel();
@@ -330,8 +320,6 @@ export async function addPhotosToPoi(feature, clusterItems) {
             const index = state.loadedFeatures.indexOf(feature);
             if (index > -1) openDetailsPanel(index);
         }, 100);
-    } else if (duplicates > 0) {
-        showToast(`Toutes les photos existent déjà (${duplicates} doublons).`, 'warning');
     }
 }
 
@@ -467,5 +455,4 @@ function handleWizardStart() {
 
     // 4. Fermeture du Wizard
     document.getElementById('selection-wizard-modal').style.display = 'none';
-    showToast("Mode Sélection Configuré", "success");
 }

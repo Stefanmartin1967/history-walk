@@ -30,7 +30,6 @@ export function handleFileLoad(event) {
                     await saveAppState('lastMapId', mapName);
                     await saveAppState('lastGeoJSON', json);
                     updateExportButtonLabel(mapName);
-                    showToast(`Carte "${mapName}" chargée (Mode Mobile).`, 'success');
                     switchMobileView('circuits');
                 } else {
                     // Desktop: Rendu Carte
@@ -38,7 +37,6 @@ export function handleFileLoad(event) {
                     updateExportButtonLabel(mapName);
                     // On cadre la vue sur la nouvelle carte
                     import('./map.js').then(m => m.fitMapToContent());
-                    showToast(`Carte "${file.name}" chargée.`, 'success');
                 }
             } 
             // Cas 2 : Backup
@@ -145,9 +143,6 @@ async function downloadJSON(data, filename) {
     URL.revokeObjectURL(url);
     
     // Petit message différent selon le contexte
-    if (!navigator.canShare) {
-        showToast("Sauvegarde téléchargée (Vérifiez vos téléchargements)", "success");
-    }
 }
 
 // --- RESTAURATION (Modifiée pour Mobile) ---
@@ -215,12 +210,10 @@ async function restoreBackup(json) {
             // FORCE LE RAFRAÎCHISSEMENT MOBILE
             console.log("Restauration Mobile Terminée -> Refresh UI");
             switchMobileView('circuits');
-            showToast("Données restaurées !", "success");
         } else {
             // Desktop Refresh
             const { applyFilters } = await import('./data.js'); 
             if (applyFilters) applyFilters();
-            showToast("Données restaurées avec succès !", "success");
         }
 
     } catch (error) {
@@ -238,7 +231,6 @@ export async function handleGpxFileImport(event) {
     if (state.circuitIdToImportFor) {
         try {
             await processImportedGpx(file, state.circuitIdToImportFor);
-            showToast("Trace réelle importée avec succès.", "success");
         } catch (err) {
             console.error("Erreur import GPX:", err);
             showToast("Erreur lors de l'import du GPX.", "error");
