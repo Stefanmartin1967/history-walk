@@ -148,19 +148,57 @@ export async function handleDesktopPhotoImport(filesList) {
             // CAS B : PAS DE POI PROCHE OU TOUS REFUSÉS -> PROPOSITION DE CRÉATION
             if (loader) loader.style.display = 'none';
 
-            const selectedForNewPlace = await showPhotoSelectionModal(
+            // 1. Recherche du POI le plus proche (Absolu, sans limite 100m) pour proposer le "Force Add"
+            let absoluteNearest = null;
+            let minDistance = Infinity;
+
+            state.loadedFeatures.forEach(feature => {
+                 const pId = getPoiId(feature);
+                 if (state.hiddenPoiIds && state.hiddenPoiIds.includes(pId)) return;
+
+                 if (feature.geometry && feature.geometry.coordinates) {
+                     const [fLng, fLat] = feature.geometry.coordinates;
+                     const d = calculateDistance(center.lat, center.lng, fLat, fLng);
+                     if (d < minDistance) {
+                         minDistance = d;
+                         absoluteNearest = feature;
+                     }
+                 }
+            });
+
+            let extraAction = null;
+            if (absoluteNearest) {
+                const nName = getPoiName(absoluteNearest);
+                extraAction = {
+                    label: `Ajouter à "${nName}" (${Math.round(minDistance)}m)`,
+                    value: 'FORCE_ADD'
+                };
+            }
+
+            const selectionResult = await showPhotoSelectionModal(
                 "Nouveau Lieu ?",
                 `Groupe ${i+1}/${clusters.length} non rattaché.\n` +
                 `Sélectionnez les photos pour créer un NOUVEAU lieu :`,
                 cluster,
-                "Créer Lieu"
+                "Créer Lieu",
+                extraAction
             );
 
-            if (selectedForNewPlace && selectedForNewPlace.length > 0) {
-                if (loader) loader.style.display = 'none';
-                createDraftMarker(center.lat, center.lng, map, selectedForNewPlace);
-                showToast(`Placez le marqueur pour le groupe ${i+1}. L'import s'arrête ici.`, 'info');
-                return;
+            if (selectionResult && selectionResult.length > 0) {
+                // Cas 1 : Ajout Forcé au POI le plus proche
+                if (selectionResult.action === 'FORCE_ADD' && absoluteNearest) {
+                     if (loader) loader.style.display = 'flex';
+                     await addPhotosToPoi(absoluteNearest, selectionResult);
+                     processedCount += selectionResult.length;
+                     // On continue la boucle vers le prochain cluster
+                }
+                // Cas 2 : Création (Comportement par défaut)
+                else {
+                    if (loader) loader.style.display = 'none';
+                    createDraftMarker(center.lat, center.lng, map, selectionResult);
+                    showToast(`Placez le marqueur pour le groupe ${i+1}. L'import s'arrête ici.`, 'info');
+                    return;
+                }
             }
         }
 
