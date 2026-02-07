@@ -1,6 +1,5 @@
 import { state } from './state.js';
 import { getPoiId } from './data.js';
-import { ICONS } from './templates.js';
 import { escapeXml } from './utils.js';
 import { eventBus } from './events.js';
 import { showConfirm } from './modal.js';
@@ -8,46 +7,13 @@ import { getZoneFromCoords } from './utils.js';
 import { getOrthodromicDistance, getRealDistance } from './map.js';
 import { createIcons, icons } from 'lucide';
 
-const getEl = (id) => document.getElementById(id);
-
 // --- LOCAL STATE ---
 // Sort: 'date_desc' (Recents first), 'date_asc', 'dist_asc' (Shortest first), 'dist_desc'
 let currentSort = 'date_desc';
 let filterTodo = false; // true = Show only circuits with unvisited points
 
-export function openCircuitsModal() {
-    renderCircuitsList();
-    const modal = getEl('circuits-modal');
-    if(modal) modal.style.display = 'flex';
-}
-
-export function closeCircuitsModal() {
-    const modal = getEl('circuits-modal');
-    if(modal) modal.style.display = 'none';
-}
-
 export function initCircuitListUI() {
-    const closeBtn = getEl('close-circuits-modal');
-    const modal = getEl('circuits-modal');
-    const container = getEl('circuits-list-container');
-
-    if (closeBtn) closeBtn.addEventListener('click', closeCircuitsModal);
-
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeCircuitsModal();
-        });
-    }
-
-    if (container) {
-        container.addEventListener('click', handleCircuitsListClick);
-    }
-
     eventBus.on('circuit:list-updated', () => {
-        const modal = getEl('circuits-modal');
-        if (modal && modal.style.display !== 'none') {
-            renderCircuitsList();
-        }
         // Also refresh explorer list if it exists
         if (document.getElementById('explorer-list')) {
             renderExplorerList();
@@ -292,7 +258,18 @@ export function renderExplorerList() {
                    </button>`
                 : '';
 
-            const actionsHtml = deleteBtn;
+            const toggleVisitedBtn = `
+                <button class="explorer-item-action btn-toggle-visited" data-id="${c.id}" data-visited="${c.allVisited}" title="${c.allVisited ? 'Marquer comme non fait' : 'Marquer comme fait'}" style="color: ${c.allVisited ? 'var(--ok)' : 'var(--ink-soft)'}">
+                    <i data-lucide="${c.allVisited ? 'check-circle' : 'circle'}"></i>
+                </button>
+            `;
+
+            const actionsHtml = `
+                <div style="display:flex; align-items:center; gap:0;">
+                    ${toggleVisitedBtn}
+                    ${deleteBtn}
+                </div>
+            `;
 
             const restoIcon = c.hasRestaurant
                 ? `<i data-lucide="utensils" style="width:14px; height:14px; vertical-align:text-bottom; margin-left:4px;" title="Restaurant présent"></i>`
@@ -319,7 +296,7 @@ export function renderExplorerList() {
     // Event Listeners
     listContainer.querySelectorAll('.explorer-item').forEach(item => {
         item.addEventListener('click', (e) => {
-            if (e.target.closest('.explorer-item-delete') || e.target.closest('a')) return;
+            if (e.target.closest('.explorer-item-delete') || e.target.closest('a') || e.target.closest('.btn-toggle-visited')) return;
             const id = item.dataset.id;
             eventBus.emit('circuit:request-load', id);
             eventBus.emit('ui:request-tab-change', 'circuit');
@@ -335,93 +312,14 @@ export function renderExplorerList() {
             }
         });
     });
-}
 
-function renderCircuitsList() {
-    const container = getEl('circuits-list-container');
-    if (!container) return;
-
-    const officials = state.officialCircuits || [];
-    const locals = (state.myCircuits || []).filter(c => !c.isDeleted);
-    const allCircuits = [...officials, ...locals];
-
-    container.innerHTML = (allCircuits.length === 0)
-        ? '<p class="empty-list-info">Aucun circuit sauvegardé pour cette carte.</p>'
-        : allCircuits.map(c => {
-            const existingFeatures = c.poiIds
-                .map(id => state.loadedFeatures.find(feat => getPoiId(feat) === id))
-                .filter(f => f);
-
-            const allVisited = existingFeatures.length > 0 && existingFeatures.every(f =>
-                f.properties.userData && f.properties.userData.vu
-            );
-
-            const checkState = allVisited ? 'checked' : '';
-
-            // Badge Officiel
-            const officialBadge = c.isOfficial
-                ? '<i data-lucide="star" style="width:14px; height:14px; color:var(--primary); fill:var(--primary); margin-left:6px; vertical-align:middle;"></i>'
-                : '';
-
-            const deleteBtn = (!c.isOfficial || state.isAdmin)
-                ? `<button class="btn-delete" data-action="delete" title="Supprimer le circuit">${ICONS.trash}</button>`
-                : '';
-
-            return `
-            <div class="circuit-item" data-id="${c.id}">
-                <div style="flex:1;">
-                    <span class="circuit-item-name">${escapeXml(c.name)} ${officialBadge}</span>
-                </div>
-
-                <div class="circuit-item-actions">
-                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer; margin-right:10px; font-size:14px; user-select:none;">
-                        <input type="checkbox" class="circuit-visited-checkbox" data-id="${c.id}" ${checkState} style="width:16px; height:16px; cursor:pointer;">
-                        <span>Fait</span>
-                    </label>
-                    <button class="btn-import" data-action="import" title="Importer un tracé réel">${ICONS.upload}</button>
-                    <button class="btn-load" data-action="load" title="Charger le circuit">${ICONS.play}</button>
-                    ${deleteBtn}
-                </div>
-            </div>`;
-        }).join('');
-    createIcons({ icons });
-}
-
-async function handleCircuitsListClick(e) {
-    const button = e.target.closest('button');
-    if (button) {
-        const circuitItem = button.closest('.circuit-item');
-        if (!circuitItem) return;
-
-        const circuitId = circuitItem.dataset.id;
-        const action = button.dataset.action;
-
-        if (action === 'load') {
-            eventBus.emit('circuit:request-load', circuitId);
-            closeCircuitsModal();
-        } else if (action === 'delete') {
-            if (await showConfirm("Suppression du circuit", "Voulez-vous vraiment effacer ce parcours ?", "Supprimer", "Garder", true)) {
-                 eventBus.emit('circuit:request-delete', circuitId);
-            }
-        } else if (action === 'import') {
-             eventBus.emit('circuit:request-import', circuitId);
-        }
-        return;
-    }
-
-    const checkbox = e.target.closest('.circuit-visited-checkbox');
-    if (checkbox) {
-        const circuitId = checkbox.dataset.id;
-        const isChecked = checkbox.checked;
-
-        const confirmMsg = isChecked
-            ? "Marquer tous les lieux de ce circuit comme visités ?"
-            : "Décocher tous les lieux (remettre à 'Non visité') ?";
-
-        if (await showConfirm("Marquer Circuit", confirmMsg, isChecked ? "Tout cocher" : "Tout décocher", "Annuler")) {
-             eventBus.emit('circuit:request-toggle-visited', { id: circuitId, isChecked });
-        } else {
-            checkbox.checked = !isChecked;
-        }
-    }
+    listContainer.querySelectorAll('.btn-toggle-visited').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            const isVisited = btn.dataset.visited === 'true';
+            // Immediate action, no confirmation
+            eventBus.emit('circuit:request-toggle-visited', { id: id, isChecked: !isVisited });
+        });
+    });
 }

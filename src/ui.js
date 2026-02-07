@@ -17,9 +17,6 @@ import { initCircuitListUI, renderExplorerList } from './ui-circuit-list.js';
 import { showConfirm, showAlert } from './modal.js';
 import { RichEditor } from './richEditor.js';
 
-// Re-exports for external use
-export { openCircuitsModal, closeCircuitsModal } from './ui-circuit-list.js';
-
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
 
@@ -29,8 +26,8 @@ export function initializeDomReferences() {
     const ids = [
         'geojson-loader', 'search-input', 'search-results', 'btn-mode-selection', 'right-sidebar', 'sidebar-tabs', 
         'details-panel', 'circuit-panel', 'circuit-steps-list', 'circuit-title-text', 'circuit-title-input', 
-        'circuit-description', 'edit-circuit-title-button', 'circuit-poi-count', 'circuit-distance', 'circuits-modal', 
-        'close-circuits-modal', 'circuits-list-container', 'gpx-importer', 'btn-export-gpx',
+        'circuit-description', 'edit-circuit-title-button', 'circuit-poi-count', 'circuit-distance',
+        'gpx-importer', 'btn-export-gpx',
         'btn-import-gpx', 'loader-overlay', 'btn-save-data', 'btn-restore-data', 'restore-loader', 'btn-open-geojson', 
         'mobile-container', 'mobile-main-container', 'mobile-nav', 'fullscreen-editor', 'editor-title', 
         'editor-cancel-btn', 'editor-save-btn', 'editor-textarea', 'destination-loader',

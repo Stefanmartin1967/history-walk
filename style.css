@@ -218,6 +218,31 @@ body {
     height: 18px;
 }
 
+.explorer-item-action {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: all 0.2s;
+}
+
+.explorer-item-action:hover {
+    background-color: var(--surface-muted);
+    opacity: 1;
+}
+
+.explorer-item-action svg {
+    width: 18px;
+    height: 18px;
+}
+
 /* ========================================================= */
 /* === FIX SPECIFICITY FOR PC DETAILS PANEL === */
 /* ========================================================= */
