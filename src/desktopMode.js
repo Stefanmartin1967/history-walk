@@ -9,7 +9,7 @@ import { logModification } from './logger.js';
 import { DOM, closeDetailsPanel, openDetailsPanel, closeAllDropdowns } from './ui.js';
 import { getExifLocation, calculateDistance, resizeImage, getZoneFromCoords, clusterByLocation, calculateBarycenter, filterOutliers } from './utils.js';
 import { showToast } from './toast.js';
-import { showConfirm } from './modal.js';
+import { showPhotoSelectionModal } from './photo-import-ui.js';
 import { RichEditor } from './richEditor.js';
 
 let desktopDraftMarker = null;
@@ -123,24 +123,23 @@ export async function handleDesktopPhotoImport(filesList) {
                     const { feature, dist } = nearbyPois[k];
                     const poiName = getPoiName(feature);
 
-                    const confirmAdd = await showConfirm(
+                    const selectedPhotos = await showPhotoSelectionModal(
                         "Ajout Photos",
-                        `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) détecté(es) près de :\n` +
-                        `"${poiName}" (${Math.round(dist)}m).\n\n` +
-                        `Voulez-vous les AJOUTER à ce lieu ?\n` +
-                        (k < nearbyPois.length - 1 ? `(Vérifier = Voir le suivant)` : `(Vérifier = Créer nouveau)`),
-                        "Ajouter",
-                        "Vérifier"
+                        `Groupe ${i+1}/${clusters.length} détecté près de :\n` +
+                        `"${poiName}" (${Math.round(dist)}m).\n` +
+                        `Sélectionnez les photos à AJOUTER à ce lieu :`,
+                        cluster,
+                        "Ajouter"
                     );
 
-                    if (confirmAdd) {
+                    if (selectedPhotos && selectedPhotos.length > 0) {
                         if (loader) loader.style.display = 'flex';
-                        await addPhotosToPoi(feature, cluster);
-                        processedCount += cluster.length;
+                        await addPhotosToPoi(feature, selectedPhotos);
+                        processedCount += selectedPhotos.length;
                         assigned = true;
                         break; // Sort de la boucle des POIs proches
                     }
-                    // Si refus, on passe au POI suivant
+                    // Si refus (null), on passe au POI suivant
                 }
 
                 if (assigned) continue; // On passe au cluster suivant
@@ -149,17 +148,17 @@ export async function handleDesktopPhotoImport(filesList) {
             // CAS B : PAS DE POI PROCHE OU TOUS REFUSÉS -> PROPOSITION DE CRÉATION
             if (loader) loader.style.display = 'none';
 
-            const confirmCreate = await showConfirm(
+            const selectedForNewPlace = await showPhotoSelectionModal(
                 "Nouveau Lieu ?",
-                `Groupe ${i+1}/${clusters.length} : ${cluster.length} photo(s) non rattachées.\n` +
-                `Créer un NOUVEAU lieu ici ?`,
-                "Créer",
-                "Passer"
+                `Groupe ${i+1}/${clusters.length} non rattaché.\n` +
+                `Sélectionnez les photos pour créer un NOUVEAU lieu :`,
+                cluster,
+                "Créer Lieu"
             );
 
-            if (confirmCreate) {
+            if (selectedForNewPlace && selectedForNewPlace.length > 0) {
                 if (loader) loader.style.display = 'none';
-                createDraftMarker(center.lat, center.lng, map, cluster);
+                createDraftMarker(center.lat, center.lng, map, selectedForNewPlace);
                 showToast(`Placez le marqueur pour le groupe ${i+1}. L'import s'arrête ici.`, 'info');
                 return;
             }
@@ -176,7 +175,7 @@ export async function handleDesktopPhotoImport(filesList) {
 }
 
 // Fonction utilitaire pour l'ajout effectif avec détection de doublons
-async function addPhotosToPoi(feature, clusterItems) {
+export async function addPhotosToPoi(feature, clusterItems) {
     let poiId = getPoiId(feature);
 
     // Si c'est un POI "natif" sans ID user, on lui en crée un
