@@ -15,61 +15,74 @@ import { performCircuitDeletion } from './circuit-actions.js';
 import { eventBus } from './events.js';
 import QRCode from 'qrcode';
 
+export function isCircuitCompleted(circuit) {
+    if (!circuit) return false;
+    if (circuit.isOfficial) {
+        // Pour les officiels, on regarde dans la carte d'état chargée
+        return state.officialCircuitsStatus[circuit.id] === true;
+    } else {
+        // Pour les locaux, c'est une propriété directe
+        return circuit.isCompleted === true;
+    }
+}
+
+// --- LE CHEF D'ORCHESTRE (Traducteur pour la carte) ---
+export function notifyCircuitChanged() {
+    const event = new CustomEvent('circuit:updated', {
+        detail: {
+            points: state.currentCircuit,
+            activeId: state.activeCircuitId
+        }
+    });
+    window.dispatchEvent(event);
+}
+
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
-    // On récupère le circuit dans la mémoire (Local OU Officiel)
+    // 1. Recherche du circuit (Local ou Officiel)
     let circuit = state.myCircuits.find(c => c.id === circuitId);
+    let isOfficial = false;
+
     if (!circuit && state.officialCircuits) {
         circuit = state.officialCircuits.find(c => c.id === circuitId);
+        isOfficial = true;
     }
 
     if (!circuit) return;
 
-    // On crée un panier vide pour y mettre nos modifications
-    const updates = [];
+    // 2. Mise à jour de l'état (Mémoire & Persistance)
+    try {
+        if (isOfficial) {
+            // Pour les officiels, on met à jour le dictionnaire global
+            state.officialCircuitsStatus[circuitId] = isVisited;
 
-    // Pour chaque lieu contenu dans ce circuit...
-    circuit.poiIds.forEach(poiId => {
-        const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
-        if (feature) {
-            // Si le lieu n'a pas encore de tiroir "userData", on lui en crée un
-            if (!feature.properties.userData) feature.properties.userData = {};
+            // Sauvegarde dans appState (clé unique par carte)
+            await saveAppState(`official_circuits_status_${state.currentMapId}`, state.officialCircuitsStatus);
+        } else {
+            // Pour les locaux, on met à jour l'objet circuit directement
+            circuit.isCompleted = isVisited;
 
-            // ACTION 1 : Mise à jour visuelle (Mémoire vive)
-            feature.properties.userData.vu = isVisited;
-
-            // ACTION 2 : On prépare l'ordre de sauvegarde pour ce lieu précis
-            updates.push({
-                poiId: poiId,
-                data: feature.properties.userData
-            });
+            // Sauvegarde dans la DB circuits
+            await saveCircuit(circuit);
         }
-    });
 
-    // ACTION FINALE : Si on a des choses à sauvegarder...
-    if (updates.length > 0) {
-        try {
-            // On demande à la Database d'enregistrer tout le panier d'un coup
-            // state.currentMapId permet de savoir dans quelle carte on travaille (ex: djerba)
-            await batchSavePoiData(state.currentMapId, updates);
-            console.log(`[Circuit] ${updates.length} lieux sauvegardés en base de données.`);
-        } catch (error) {
-            console.error("Erreur de sauvegarde Database :", error);
-            showToast("Souci de sauvegarde permanente", "error");
-        }
+        console.log(`[Circuit] Circuit "${circuit.name}" marqué comme ${isVisited ? 'FAIT' : 'NON FAIT'}.`);
+
+    } catch (error) {
+        console.error("Erreur de sauvegarde statut circuit :", error);
+        showToast("Erreur lors de la sauvegarde du statut", "error");
+        return;
     }
 
-    // Mise à jour de l'affichage pour l'utilisateur
-    if (isMobileView()) {
-        const listToRender = (state.activeCircuitId && state.currentCircuit && state.currentCircuit.length > 0)
-            ? state.currentCircuit
-            : state.loadedFeatures;
-        renderMobilePoiList(listToRender);
-    } else {
-        applyFilters(); // Sur PC, on rafraîchit les filtres pour griser/cacher les lieux vus
+    // 3. Mise à jour de l'interface
+    // On ne touche plus aux POIs ("On ne s'occupe pas du statut visité")
+
+    // Si c'est le circuit actif affiché sur la carte, on doit redessiner la ligne (couleur change)
+    if (state.activeCircuitId === circuitId) {
+        notifyCircuitChanged();
     }
 
-    // Force la mise à jour des listes (PC Explorer + Modale) pour afficher le statut "Fait"
+    // On notifie tout le monde que la liste a changé (pour mettre à jour la coche dans l'explorer)
     eventBus.emit('circuit:list-updated');
 }
 
@@ -350,17 +363,6 @@ export function navigatePoiDetails(direction) {
         const newFeatureId = state.loadedFeatures.indexOf(newFeature);
         openDetailsPanel(newFeatureId, newIndex);
     }
-}
-
-// --- LE CHEF D'ORCHESTRE (Traducteur pour la carte) ---
-export function notifyCircuitChanged() {
-    const event = new CustomEvent('circuit:updated', {
-        detail: {
-            points: state.currentCircuit,
-            activeId: state.activeCircuitId
-        }
-    });
-    window.dispatchEvent(event);
 }
 
 // circuit.js

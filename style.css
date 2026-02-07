@@ -1114,16 +1114,22 @@ textarea.editable-input {
 #btn-loop-circuit:hover { color: var(--brand); background: #DBEAFE; }
 
 .circuit-polyline {
-    stroke: var(--brand);
+    stroke: var(--danger) !important; /* Rouge (Vol d'oiseau) */
     stroke-width: 3;
     stroke-dasharray: 6, 6;
     opacity: 0.9;
 }
 
 .real-track-polyline {
-    stroke: var(--danger) !important;
+    stroke: var(--brand) !important; /* Bleu (Tracé réel non fait) */
     stroke-width: 3;
     opacity: 0.8;
+}
+
+.real-track-polyline-done {
+    stroke: var(--ok) !important; /* Vert (Tracé réel fait) */
+    stroke-width: 3;
+    opacity: 0.9;
 }
 
 .modal-overlay {

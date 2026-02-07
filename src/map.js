@@ -1,6 +1,6 @@
 // map.js
 import { state } from './state.js';
-import { addPoiToCircuit } from './circuit.js';
+import { addPoiToCircuit, isCircuitCompleted } from './circuit.js';
 import { openDetailsPanel } from './ui.js';
 import { showToast } from './toast.js';
 import { getPoiId } from './data.js';
@@ -83,18 +83,23 @@ export function initMapListeners() {
 
         if (points.length < 2) return;
 
-        // 2. On récupère les infos fraîches depuis le state
-        const activeCircuit = state.myCircuits.find(c => c.id === activeId);
+        // 2. On récupère les infos fraîches depuis le state (Locaux OU Officiels)
+        let activeCircuit = state.myCircuits.find(c => c.id === activeId);
+        if (!activeCircuit && state.officialCircuits) {
+            activeCircuit = state.officialCircuits.find(c => c.id === activeId);
+        }
+
+        const isCompleted = isCircuitCompleted(activeCircuit);
         
         // 3. Choix du tracé (Réel prioritaire sur Vol d'oiseau)
         if (activeCircuit?.realTrack) {
-            drawLineOnMap(activeCircuit.realTrack, true);
+            drawLineOnMap(activeCircuit.realTrack, true, isCompleted);
         } else {
             const coords = points.map(f => [
                 f.geometry.coordinates[1], 
                 f.geometry.coordinates[0]
             ]);
-            drawLineOnMap(coords, false);
+            drawLineOnMap(coords, false, isCompleted);
         }
     });
 }
@@ -178,10 +183,18 @@ export function clearMapLines() {
     }
 }
 
-export function drawLineOnMap(coordinates, isRealTrack = false) {
+export function drawLineOnMap(coordinates, isRealTrack = false, isCompleted = false) {
     clearMapLines();
 
-    const className = isRealTrack ? 'real-track-polyline' : 'circuit-polyline';
+    let className = 'circuit-polyline'; // Default (Bird flight - Red)
+
+    if (isRealTrack) {
+        if (isCompleted) {
+            className = 'real-track-polyline-done'; // Real Done (Green)
+        } else {
+            className = 'real-track-polyline'; // Real Not Done (Blue)
+        }
+    }
 
     const polyline = L.polyline(coordinates, {
         className: className,
@@ -213,12 +226,18 @@ export function updatePolylines() {
 
     if (!state.currentCircuit || state.currentCircuit.length < 2) return;
 
-    const allCircuits = state.myCircuits || [];
-    const activeCircuitData = allCircuits.find(c => c.id === state.activeCircuitId);
+    // Récupération du circuit (Local ou Officiel)
+    let activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
+    if (!activeCircuitData && state.officialCircuits) {
+        activeCircuitData = state.officialCircuits.find(c => c.id === state.activeCircuitId);
+    }
+
+    const isCompleted = isCircuitCompleted(activeCircuitData);
 
     if (activeCircuitData && activeCircuitData.realTrack) {
+        const className = isCompleted ? 'real-track-polyline-done' : 'real-track-polyline';
         state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, {
-            className: 'real-track-polyline'
+            className: className
         }).addTo(map);
     }
     else {

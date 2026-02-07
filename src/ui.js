@@ -547,9 +547,10 @@ export function updateExportButtonLabel(mapId) {
 }
 
 export function showLegendModal() {
-    const title = "Légende des Marqueurs";
+    const title = "Légende";
     const message = `
-    <div style="text-align: left; display: flex; flex-direction: column; gap: 10px;">
+    <div style="text-align: left; display: flex; flex-direction: column; gap: 15px;">
+        <div style="font-weight: 600; border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 4px;">Marqueurs</div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="width: 24px; height: 24px; background: #FFFFFF; border-radius: 50%; border: 3px solid #10B981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);"></div>
             <span><strong>Visité</strong> (Lieu marqué comme vu)</span>
@@ -564,6 +565,20 @@ export function showLegendModal() {
                 </div>
             </div>
             <span><strong>Incontournable</strong> (Lieu VIP à ne pas manquer)</span>
+        </div>
+
+        <div style="font-weight: 600; border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 4px; margin-top: 10px;">Lignes des Circuits</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 40px; height: 4px; background: #EF4444; border-radius: 2px;"></div>
+            <span><strong>Vol d'oiseau</strong> (Trajet direct non précis)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 40px; height: 4px; background: #3B82F6; border-radius: 2px;"></div>
+            <span><strong>Tracé réel</strong> (Chemin GPS précis à suivre)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 40px; height: 4px; background: #10B981; border-radius: 2px;"></div>
+            <span><strong>Circuit terminé</strong> (Marqué comme fait)</span>
         </div>
     </div>`;
 
