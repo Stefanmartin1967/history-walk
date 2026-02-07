@@ -405,25 +405,32 @@ export async function processImportedGpx(file, circuitId) {
                     if (circuitIndex !== -1) {
                         const currentCircuit = state.myCircuits[circuitIndex];
                         let shouldUpdatePois = false;
+                        let detectedFeatures = [];
 
                         // --- ANALYSE INTELLIGENTE ---
-                        const detectedFeatures = findFeaturesOnTrack(coordinates, state.loadedFeatures);
-                        const currentIds = new Set(currentCircuit.poiIds);
+                        if (foundHwId === circuitId) {
+                            // Si l'ID est identique, on fait confiance à l'utilisateur et on met à jour uniquement la trace
+                            // sans toucher aux étapes (pour éviter de supprimer des étapes légèrement décalées).
+                            shouldUpdatePois = false;
+                        } else {
+                            detectedFeatures = findFeaturesOnTrack(coordinates, state.loadedFeatures);
+                            const currentIds = new Set(currentCircuit.poiIds);
 
-                        // Combien de NOUVEAUX points (non présents actuellement) ?
-                        const newPoints = detectedFeatures.filter(f => !currentIds.has(getPoiId(f)));
+                            // Combien de NOUVEAUX points (non présents actuellement) ?
+                            const newPoints = detectedFeatures.filter(f => !currentIds.has(getPoiId(f)));
 
-                        if (newPoints.length > 0) {
-                             const confirmMsg = `La trace passe par ${detectedFeatures.length} lieux connus, dont ${newPoints.length} absent(s) de votre circuit.\n\nVoulez-vous mettre à jour la liste des étapes pour correspondre au tracé ?`;
+                            if (newPoints.length > 0) {
+                                const confirmMsg = `La trace passe par ${detectedFeatures.length} lieux connus, dont ${newPoints.length} absent(s) de votre circuit.\n\nVoulez-vous mettre à jour la liste des étapes pour correspondre au tracé ?`;
 
-                             if (await showConfirm("Mise à jour des étapes", confirmMsg, "Mettre à jour", "Garder mes étapes")) {
-                                 shouldUpdatePois = true;
-                             }
-                        } else if (detectedFeatures.length > 0 && detectedFeatures.length !== currentCircuit.poiIds.length) {
-                             // Cas où on a moins de points (ex: raccourci), on propose aussi
-                             if (await showConfirm("Mise à jour des étapes", "La trace semble différente de vos étapes actuelles. Voulez-vous réaligner les étapes sur le tracé ?", "Réaligner", "Garder")) {
-                                 shouldUpdatePois = true;
-                             }
+                                if (await showConfirm("Mise à jour des étapes", confirmMsg, "Mettre à jour", "Garder mes étapes")) {
+                                    shouldUpdatePois = true;
+                                }
+                            } else if (detectedFeatures.length > 0 && detectedFeatures.length !== currentCircuit.poiIds.length) {
+                                // Cas où on a moins de points (ex: raccourci), on propose aussi
+                                if (await showConfirm("Mise à jour des étapes", "La trace semble différente de vos étapes actuelles. Voulez-vous réaligner les étapes sur le tracé ?", "Réaligner", "Garder")) {
+                                    shouldUpdatePois = true;
+                                }
+                            }
                         }
 
                         // --- APPLICATION ---
@@ -433,7 +440,11 @@ export async function processImportedGpx(file, circuitId) {
                             state.myCircuits[circuitIndex].poiIds = detectedFeatures.map(getPoiId);
                             showToast(`Trace importée et ${detectedFeatures.length} étapes mises à jour !`, "success");
                         } else {
-                            showToast("Trace importée (étapes conservées).", "success");
+                            if (foundHwId === circuitId) {
+                                showToast("Trace mise à jour (ID certifié).", "success");
+                            } else {
+                                showToast("Trace importée (étapes conservées).", "success");
+                            }
                         }
 
                         await saveCircuit(state.myCircuits[circuitIndex]);
