@@ -75,6 +75,7 @@ export async function handleDesktopPhotoImport(filesList) {
 
         for (let i = 0; i < clusters.length; i++) {
             let cluster = clusters[i];
+            const ignoredPoiIds = new Set(); // Reset pour chaque cluster
 
             // --- ETAPE 2b : DÉTECTION ET EXCLUSION DES OUTLIERS (Parasites) ---
             const { main, outliers } = filterOutliers(cluster);
@@ -173,7 +174,8 @@ export async function handleDesktopPhotoImport(filesList) {
                         assigned = true;
                         break; // Sort de la boucle des POIs proches
                     }
-                    // Si refus (null), on passe au POI suivant
+                    // Si refus (null), on mémorise pour ne pas le reproposer plus tard
+                    ignoredPoiIds.add(poiId);
                 }
 
                 if (assigned) continue; // On passe au cluster suivant
@@ -189,6 +191,8 @@ export async function handleDesktopPhotoImport(filesList) {
             state.loadedFeatures.forEach(feature => {
                  const pId = getPoiId(feature);
                  if (state.hiddenPoiIds && state.hiddenPoiIds.includes(pId)) return;
+                 // On ignore ceux que l'utilisateur vient de refuser explicitement
+                 if (ignoredPoiIds.has(pId)) return;
 
                  if (feature.geometry && feature.geometry.coordinates) {
                      const [fLng, fLat] = feature.geometry.coordinates;
