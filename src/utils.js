@@ -55,7 +55,7 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c; // Distance en mètres
 }
 
-export function resizeImage(file, maxWidth = 1024, quality = 0.7) {
+export function resizeImage(file, maxWidth = 1280, quality = 0.9) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
