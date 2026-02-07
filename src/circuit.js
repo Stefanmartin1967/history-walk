@@ -1,6 +1,7 @@
 // circuit.js
 import { state, MAX_CIRCUIT_POINTS, setSelectionMode, addPoiToCurrentCircuit, resetCurrentCircuit } from './state.js';
-import { DOM, openDetailsPanel, switchSidebarTab, updateSelectionModeButton } from './ui.js';
+import { DOM, openDetailsPanel, updateSelectionModeButton } from './ui.js';
+import { switchSidebarTab } from './ui-sidebar.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
 import { drawLineOnMap, clearMapLines, getRealDistance, getOrthodromicDistance, map } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';

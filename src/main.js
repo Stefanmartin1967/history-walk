@@ -6,7 +6,6 @@ import { eventBus } from './events.js';
 import { createIcons, icons } from 'lucide';
 import {
     initializeDomReferences,
-    setupTabs,
     DOM,
     populateZonesMenu,
     populateCategoriesMenu,
@@ -41,6 +40,7 @@ import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
 import { initAdminMode } from './admin.js';
 import { generateSyncQR, startGenericScanner } from './sync.js';
+import { setupTabs } from './ui-sidebar.js';
 
 // --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
 function setSaveButtonsState(enabled) {

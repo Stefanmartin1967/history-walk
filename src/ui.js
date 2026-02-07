@@ -4,18 +4,20 @@ import { getPoiId, getPoiName, applyFilters, updatePoiData } from './data.js';
 import { restoreCircuit, saveAppState } from './database.js';
 import { escapeXml } from './utils.js';
 import { eventBus } from './events.js';
-import { speakText, stopDictation, isDictationActive } from './voice.js';
+import { stopDictation, isDictationActive } from './voice.js';
 import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';
 import { map, clearMarkerHighlights } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList, switchMobileView } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
 import { buildDetailsPanelHtml as buildHTML, ICONS } from './templates.js';
-import { getZonesData, calculateAdjustedTime } from './circuit-actions.js';
+import { getZonesData } from './circuit-actions.js';
+import { calculateAdjustedTime } from './utils.js';
 import { initPhotoViewer, setupPhotoPanelListeners } from './ui-photo-viewer.js';
 import { initCircuitListUI, renderExplorerList } from './ui-circuit-list.js';
 import { showConfirm, showAlert } from './modal.js';
 import { RichEditor } from './richEditor.js';
+import { switchSidebarTab } from './ui-sidebar.js'; // Imported for use inside ui.js functions
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
@@ -97,9 +99,6 @@ export function initializeDomReferences() {
     if (DOM.closeCircuitPanelBtn) {
         DOM.closeCircuitPanelBtn.addEventListener('click', () => toggleSelectionMode(false));
     }
-
-    // Activation du God Mode
-    setupGodModeListener();
 
     // Initialisation des sous-modules UI
     initPhotoViewer();
@@ -350,85 +349,7 @@ export function closeDetailsPanel(goBackToList = false) {
     }
 }
 
-// --- NAVIGATION ONGLETS ---
-
-export function switchSidebarTab(tabName, isNavigating = false) {
-    if (!isNavigating && window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
-    if (isDictationActive()) stopDictation();
-    
-    DOM.sidebarPanels.forEach(panel => {
-        if(panel) panel.classList.toggle('active', panel.dataset.panel === tabName);
-    });
-    DOM.tabButtons.forEach(button => {
-        if(button) button.classList.toggle('active', button.dataset.tab === tabName);
-    });
-}
-
-export function setupTabs() {
-    DOM.tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tabName = button.dataset.tab;
-            if (tabName === 'explorer') {
-                renderExplorerList();
-                switchSidebarTab('explorer');
-            } else if (tabName === 'details') {
-                if (state.currentFeatureId !== null) {
-                    // Si on revient sur l'onglet détails, on essaie de garder le contexte
-                    const currentFeature = state.loadedFeatures[state.currentFeatureId];
-                    if (currentFeature) {
-                        const id = getPoiId(currentFeature);
-                        const circuitIndex = state.currentCircuit ? state.currentCircuit.findIndex(f => getPoiId(f) === id) : -1;
-                        openDetailsPanel(state.currentFeatureId, circuitIndex !== -1 ? circuitIndex : null);
-                    }
-                } else if (state.currentCircuit && state.currentCircuit.length > 0) {
-                    // Si on ouvre l'onglet détails alors qu'un circuit est en cours mais qu'aucun POI n'est sélectionné,
-                    // on ouvre le premier POI du circuit.
-                    const firstFeature = state.currentCircuit[0];
-                    const featureId = state.loadedFeatures.indexOf(firstFeature);
-                    if (featureId > -1) {
-                        openDetailsPanel(featureId, 0);
-                    } else {
-                        switchSidebarTab(tabName);
-                    }
-                } else {
-                    switchSidebarTab(tabName);
-                }
-            } else {
-                switchSidebarTab(tabName);
-            }
-        });
-    });
-}
-
 // --- UTILITAIRES ---
-
-function setupGodModeListener() {
-    let buffer = [];
-    let timeout;
-
-    window.addEventListener('keydown', (e) => {
-        // Ignorer si on est dans un champ texte
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-        const key = e.key.toLowerCase();
-        buffer.push(key);
-
-        // Reset buffer si pause trop longue
-        clearTimeout(timeout);
-        timeout = setTimeout(() => { buffer = []; }, 1000);
-
-        // Check sequence "god"
-        if (buffer.join('').endsWith('god')) {
-            state.isAdmin = !state.isAdmin;
-            showToast(`Mode GOD : ${state.isAdmin ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`, state.isAdmin ? 'success' : 'info');
-
-            // Émettre un événement pour que l'UI se mette à jour
-            eventBus.emit('admin:mode-toggled', state.isAdmin);
-
-            buffer = []; // Reset
-        }
-    });
-}
 
 export function adjustTime(minutesToAdd) {
     if (state.currentFeatureId === null) return;
