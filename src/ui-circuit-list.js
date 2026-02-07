@@ -5,6 +5,7 @@ import { eventBus } from './events.js';
 import { showConfirm } from './modal.js';
 import { getZoneFromCoords } from './utils.js';
 import { getOrthodromicDistance, getRealDistance } from './map.js';
+import { isCircuitCompleted } from './circuit.js';
 import { createIcons, icons } from 'lucide';
 
 // --- LOCAL STATE ---
@@ -185,10 +186,8 @@ export function renderExplorerList() {
             return cat === 'Restaurant';
         });
 
-        // Check if all visited
-        const allVisited = features.length > 0 && features.every(f =>
-            f.properties.userData && f.properties.userData.vu
-        );
+        // Check if circuit is marked as completed
+        const isCompleted = isCircuitCompleted(c);
 
         // Zone
         let zoneName = "Inconnue";
@@ -203,7 +202,7 @@ export function renderExplorerList() {
             features,
             distVal: sortDistance,
             hasRestaurant,
-            allVisited,
+            isCompleted,
             zoneName,
             poiCount: ids.length,
             created: c.created || 0 // Assuming 'created' timestamp exists or we treat as old
@@ -214,8 +213,8 @@ export function renderExplorerList() {
     let processedCircuits = enrichedCircuits;
 
     if (filterTodo) {
-        // Show only those NOT all visited (at least one unvisited)
-        processedCircuits = processedCircuits.filter(c => !c.allVisited);
+        // Show only those NOT completed
+        processedCircuits = processedCircuits.filter(c => !c.isCompleted);
     }
 
     // 4. Sort
@@ -242,7 +241,7 @@ export function renderExplorerList() {
             const iconName = c.realTrack ? 'footprints' : 'bird';
 
             // Si le circuit est terminé, on remplace le compteur de POI par une case à cocher
-            const metaInfo = c.allVisited
+            const metaInfo = c.isCompleted
                 ? `<span style="color:var(--ok); font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i data-lucide="check-square" style="width:14px; height:14px;"></i> Fait</span>`
                 : `${c.poiCount} POI`;
 
@@ -259,8 +258,8 @@ export function renderExplorerList() {
                 : '';
 
             const toggleVisitedBtn = `
-                <button class="explorer-item-action btn-toggle-visited" data-id="${c.id}" data-visited="${c.allVisited}" title="${c.allVisited ? 'Marquer comme non fait' : 'Marquer comme fait'}" style="color: ${c.allVisited ? 'var(--ok)' : 'var(--ink-soft)'}">
-                    <i data-lucide="${c.allVisited ? 'check-circle' : 'circle'}"></i>
+                <button class="explorer-item-action btn-toggle-visited" data-id="${c.id}" data-visited="${c.isCompleted}" title="${c.isCompleted ? 'Marquer comme non fait' : 'Marquer comme fait'}" style="color: ${c.isCompleted ? 'var(--ok)' : 'var(--ink-soft)'}">
+                    <i data-lucide="${c.isCompleted ? 'check-circle' : 'circle'}"></i>
                 </button>
             `;
 

@@ -138,6 +138,7 @@ async function loadDefaultMap() {
         try {
             state.userData = await getAllPoiDataForMap(mapId) || {};
             state.myCircuits = await getAllCircuitsForMap(mapId) || [];
+            state.officialCircuitsStatus = await getAppState(`official_circuits_status_${mapId}`) || {};
             await loadOfficialCircuits(); // Chargement séparé
         } catch (dbErr) {
             console.warn("Aucune donnée utilisateur antérieure ou erreur DB:", dbErr);
@@ -246,6 +247,7 @@ async function initializeApp() {
             try {
                 state.userData = await getAllPoiDataForMap(lastMapId) || {};
                 state.myCircuits = await getAllCircuitsForMap(lastMapId) || [];
+                state.officialCircuitsStatus = await getAppState(`official_circuits_status_${lastMapId}`) || {};
                 await loadOfficialCircuits(); // Chargement séparé
             } catch (e) { console.error("Erreur DB secondaire:", e); }
 

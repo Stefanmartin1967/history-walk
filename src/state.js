@@ -15,6 +15,7 @@ export const state = {
     userData: {},
     myCircuits: [],
     officialCircuits: [],
+    officialCircuitsStatus: {}, // Statut (Completed) des circuits officiels
     geojsonLayer: null,
     loadedFeatures: [],
     currentFeatureId: null,
