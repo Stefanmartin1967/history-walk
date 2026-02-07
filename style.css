@@ -2570,15 +2570,44 @@ input[type=range] {
 /* --- PHOTO SELECTION MODAL --- */
 #photo-selection-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Agrandissement des tuiles */
     gap: 12px;
-    max-height: 50vh;
+    max-height: 60vh; /* Un peu plus d'espace vertical */
     overflow-y: auto;
     padding: 10px;
     background: var(--surface-muted);
     border-radius: 8px;
     border: 1px solid var(--line);
-    margin-bottom: 20px;
+    margin-bottom: 10px; /* Réduit pour laisser place à la pagination */
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.pagination-btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    color: var(--ink);
+    font-size: 14px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--surface-muted);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .photo-selection-item {
