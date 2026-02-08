@@ -240,10 +240,8 @@ export function renderExplorerList() {
             const distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
             const iconName = c.realTrack ? 'footprints' : 'bird';
 
-            // Si le circuit est terminé, on remplace le compteur de POI par une case à cocher
-            const metaInfo = c.isCompleted
-                ? `<span style="color:var(--ok); font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i data-lucide="check-square" style="width:14px; height:14px;"></i> Fait</span>`
-                : `${c.poiCount} POI`;
+            // Indicateur POI
+            const metaInfo = `${c.poiCount} POI`;
 
             // Indicateur Officiel
             const officialIcon = c.isOfficial
