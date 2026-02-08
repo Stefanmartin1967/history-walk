@@ -478,12 +478,29 @@ export async function generateCircuitQR() {
     if (state.currentCircuit.length === 0) return;
 
     let activeCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
-    if (!activeCircuit && state.officialCircuits) {
-        activeCircuit = state.officialCircuits.find(c => c.id === state.activeCircuitId);
+    let isOfficial = false;
+    let gpxFile = null;
+
+    // Recherche Prioritaire dans les Officiels (Source de Vérité)
+    const officialCandidate = state.officialCircuits ? state.officialCircuits.find(c => c.id === state.activeCircuitId) : null;
+
+    if (officialCandidate) {
+        // C'est un officiel certifié
+        activeCircuit = officialCandidate;
+        isOfficial = true;
+        gpxFile = officialCandidate.file;
+    } else if (!activeCircuit) {
+        // Circuit introuvable (ni local ni officiel)
+        return;
+    } else {
+        // C'est un circuit local : On vérifie s'il prétend être officiel
+        if (activeCircuit.isOfficial) {
+             isOfficial = true;
+             gpxFile = activeCircuit.file;
+        }
     }
 
     const circuitName = activeCircuit ? activeCircuit.name : generateCircuitName();
-    const isOfficial = activeCircuit && activeCircuit.isOfficial && activeCircuit.file;
 
     // 1. Génération du lien "Ouvrir dans l'App" (Commun)
     const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
@@ -503,11 +520,11 @@ export async function generateCircuitQR() {
     let htmlContent = '';
     let title = "Partager le circuit";
 
-    if (isOfficial) {
+    if (isOfficial && gpxFile) {
         // 2. Génération du lien "Fichier GPX" (Officiel seulement)
         // Construction de l'URL absolue vers le fichier public
         const cleanPath = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
-        const gpxUrl = `${cleanPath}circuits/${activeCircuit.file}`;
+        const gpxUrl = `${cleanPath}circuits/${gpxFile}`;
 
         let qrGpx;
         try {

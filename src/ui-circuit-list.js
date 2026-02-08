@@ -158,6 +158,11 @@ export function renderExplorerList() {
     // On filtre les circuits locaux qui existent déjà en version officielle (par ID ou par Nom exact)
     const locals = (state.myCircuits || []).filter(c => {
         if (c.isDeleted) return false;
+
+        // FILTRE DE SÉCURITÉ : On cache les "Fantômes" (Officiels en double ou Vides)
+        if (c.isOfficial) return false; // Un local ne devrait jamais être 'official' (doublon DB)
+        if (!c.poiIds || c.poiIds.length === 0) return false; // Circuit vide
+
         // Vérification si une version officielle existe déjà
         const existsInOfficial = officials.some(off =>
             String(off.id) === String(c.id) ||
