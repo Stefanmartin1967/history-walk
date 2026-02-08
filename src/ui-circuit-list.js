@@ -166,7 +166,8 @@ export function renderExplorerList() {
         // Vérification si une version officielle existe déjà
         const existsInOfficial = officials.some(off =>
             String(off.id) === String(c.id) ||
-            (off.name && c.name && off.name.trim() === c.name.trim())
+            // Normalisation plus stricte pour les noms : minuscules, trim, suppression espaces doubles
+            (off.name && c.name && off.name.trim().toLowerCase().replace(/\s+/g, ' ') === c.name.trim().toLowerCase().replace(/\s+/g, ' '))
         );
         return !existsInOfficial;
     });
@@ -254,7 +255,9 @@ export function renderExplorerList() {
         : processedCircuits.map(c => {
             const displayName = c.name.split(' via ')[0];
             const distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
-            const iconName = c.realTrack ? 'footprints' : 'bird';
+            // FIX: Check if realTrack exists AND is not empty
+            const hasRealTrack = c.realTrack && c.realTrack.length > 0;
+            const iconName = hasRealTrack ? 'footprints' : 'bird';
 
             // Indicateur POI
             const metaInfo = `${c.poiCount} POI`;

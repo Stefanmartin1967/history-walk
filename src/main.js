@@ -379,30 +379,44 @@ async function initializeApp() {
 
     // --- GESTION DE L'IMPORT GPX VIA LIEN DIRECT (PATHNAME) ---
     // Ex: /circuits/djerba/MonCircuit.gpx
+    // FIX: Si l'utilisateur clique sur le lien GPX, on veut qu'il le TÉLÉCHARGE, pas que l'app tente de l'importer en mode "visualisation SPA".
+    // Cependant, si le serveur ne force pas le téléchargement (Header Content-Disposition), le navigateur affiche le XML ou l'app SPA (si rewrite rule).
+    // Ici, le code intercepte le chargement de la page si l'URL finit par .gpx.
+    // Pour permettre le téléchargement via le navigateur externe (comportement attendu du QR Code GPX),
+    // on ne doit PAS exécuter cette logique d'auto-import si l'intention est de télécharger.
+    // MAIS : Comme c'est une SPA sur GitHub Pages, l'URL .gpx peut être redirigée vers index.html (404 fallback).
+    // Si c'est le cas, window.location.pathname finit par .gpx mais on sert l'app JS.
+    // STRATÉGIE : Si on est dans l'app et qu'on détecte .gpx dans l'URL, c'est que le téléchargement direct a échoué (ou rewrite).
+    // On propose alors de télécharger le fichier manuellement via un Blob, plutôt que de l'importer silencieusement dans la carte.
+
     if (window.location.pathname.toLowerCase().endsWith('.gpx')) {
-        console.log("Démarrage Import GPX via URL:", window.location.pathname);
+        console.log("Démarrage Gestion GPX via URL:", window.location.pathname);
         try {
             const response = await fetch(window.location.href);
             if (response.ok) {
-                // Check if content looks like GPX to avoid HTML error pages
                 const text = await response.text();
-
                 if (text.trim().startsWith('<?xml') || text.includes('<gpx')) {
+                    // C'est bien un fichier GPX servi par le fallback SPA
+                    // On force le téléchargement pour l'utilisateur
                     const fileName = decodeURIComponent(window.location.pathname.split('/').pop());
-                    const file = new File([text], fileName, { type: 'application/gpx+xml' });
+                    const blob = new Blob([text], { type: 'application/gpx+xml' });
+                    const url = URL.createObjectURL(blob);
 
-                    // We need to wait a bit for the map/features to be ready
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    // On redirige vers l'accueil propre pour sortir de l'URL .gpx
+                    // (Optionnel mais plus propre pour éviter de rester sur une URL "fichier")
                     setTimeout(() => {
-                         processImportedGpx(file, null).catch(err => {
-                             console.error("Erreur process GPX URL:", err);
-                             showToast("Erreur lors de l'import du fichier GPX", "error");
-                         });
-                    }, 1000);
-                } else {
-                    console.warn("Le contenu récupéré ne ressemble pas à du GPX (HTML page ?)");
+                         window.location.href = window.location.origin + window.location.pathname.replace(fileName, '').replace(/\/$/, '');
+                    }, 500);
+                    return; // On arrête l'initialisation de l'app ici si possible, ou on laisse couler
                 }
-            } else {
-                console.warn("Erreur fetch GPX:", response.status);
             }
         } catch (e) {
             console.error("Erreur récupération GPX URL:", e);
