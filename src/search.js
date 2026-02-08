@@ -1,6 +1,6 @@
 // search.js
 import { state } from './state.js';
-import { getPoiId } from './data.js';
+import { getPoiId, getPoiName } from './data.js';
 
 /**
  * Filtre les POIs chargés en fonction d'une requête textuelle.
@@ -23,10 +23,9 @@ export function getSearchResults(query, features = state.loadedFeatures) {
             return false;
         }
 
-        // Recherche sur le nom officiel OU le nom personnalisé par l'utilisateur
-        const originalName = f.properties['Nom du site FR']?.toLowerCase() || '';
-        const customName = f.properties.userData?.custom_title?.toLowerCase() || '';
+        // Recherche sur le nom affiché (qui prend en compte les modifications utilisateur)
+        const displayedName = getPoiName(f).toLowerCase();
 
-        return originalName.includes(normalizedQuery) || customName.includes(normalizedQuery);
+        return displayedName.includes(normalizedQuery);
     });
 }

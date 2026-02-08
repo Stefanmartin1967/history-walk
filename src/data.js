@@ -11,22 +11,11 @@ import {
 } from './database.js';
 import { logModification } from './logger.js';
 import { showToast } from './toast.js';
+import { getPoiId, getPoiName } from './utils.js';
 
 // --- UTILITAIRES ---
 
-export function getPoiId(feature) {
-    if (!feature || !feature.properties) return null;
-    // Priorité à l'ID HW stable, sinon l'ID GeoJSON
-    return feature.properties.HW_ID || feature.id; 
-}
-
-export function getPoiName(feature) {
-    if (!feature || !feature.properties) return "Lieu sans nom";
-    const props = feature.properties;
-    const userData = props.userData || {};
-    // Ordre de priorité pour le nom
-    return userData.custom_title || props['Nom du site FR'] || props['Nom du site AR'] || props.name || "Lieu inconnu";
-}
+export { getPoiId, getPoiName };
 
 export function getDomainFromUrl(url) {
     if (!url) return '';
