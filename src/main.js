@@ -1,5 +1,5 @@
 // main.js
-import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsForMap } from './database.js';
+import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsForMap, deleteCircuitById } from './database.js';
 import { APP_VERSION, state } from './state.js';
 import { initMap, map, refreshMapMarkers } from './map.js';
 import { eventBus } from './events.js';
@@ -140,6 +140,32 @@ async function loadDefaultMap() {
             state.myCircuits = await getAllCircuitsForMap(mapId) || [];
             state.officialCircuitsStatus = await getAppState(`official_circuits_status_${mapId}`) || {};
             await loadOfficialCircuits(); // Chargement séparé
+
+            // --- NETTOYAGE AUTOMATIQUE DES FANTÔMES (Correction "Multiplication" & "0 POI") ---
+            // On supprime de la DB tout circuit qui est marqué "isOfficial" (doublon obsolète)
+            // ou qui est vide (bug de création).
+            const validCircuits = [];
+            for (const c of state.myCircuits) {
+                let toDelete = false;
+
+                if (c.isOfficial) {
+                    console.warn(`[Cleanup] Suppression du circuit officiel fantôme (DB) : ${c.name} (${c.id})`);
+                    toDelete = true;
+                } else if (!c.poiIds || c.poiIds.length === 0) {
+                     // On garde les brouillons temporaires non sauvegardés (ID temporaire ?)
+                     // Non, ici on vient de la DB, donc c'est persistant.
+                     console.warn(`[Cleanup] Suppression du circuit vide (0 POI) : ${c.name} (${c.id})`);
+                     toDelete = true;
+                }
+
+                if (toDelete) {
+                    await deleteCircuitById(c.id);
+                } else {
+                    validCircuits.push(c);
+                }
+            }
+            state.myCircuits = validCircuits;
+
         } catch (dbErr) {
             console.warn("Aucune donnée utilisateur antérieure ou erreur DB:", dbErr);
             state.myCircuits = [];
