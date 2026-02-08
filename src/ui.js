@@ -654,7 +654,7 @@ export async function requestSoftDelete(idOrIndex) {
 
     let poiId;
     try { poiId = getPoiId(feature); } catch (e) { poiId = feature.properties.HW_ID || feature.id; }
-    const poiName = feature.properties['Nom du site FR'] || feature.properties['Nom du site AR'] || "ce lieu";
+    const poiName = getPoiName(feature);
 
     const msg = isMobileView()
         ? `ATTENTION !\n\nVoulez-vous vraiment placer "${poiName}" dans la corbeille ?`

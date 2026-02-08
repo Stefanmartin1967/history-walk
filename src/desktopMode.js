@@ -2,7 +2,7 @@ import { getZonesData } from './circuit-actions.js';
 import { applyFilters } from './data.js';
 import { toggleSelectionMode, clearCircuit } from './circuit.js';
 import { map } from './map.js';
-import { addPoiFeature, getPoiId, updatePoiData } from './data.js';
+import { addPoiFeature, getPoiId, getPoiName, updatePoiData } from './data.js';
 import { state } from './state.js';
 import { saveAppState, savePoiData } from './database.js';
 import { logModification } from './logger.js';
@@ -362,10 +362,6 @@ export function createDraftMarker(lat, lng, mapInstance, photos = []) {
 }
 
 // L'ancienne fonction openDesktopAddModal a été supprimée car remplacée par RichEditor.
-
-function getPoiName(feature) {
-    return feature.properties['Nom du site FR'] || feature.properties['name'] || "Lieu inconnu";
-}
 
 // --- LOGIQUE WIZARD & OUTILS ---
 

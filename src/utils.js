@@ -1,5 +1,20 @@
 // utils.js
 import { zonesData } from './zones.js';
+
+export function getPoiId(feature) {
+    if (!feature || !feature.properties) return null;
+    // Priorité à l'ID HW stable, sinon l'ID GeoJSON
+    return feature.properties.HW_ID || feature.id;
+}
+
+export function getPoiName(feature) {
+    if (!feature || !feature.properties) return "Lieu sans nom";
+    const props = feature.properties;
+    const userData = props.userData || {};
+    // Ordre de priorité pour le nom
+    return userData.custom_title || userData['Nom du site FR'] || props['Nom du site FR'] || userData['Nom du site arabe'] || props['Nom du site AR'] || props.name || "Lieu inconnu";
+}
+
 export function downloadFile(filename, content, mimeType) {
     const blob = new Blob([content], { type: mimeType });
     const a = document.createElement('a');

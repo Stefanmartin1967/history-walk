@@ -105,7 +105,7 @@ function analyzeFiles() {
             const uData = userDataMap[feature.properties.HW_ID] || {};
             pendingChanges.newPois.push({
                 feature: feature,
-                proposedName: uData.custom_title || feature.properties['Nom du site FR'] || "Nouveau Lieu",
+                proposedName: uData.custom_title || uData['Nom du site FR'] || feature.properties['Nom du site FR'] || "Nouveau Lieu",
                 proposedDesc: uData.notes || "",
                 id: feature.properties.HW_ID
             });
@@ -139,8 +139,9 @@ function analyzeFiles() {
         // Content Check (Enrichissements simples)
         if (uData) {
             const changes = [];
-            if (uData.custom_title && uData.custom_title !== sourceFeat.properties['Nom du site FR']) {
-                changes.push({ type: 'Nom', old: sourceFeat.properties['Nom du site FR'], new: uData.custom_title });
+            const newName = uData.custom_title || uData['Nom du site FR'];
+            if (newName && newName !== sourceFeat.properties['Nom du site FR']) {
+                changes.push({ type: 'Nom', old: sourceFeat.properties['Nom du site FR'], new: newName });
             }
             if (uData.notes) {
                 changes.push({ type: 'Note', old: '(vide)', new: uData.notes });

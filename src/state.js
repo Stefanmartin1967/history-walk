@@ -8,6 +8,8 @@ export const POI_CATEGORIES = [
     "Restaurant", "Salon de thé", "Site historique", "Site religieux", "Taxi"
 ].sort();
 
+import { getPoiName } from './utils.js';
+
 // --- 1. LE FRIGO (L'État Global) ---
 export const state = {
     isMobile: false,
@@ -71,6 +73,6 @@ export function addPoiToCurrentCircuit(feature) {
     state.currentCircuit.push(feature);
     
     // Pour la console, on essaie de récupérer le nom du lieu
-    const poiName = feature.properties['Nom du site FR'] || feature.properties.name || "Lieu inconnu";
+    const poiName = getPoiName(feature);
     console.log(`[State] +1 Point ajouté au circuit : ${poiName}. (Total : ${state.currentCircuit.length})`);
 }
