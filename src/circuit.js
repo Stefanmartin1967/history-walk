@@ -476,31 +476,67 @@ export async function loadCircuitById(id) {
 export async function generateCircuitQR() {
     if (state.currentCircuit.length === 0) return;
 
-    // 1. Extraction
-    const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
+    let dataString = '';
+    let message = '';
+    let title = "Partager le circuit";
 
-    // 2. Generation URL (Compatible Scanners Externes & App)
-    const activeCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
-    const circuitName = activeCircuit ? activeCircuit.name : generateCircuitName();
+    // 1. Détection du type de circuit (Officiel vs Local)
+    let activeCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
 
-    const baseUrl = window.location.origin + window.location.pathname;
-    const dataString = `${baseUrl}?import=${ids.join(',')}&name=${encodeURIComponent(circuitName)}`;
+    // Si pas trouvé en local, on cherche dans les officiels
+    if (!activeCircuit && state.officialCircuits) {
+        activeCircuit = state.officialCircuits.find(c => c.id === state.activeCircuitId);
+    }
 
-    // 3. Generation QR
+    // 2. Logique de génération selon le type
+    if (activeCircuit && activeCircuit.isOfficial && activeCircuit.file) {
+        // CAS OFFICIEL : Lien direct vers le fichier GPX
+        // On construit l'URL complète vers le fichier public
+        // Note: activeCircuit.file est relatif (ex: "djerbahood.gpx"), on ajoute le dossier 'circuits/'
+        // et on utilise window.location.href pour la base, en nettoyant query params
+
+        const baseUrl = window.location.origin + window.location.pathname;
+        // Correction : On retire index.html ou tout autre fichier de fin si présent
+        const cleanPath = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+        const fileUrl = `${cleanPath}circuits/${activeCircuit.file}`;
+
+        dataString = fileUrl;
+        message = "Ce QR Code mène directement au fichier GPX du circuit.<br>Scannez-le pour télécharger le tracé ou l'ouvrir dans une application GPS compatible.";
+        title = "Fichier GPX du Circuit";
+
+        console.log(`[QR] Génération lien officiel : ${dataString}`);
+
+    } else {
+        // CAS LOCAL : Lien d'import interne History Walk
+        const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
+        const circuitName = activeCircuit ? activeCircuit.name : generateCircuitName();
+
+        const baseUrl = window.location.origin + window.location.pathname;
+        dataString = `${baseUrl}?import=${ids.join(',')}&name=${encodeURIComponent(circuitName)}`;
+
+        message = "Scannez ce code avec l'application ou votre appareil photo<br>pour ouvrir le circuit dans History Walk.";
+        title = "Partager le circuit";
+
+        console.log(`[QR] Génération lien interne : ${dataString}`);
+    }
+
+    // 3. Génération & Affichage
     try {
         const url = await QRCode.toDataURL(dataString, { width: 300, margin: 2 });
 
-        // 4. Affichage
         const html = `
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
                 <img src="${url}" style="width:250px; height:250px; border-radius:10px; border:1px solid var(--line);">
                 <p style="text-align:center; color:var(--ink-soft); font-size:14px;">
-                    Scannez ce code avec l'application ou votre appareil photo<br>pour ouvrir le circuit.
+                    ${message}
                 </p>
+                <div style="font-size:11px; color:var(--text-muted); word-break:break-all; text-align:center; max-width:100%;">
+                    ${dataString}
+                </div>
             </div>
         `;
 
-        await showAlert("Partager le circuit", html, "Fermer");
+        await showAlert(title, html, "Fermer");
 
     } catch (err) {
         console.error(err);
