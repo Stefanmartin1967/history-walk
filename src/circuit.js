@@ -387,9 +387,9 @@ export function convertToDraft() {
 }
 
 export async function loadCircuitById(id) {
-    let circuitToLoad = state.myCircuits.find(c => c.id === id);
+    let circuitToLoad = state.myCircuits.find(c => String(c.id) === String(id));
     if (!circuitToLoad && state.officialCircuits) {
-        circuitToLoad = state.officialCircuits.find(c => c.id === id);
+        circuitToLoad = state.officialCircuits.find(c => String(c.id) === String(id));
         // Protection contre la mutation de la liste officielle
         if (circuitToLoad) {
             circuitToLoad = { ...circuitToLoad };
