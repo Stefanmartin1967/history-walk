@@ -61,5 +61,128 @@
     "distance": "3.5 km",
     "isOfficial": true,
     "poiIds": []
+  },
+  {
+    "id": "HW-1770490365444",
+    "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
+    "file": "boucle_autour_de_rym_beach_via_mosqu_e_ibn_abass.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "7.2 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE67RPHVJVH6A0PC0ZWD",
+      "HW-01K77WPE6722XTDVPGCQTPPBXR",
+      "HW-01K77WPE671G6V27VYYNMJV2NC",
+      "HW-01K77WPE6770BXCP2SW1Z2DTA2",
+      "HW-01K77WPE67RPHVJVH6A0PC0ZWD"
+    ]
+  },
+  {
+    "id": "HW-1770490739597",
+    "name": "Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa",
+    "file": "circuit_de_mosqu_e_sidi_zayed_mosqu_e_el_cheikh_via_mosqu_e_elghorabaa.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "3.5 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6F9K1DFXDYCR7CPAWN",
+      "HW-01K77WPE6F1C25NNH5RAR2JPF6",
+      "HW-01K77WPE6G6C1H17E6WP518B3J",
+      "HW-01K77WPE6G6RDSP8C7C5WQVJCN",
+      "HW-01K77WPE6HV1767JVPMV1000YQ",
+      "HW-01K77WPE6P5C0194DPJWYMX9C1"
+    ]
+  },
+  {
+    "id": "HW-1770532227556",
+    "name": "Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou",
+    "file": "circuit_de_mosqu_e_ouilihi_mosqu_e_berdaoui_via_mosqu_e_mourou.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "5.5 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6MXA1DKNG7R2XWZQGJ",
+      "HW-01K77WPE6N293MG25FFQBH1G10",
+      "HW-01K77WPE6N0ZBXJK23NVJ2MQPX",
+      "HW-01K77WPE6N6A0YBFFKMQQNQH0E",
+      "HW-01K77WPE6RQNBBQXWYACNJTRAC",
+      "HW-01K77WPE6NJ1X6TBWGCTV85QMM",
+      "HW-01K77WPE6N6HF86MYJNJWFPNSV"
+    ]
+  },
+  {
+    "id": "HW-1770540385732",
+    "name": "Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane",
+    "file": "circuit_de_mosqu_e_sidi_yati_de_midoun_ancienne_mosqu_e_de_midoun_via_mosque_sidi_sofiane.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "5.8 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6QJNV1Q83SBNFKC88M",
+      "HW-01K77WPE68SSRHFM5TYYA7F5YF",
+      "HW-01K77WPE6Q0QEE8APATRE5K4MS",
+      "HW-01K77WPE68Q2NTEKRWSPCDZZGE",
+      "HW-01K77WPE68MMPS9ZVR6XTV9J61",
+      "HW-01K77WPE68JWCXJ0TCG1EDSB7A"
+    ]
+  },
+  {
+    "id": "HW-1770542046084",
+    "name": "Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued",
+    "file": "circuit_de_mosqu_e_ben_maazouzine_mosqu_e_medrajen_via_mosqu_e_ben_daoued.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "7.3 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
+      "HW-01K77WPE6AS77NE3CRGHPYHJSE",
+      "HW-01K77WPE6BE6FFWWHJH6DSSZQ6",
+      "HW-01K77WPE6BAJG9QADZMRDXPWTB",
+      "HW-01K77WPE6B49HSRPBACEWDY95T",
+      "HW-01K77WPE6BE2HDNBY0FSWSNRTH",
+      "HW-01K77WPE6A7EGYFGG7XNYT8AYC"
+    ]
+  },
+  {
+    "id": "HW-1770564366809",
+    "name": "Circuit de Mosquée Haouari à L'autre monde via Mosquée Sellaouti",
+    "file": "circuit_de_mosqu_e_haouari_l_autre_monde_via_mosqu_e_sellaouti.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "4.3 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6RCC0S7XMA08ES9BDD",
+      "HW-01K77WPE69KD9K0SES4DYYWZQA",
+      "HW-01K77WPE68HB12PE5Y0ZGTGJ3X",
+      "HW-PC-1769615329045"
+    ]
+  },
+  {
+    "id": "HW-1770565762875",
+    "name": "Boucle autour de Mosquée Sidi Nasr via Mosquée El Hajjama",
+    "file": "boucle_autour_de_mosqu_e_sidi_nasr_via_mosqu_e_el_hajjama.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "8.7 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6NHCHVH0JKDTF607DG",
+      "HW-01K77WPE6MK0YGY2RG0RX2XX48",
+      "HW-01K77WPE6SYZ3CNCV0GXBV0MYX",
+      "HW-01K77WPE6NHCHVH0JKDTF607DG"
+    ]
+  },
+  {
+    "id": "HW-1770566808964",
+    "name": "Boucle autour de Mosquée Moslah Awlad Amor via Mosquée Taghr Ghaz",
+    "file": "boucle_autour_de_mosqu_e_moslah_awlad_amor_via_mosqu_e_taghr_ghaz.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "3.7 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE698R49VRAQ6C6J1XXF",
+      "HW-01K77WPE69R3QRREC9E9W0S5V4",
+      "HW-PC-1769614171212",
+      "HW-01K77WPE698R49VRAQ6C6J1XXF"
+    ]
   }
 ]
