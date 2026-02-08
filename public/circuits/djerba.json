@@ -1,5 +1,14 @@
 [
   {
+    "id": "HW-1770565762875",
+    "name": "Boucle autour de Mosquée Sidi Nasr via Mosquée El Hajjama",
+    "file": "djerba/Boucle autour de Mosquée Sidi Nasr via Mosquée El Hajjama.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "8.7 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
     "id": "HW-1770490365444",
     "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
     "file": "djerba/Boucle autour de Rym Beach via Mosquée Ibn Abass.gpx",
@@ -14,6 +23,15 @@
     "file": "djerba/Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued.gpx",
     "description": "Circuit généré par History Walk.",
     "distance": "7.3 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770564366809",
+    "name": "Circuit de Mosquée Haouari à L&apos;autre monde via Mosquée Sellaouti",
+    "file": "djerba/Circuit de Mosquée Haouari à L'autre monde via Mosquée Sellaouti.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "4.3 km",
     "isOfficial": true,
     "poiIds": []
   },
