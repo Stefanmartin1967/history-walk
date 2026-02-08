@@ -596,6 +596,9 @@ export async function generateCircuitQR() {
                     <p class="qr-desc">
                         Télécharger le fichier GPX<br>(Compatible GPS et Montres)
                     </p>
+                    <div style="margin-top:10px; padding:8px; background:var(--surface-muted, #f5f5f5); border-radius:6px; font-family:monospace; font-size:11px; color:var(--ink-soft); word-break:break-all; user-select:text; text-align:center;">
+                        ${escapeHtml(gpxUrl)}
+                    </div>
                 </div>
 
                 <!-- Contenu APP -->
@@ -604,6 +607,9 @@ export async function generateCircuitQR() {
                     <p class="qr-desc">
                         Ouvrir directement dans History Walk
                     </p>
+                    <div style="margin-top:10px; padding:8px; background:var(--surface-muted, #f5f5f5); border-radius:6px; font-family:monospace; font-size:11px; color:var(--ink-soft); word-break:break-all; user-select:text; text-align:center;">
+                        ${escapeHtml(appDataString)}
+                    </div>
                 </div>
 
                  <div style="font-size:14px; font-weight:bold; color:var(--text-main); word-break:break-word; text-align:center; max-width:100%; margin-top:15px; border-top:1px solid var(--line); padding-top:10px;">
@@ -620,6 +626,9 @@ export async function generateCircuitQR() {
                 <p style="text-align:center; color:var(--ink-soft); font-size:14px;">
                     Scannez ce code pour ouvrir le circuit<br>dans l'application History Walk.
                 </p>
+                <div style="margin-top:5px; padding:8px; background:var(--surface-muted, #f5f5f5); border-radius:6px; font-family:monospace; font-size:11px; color:var(--ink-soft); word-break:break-all; user-select:text; text-align:center; width:100%;">
+                    ${escapeHtml(appDataString)}
+                </div>
                 <div style="font-size:14px; font-weight:bold; color:var(--text-main); word-break:break-word; text-align:center; max-width:100%;">
                     ${escapeHtml(circuitName)}
                 </div>
