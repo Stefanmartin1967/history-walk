@@ -244,7 +244,7 @@ export function updateCircuitMetadata(updateTitle = true) {
 
     const activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
 
-    if (activeCircuitData && activeCircuitData.realTrack) {
+    if (activeCircuitData && activeCircuitData.realTrack && activeCircuitData.realTrack.length > 0) {
         totalDistance = getRealDistance(activeCircuitData);
         isRealTrack = true;
     } else {
