@@ -399,10 +399,13 @@ async function initializeApp() {
                 <h1 style="font-size:24px; margin-bottom:10px;">Téléchargement en cours...</h1>
                 <p style="font-size:16px; color:#627d98; margin-bottom:30px;">Le fichier GPX va être téléchargé automatiquement.</p>
                 <div class="loader-spinner" style="border-top-color:#3b82f6; width:40px; height:40px; margin-bottom:20px;"></div>
-                <button id="retry-btn" style="padding:10px 20px; background:#3b82f6; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none;">
+                <button id="retry-btn" style="padding:10px 20px; background:#3b82f6; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none; margin-right:10px;">
                     Relancer le téléchargement
                 </button>
-                <p style="margin-top:20px; font-size:14px; color:#829ab1;">Une fois terminé, vous pouvez fermer cet onglet.</p>
+                <button id="close-btn" style="padding:10px 20px; background:#e2e8f0; color:#475569; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none;">
+                    Fermer la page
+                </button>
+                <p id="close-msg" style="margin-top:20px; font-size:14px; color:#829ab1;">Une fois terminé, vous pouvez fermer cet onglet.</p>
             </div>
         `;
 
@@ -432,12 +435,31 @@ async function initializeApp() {
                     const title = document.querySelector('h1');
                     const loader = document.querySelector('.loader-spinner');
                     const retryBtn = document.getElementById('retry-btn');
+                    const closeBtn = document.getElementById('close-btn');
+                    const closeMsg = document.getElementById('close-msg');
 
                     if(title) title.textContent = "Téléchargement terminé";
                     if(loader) loader.style.display = 'none';
+
                     if(retryBtn) {
                         retryBtn.style.display = 'inline-block';
                         retryBtn.onclick = triggerDownload;
+                    }
+
+                    if(closeBtn) {
+                        closeBtn.style.display = 'inline-block';
+                        closeBtn.onclick = () => {
+                            try {
+                                window.close();
+                            } catch(e) { console.log(e); }
+                            // Fallback visuel si la fenêtre ne se ferme pas
+                            setTimeout(() => {
+                                if(!window.closed) {
+                                    closeMsg.textContent = "Le navigateur a bloqué la fermeture automatique. Veuillez fermer l'onglet manuellement.";
+                                    closeMsg.style.color = "#d97706"; // Orange warning
+                                }
+                            }, 300);
+                        };
                     }
 
                     return; // On arrête l'initialisation ici
