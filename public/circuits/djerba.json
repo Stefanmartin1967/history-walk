@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "HW-1770576008958",
+    "name": "Circuit de Mosquée El Chouhoud à Mosquée Houmet El Krashoua via Mosquée El Chehoud",
+    "file": "circuit_de_mosqu_e_el_chouhoud_mosqu_e_houmet_el_krashoua_via_mosqu_e_el_chehoud.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "5.6 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6E5GCD9QGR33PMXVRP",
+      "HW-01K77WPE6RR5DT6GBCGYFDHXJS",
+      "HW-01K77WPE6RXAVJ2QSRYR7DPF76",
+      "HW-01K77WPE6E5GCD9QGR33PMXVRP",
+      "HW-01K77WPE6FCK1V446SXD2V5NNK",
+      "HW-01K77WPE6FYGYG0HW2BTHPGFF6"
+    ]
+  }
+]
