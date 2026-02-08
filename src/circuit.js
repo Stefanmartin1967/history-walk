@@ -323,7 +323,7 @@ export function generateCircuitName() {
 
 // --- FONCTION POUR VIDER LE BROUILLON (Version Majordome + UI) ---
 export async function clearCircuit(withConfirmation = true) {
-    // CAS 1 : On consulte un circuit enregistré (Mode Lecture Seule)
+    // CAS 1 : On consulte un circuit enregistré (Mode Consultation)
     if (state.activeCircuitId) {
         // Pas d'alerte, on "ferme" juste la vue
         toggleSelectionMode(false); // Cette fonction ferme déjà le panneau et nettoie la carte
@@ -472,78 +472,145 @@ export async function loadCircuitById(id) {
     notifyCircuitChanged();;
 }
 
-// --- À AJOUTER À LA FIN DE circuit.js ---
+// --- GÉNÉRATION QR CODE (OFFICIEL: ONGLETS, LOCAL: UNIQUE) ---
 
 export async function generateCircuitQR() {
     if (state.currentCircuit.length === 0) return;
 
-    let dataString = '';
-    let message = '';
-    let title = "Partager le circuit";
-
-    // 1. Détection du type de circuit (Officiel vs Local)
     let activeCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
-
-    // Si pas trouvé en local, on cherche dans les officiels
     if (!activeCircuit && state.officialCircuits) {
         activeCircuit = state.officialCircuits.find(c => c.id === state.activeCircuitId);
     }
 
-    // 2. Logique de génération selon le type
-    if (activeCircuit && activeCircuit.isOfficial && activeCircuit.file) {
-        // CAS OFFICIEL : Lien direct vers le fichier GPX
-        // On construit l'URL complète vers le fichier public
-        // Note: activeCircuit.file est relatif (ex: "djerbahood.gpx"), on ajoute le dossier 'circuits/'
-        // et on utilise window.location.href pour la base, en nettoyant query params
+    const circuitName = activeCircuit ? activeCircuit.name : generateCircuitName();
+    const isOfficial = activeCircuit && activeCircuit.isOfficial && activeCircuit.file;
 
-        const baseUrl = window.location.origin + window.location.pathname;
-        // Correction : On retire index.html ou tout autre fichier de fin si présent
-        const cleanPath = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
-        const fileUrl = `${cleanPath}circuits/${activeCircuit.file}`;
+    // 1. Génération du lien "Ouvrir dans l'App" (Commun)
+    const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const appDataString = `${baseUrl}?import=${ids.join(',')}&name=${encodeURIComponent(circuitName)}`;
 
-        dataString = fileUrl;
-        message = "Ce QR Code mène directement au fichier GPX du circuit.<br>Scannez-le pour télécharger le tracé ou l'ouvrir dans une application GPS compatible.";
-        title = "Fichier GPX du Circuit";
-
-        console.log(`[QR] Génération lien officiel : ${dataString}`);
-
-    } else {
-        // CAS LOCAL : Lien d'import interne History Walk
-        const ids = state.currentCircuit.map(getPoiId).filter(Boolean);
-        const circuitName = activeCircuit ? activeCircuit.name : generateCircuitName();
-
-        const baseUrl = window.location.origin + window.location.pathname;
-        dataString = `${baseUrl}?import=${ids.join(',')}&name=${encodeURIComponent(circuitName)}`;
-
-        message = "Scannez ce code avec l'application ou votre appareil photo<br>pour ouvrir le circuit dans History Walk.";
-        title = "Partager le circuit";
-
-        console.log(`[QR] Génération lien interne : ${dataString}`);
+    // Génération QR App
+    let qrApp;
+    try {
+        qrApp = await QRCode.toDataURL(appDataString, { width: 300, margin: 2 });
+    } catch (e) {
+        console.error("Erreur QR App", e);
+        showToast("Erreur génération QR", "error");
+        return;
     }
 
-    // 3. Génération & Affichage
-    try {
-        const url = await QRCode.toDataURL(dataString, { width: 300, margin: 2 });
-        const circuitName = activeCircuit ? activeCircuit.name : "Circuit";
+    let htmlContent = '';
+    let title = "Partager le circuit";
 
-        const html = `
+    if (isOfficial) {
+        // 2. Génération du lien "Fichier GPX" (Officiel seulement)
+        // Construction de l'URL absolue vers le fichier public
+        const cleanPath = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+        const gpxUrl = `${cleanPath}circuits/${activeCircuit.file}`;
+
+        let qrGpx;
+        try {
+            qrGpx = await QRCode.toDataURL(gpxUrl, { width: 300, margin: 2 });
+        } catch (e) {
+             console.error("Erreur QR GPX", e);
+             return;
+        }
+
+        // 3. Construction des Onglets (CSS Radio Hack)
+        const uniqueId = Date.now();
+        htmlContent = `
+            <style>
+                .qr-tabs-container { text-align: center; font-family: sans-serif; }
+                .qr-tab-radio { display: none; }
+
+                /* Onglets (Labels) */
+                .qr-tabs-labels {
+                    display: flex;
+                    justify-content: center;
+                    gap: 10px;
+                    margin-bottom: 15px;
+                }
+                .qr-tab-label {
+                    padding: 8px 16px;
+                    border: 1px solid var(--line, #ccc);
+                    border-radius: 20px;
+                    cursor: pointer;
+                    background: var(--surface, #fff);
+                    color: var(--text-main, #333);
+                    font-size: 14px;
+                    user-select: none;
+                    transition: all 0.2s;
+                }
+
+                /* État Actif */
+                #tab-gpx-${uniqueId}:checked ~ .qr-tabs-labels label[for="tab-gpx-${uniqueId}"],
+                #tab-app-${uniqueId}:checked ~ .qr-tabs-labels label[for="tab-app-${uniqueId}"] {
+                    background: var(--brand, #007bff);
+                    color: white;
+                    border-color: var(--brand, #007bff);
+                }
+
+                /* Panneaux */
+                .qr-panel { display: none; animation: fadeIn 0.3s; }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+                #tab-gpx-${uniqueId}:checked ~ #panel-gpx-${uniqueId} { display: block; }
+                #tab-app-${uniqueId}:checked ~ #panel-app-${uniqueId} { display: block; }
+
+                .qr-img { width: 250px; height: 250px; border-radius: 10px; border: 1px solid var(--line, #eee); }
+                .qr-desc { text-align: center; color: var(--ink-soft, #666); font-size: 14px; margin-top: 10px; line-height: 1.4; }
+            </style>
+
+            <div class="qr-tabs-container">
+                <!-- Inputs Radio cachés -->
+                <input type="radio" id="tab-gpx-${uniqueId}" name="qr-tabs-${uniqueId}" class="qr-tab-radio" checked>
+                <input type="radio" id="tab-app-${uniqueId}" name="qr-tabs-${uniqueId}" class="qr-tab-radio">
+
+                <!-- Boutons d'onglets -->
+                <div class="qr-tabs-labels">
+                    <label for="tab-gpx-${uniqueId}" class="qr-tab-label">Fichier GPX</label>
+                    <label for="tab-app-${uniqueId}" class="qr-tab-label">Ouvrir dans l'App</label>
+                </div>
+
+                <!-- Contenu GPX -->
+                <div id="panel-gpx-${uniqueId}" class="qr-panel">
+                    <img src="${qrGpx}" class="qr-img">
+                    <p class="qr-desc">
+                        Télécharger le fichier GPX<br>(Compatible GPS et Montres)
+                    </p>
+                </div>
+
+                <!-- Contenu APP -->
+                <div id="panel-app-${uniqueId}" class="qr-panel">
+                    <img src="${qrApp}" class="qr-img">
+                    <p class="qr-desc">
+                        Ouvrir directement dans History Walk
+                    </p>
+                </div>
+
+                 <div style="font-size:14px; font-weight:bold; color:var(--text-main); word-break:break-word; text-align:center; max-width:100%; margin-top:15px; border-top:1px solid var(--line); padding-top:10px;">
+                    ${escapeHtml(circuitName)}
+                </div>
+            </div>
+        `;
+
+    } else {
+        // CAS LOCAL : Affichage Simple
+        htmlContent = `
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
-                <img src="${url}" style="width:250px; height:250px; border-radius:10px; border:1px solid var(--line);">
+                <img src="${qrApp}" style="width:250px; height:250px; border-radius:10px; border:1px solid var(--line);">
                 <p style="text-align:center; color:var(--ink-soft); font-size:14px;">
-                    ${message}
+                    Scannez ce code pour ouvrir le circuit<br>dans l'application History Walk.
                 </p>
                 <div style="font-size:14px; font-weight:bold; color:var(--text-main); word-break:break-word; text-align:center; max-width:100%;">
                     ${escapeHtml(circuitName)}
                 </div>
             </div>
         `;
-
-        await showAlert(title, html, "Fermer");
-
-    } catch (err) {
-        console.error(err);
-        showToast("Erreur lors de la génération du QR Code", "error");
     }
+
+    await showAlert(title, htmlContent, "Fermer");
 }
 
 export async function loadCircuitFromIds(inputString, importedName = null) {
