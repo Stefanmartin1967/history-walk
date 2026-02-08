@@ -33,6 +33,7 @@ import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-ac
 
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
 import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } from './mobile.js';
+import { processImportedGpx } from './gpx.js';
 
 import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile, exportOfficialCircuitsJSON } from './fileManager.js';
 import { setupSearch, setupSmartSearch } from './searchManager.js';
@@ -374,6 +375,38 @@ async function initializeApp() {
                  module.loadCircuitFromIds(importIds, importName);
              });
         }, 500);
+    }
+
+    // --- GESTION DE L'IMPORT GPX VIA LIEN DIRECT (PATHNAME) ---
+    // Ex: /circuits/djerba/MonCircuit.gpx
+    if (window.location.pathname.toLowerCase().endsWith('.gpx')) {
+        console.log("Démarrage Import GPX via URL:", window.location.pathname);
+        try {
+            const response = await fetch(window.location.href);
+            if (response.ok) {
+                // Check if content looks like GPX to avoid HTML error pages
+                const text = await response.text();
+
+                if (text.trim().startsWith('<?xml') || text.includes('<gpx')) {
+                    const fileName = decodeURIComponent(window.location.pathname.split('/').pop());
+                    const file = new File([text], fileName, { type: 'application/gpx+xml' });
+
+                    // We need to wait a bit for the map/features to be ready
+                    setTimeout(() => {
+                         processImportedGpx(file, null).catch(err => {
+                             console.error("Erreur process GPX URL:", err);
+                             showToast("Erreur lors de l'import du fichier GPX", "error");
+                         });
+                    }, 1000);
+                } else {
+                    console.warn("Le contenu récupéré ne ressemble pas à du GPX (HTML page ?)");
+                }
+            } else {
+                console.warn("Erreur fetch GPX:", response.status);
+            }
+        } catch (e) {
+            console.error("Erreur récupération GPX URL:", e);
+        }
     }
 }
 
