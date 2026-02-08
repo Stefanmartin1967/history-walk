@@ -387,40 +387,72 @@ async function initializeApp() {
     // MAIS : Comme c'est une SPA sur GitHub Pages, l'URL .gpx peut être redirigée vers index.html (404 fallback).
     // Si c'est le cas, window.location.pathname finit par .gpx mais on sert l'app JS.
     // STRATÉGIE : Si on est dans l'app et qu'on détecte .gpx dans l'URL, c'est que le téléchargement direct a échoué (ou rewrite).
-    // On propose alors de télécharger le fichier manuellement via un Blob, plutôt que de l'importer silencieusement dans la carte.
+    // On remplace le contenu de la page par une page de téléchargement minimaliste et on force le Blob.
 
     if (window.location.pathname.toLowerCase().endsWith('.gpx')) {
         console.log("Démarrage Gestion GPX via URL:", window.location.pathname);
+
+        // --- PAGE DE TÉLÉCHARGEMENT MINIMALISTE ---
+        // On stoppe l'UI normale de l'app pour éviter la confusion
+        document.body.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; text-align:center; padding:20px; background:#f0f4f8; color:#102a43;">
+                <h1 style="font-size:24px; margin-bottom:10px;">Téléchargement en cours...</h1>
+                <p style="font-size:16px; color:#627d98; margin-bottom:30px;">Le fichier GPX va être téléchargé automatiquement.</p>
+                <div class="loader-spinner" style="border-top-color:#3b82f6; width:40px; height:40px; margin-bottom:20px;"></div>
+                <button id="retry-btn" style="padding:10px 20px; background:#3b82f6; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none;">
+                    Relancer le téléchargement
+                </button>
+                <p style="margin-top:20px; font-size:14px; color:#829ab1;">Une fois terminé, vous pouvez fermer cet onglet.</p>
+            </div>
+        `;
+
         try {
             const response = await fetch(window.location.href);
             if (response.ok) {
                 const text = await response.text();
                 if (text.trim().startsWith('<?xml') || text.includes('<gpx')) {
                     // C'est bien un fichier GPX servi par le fallback SPA
-                    // On force le téléchargement pour l'utilisateur
                     const fileName = decodeURIComponent(window.location.pathname.split('/').pop());
-                    const blob = new Blob([text], { type: 'application/gpx+xml' });
-                    const url = URL.createObjectURL(blob);
 
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+                    const triggerDownload = () => {
+                        const blob = new Blob([text], { type: 'application/gpx+xml' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    };
 
-                    // On redirige vers l'accueil propre pour sortir de l'URL .gpx
-                    // (Optionnel mais plus propre pour éviter de rester sur une URL "fichier")
-                    setTimeout(() => {
-                         window.location.href = window.location.origin + window.location.pathname.replace(fileName, '').replace(/\/$/, '');
-                    }, 500);
-                    return; // On arrête l'initialisation de l'app ici si possible, ou on laisse couler
+                    triggerDownload();
+
+                    // Mise à jour de l'UI
+                    const title = document.querySelector('h1');
+                    const loader = document.querySelector('.loader-spinner');
+                    const retryBtn = document.getElementById('retry-btn');
+
+                    if(title) title.textContent = "Téléchargement terminé";
+                    if(loader) loader.style.display = 'none';
+                    if(retryBtn) {
+                        retryBtn.style.display = 'inline-block';
+                        retryBtn.onclick = triggerDownload;
+                    }
+
+                    return; // On arrête l'initialisation ici
                 }
+            } else {
+                document.querySelector('h1').textContent = "Erreur de téléchargement";
+                document.querySelector('p').textContent = `Impossible de récupérer le fichier (Code ${response.status}).`;
+                document.querySelector('.loader-spinner').style.display = 'none';
             }
         } catch (e) {
             console.error("Erreur récupération GPX URL:", e);
+            document.querySelector('h1').textContent = "Erreur réseau";
+            document.querySelector('.loader-spinner').style.display = 'none';
         }
+        return; // Stop app init
     }
 }
 
