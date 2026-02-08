@@ -152,16 +152,27 @@ export function renderExplorerList() {
     const listContainer = document.getElementById('explorer-list');
     if (!listContainer) return;
 
-    // 1. Data Prep : Fusion des circuits officiels et utilisateur
+    // 1. Data Prep : Fusion des circuits officiels et utilisateur (Sans doublons)
     const officials = state.officialCircuits || [];
-    const locals = (state.myCircuits || []).filter(c => !c.isDeleted);
+
+    // On filtre les circuits locaux qui existent déjà en version officielle (par ID ou par Nom exact)
+    const locals = (state.myCircuits || []).filter(c => {
+        if (c.isDeleted) return false;
+        // Vérification si une version officielle existe déjà
+        const existsInOfficial = officials.some(off =>
+            String(off.id) === String(c.id) ||
+            (off.name && c.name && off.name.trim() === c.name.trim())
+        );
+        return !existsInOfficial;
+    });
+
     const allCircuits = [...officials, ...locals];
 
     // 2. Enrichment
     const enrichedCircuits = allCircuits.map(c => {
         const ids = c.poiIds || [];
         const features = ids
-            .map(id => state.loadedFeatures.find(f => getPoiId(f) === id))
+            .map(id => state.loadedFeatures.find(f => String(getPoiId(f)) === String(id)))
             .filter(Boolean);
 
         let distance = 0;
