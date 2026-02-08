@@ -2,6 +2,42 @@
   {
     "id": "HW-1770490365444",
     "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
+    "file": "djerba/Boucle autour de Rym Beach via Mosquée Ibn Abass.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "7.2 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770532227556",
+    "name": "Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou",
+    "file": "djerba/Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "5.5 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770540385732",
+    "name": "Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane",
+    "file": "djerba/Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "5.8 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770490739597",
+    "name": "Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa",
+    "file": "djerba/Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "3.5 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770490365444",
+    "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
     "file": "boucle_autour_de_rym_beach_via_mosqu_e_ibn_abass.gpx",
     "description": "\n\n(Créé par History Walk)",
     "distance": "7.2 km",
@@ -61,6 +97,23 @@
       "HW-01K77WPE68Q2NTEKRWSPCDZZGE",
       "HW-01K77WPE68MMPS9ZVR6XTV9J61",
       "HW-01K77WPE68JWCXJ0TCG1EDSB7A"
+    ]
+  },
+  {
+    "id": "HW-1770542046084",
+    "name": "Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued",
+    "file": "circuit_de_mosqu_e_ben_maazouzine_mosqu_e_medrajen_via_mosqu_e_ben_daoued.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "7.3 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
+      "HW-01K77WPE6AS77NE3CRGHPYHJSE",
+      "HW-01K77WPE6BE6FFWWHJH6DSSZQ6",
+      "HW-01K77WPE6BAJG9QADZMRDXPWTB",
+      "HW-01K77WPE6B49HSRPBACEWDY95T",
+      "HW-01K77WPE6BE2HDNBY0FSWSNRTH",
+      "HW-01K77WPE6A7EGYFGG7XNYT8AYC"
     ]
   }
 ]
