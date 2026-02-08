@@ -43,5 +43,19 @@
     "distance": "3.5 km",
     "isOfficial": true,
     "poiIds": []
+  },
+  {
+    "id": "HW-1770564366809",
+    "name": "Circuit de Mosquée Haouari à L'autre monde via Mosquée Sellaouti",
+    "file": "djerba/circuit_de_mosqu_e_haouari_l_autre_monde_via_mosqu_e_sellaouti.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "4.3 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6RCC0S7XMA08ES9BDD",
+      "HW-01K77WPE69KD9K0SES4DYYWZQA",
+      "HW-01K77WPE68HB12PE5Y0ZGTGJ3X",
+      "HW-PC-1769615329045"
+    ]
   }
 ]
