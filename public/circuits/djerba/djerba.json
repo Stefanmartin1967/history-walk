@@ -1,0 +1,66 @@
+[
+  {
+    "id": "HW-1770490365444",
+    "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
+    "file": "boucle_autour_de_rym_beach_via_mosqu_e_ibn_abass.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "7.2 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE67RPHVJVH6A0PC0ZWD",
+      "HW-01K77WPE6722XTDVPGCQTPPBXR",
+      "HW-01K77WPE671G6V27VYYNMJV2NC",
+      "HW-01K77WPE6770BXCP2SW1Z2DTA2",
+      "HW-01K77WPE67RPHVJVH6A0PC0ZWD"
+    ]
+  },
+  {
+    "id": "HW-1770490739597",
+    "name": "Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa",
+    "file": "circuit_de_mosqu_e_sidi_zayed_mosqu_e_el_cheikh_via_mosqu_e_elghorabaa.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "3.5 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6F9K1DFXDYCR7CPAWN",
+      "HW-01K77WPE6F1C25NNH5RAR2JPF6",
+      "HW-01K77WPE6G6C1H17E6WP518B3J",
+      "HW-01K77WPE6G6RDSP8C7C5WQVJCN",
+      "HW-01K77WPE6HV1767JVPMV1000YQ",
+      "HW-01K77WPE6P5C0194DPJWYMX9C1"
+    ]
+  },
+  {
+    "id": "HW-1770532227556",
+    "name": "Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou",
+    "file": "circuit_de_mosqu_e_ouilihi_mosqu_e_berdaoui_via_mosqu_e_mourou.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "5.5 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6MXA1DKNG7R2XWZQGJ",
+      "HW-01K77WPE6N293MG25FFQBH1G10",
+      "HW-01K77WPE6N0ZBXJK23NVJ2MQPX",
+      "HW-01K77WPE6N6A0YBFFKMQQNQH0E",
+      "HW-01K77WPE6RQNBBQXWYACNJTRAC",
+      "HW-01K77WPE6NJ1X6TBWGCTV85QMM",
+      "HW-01K77WPE6N6HF86MYJNJWFPNSV"
+    ]
+  },
+  {
+    "id": "HW-1770540385732",
+    "name": "Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane",
+    "file": "circuit_de_mosqu_e_sidi_yati_de_midoun_ancienne_mosqu_e_de_midoun_via_mosque_sidi_sofiane.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "5.8 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6QJNV1Q83SBNFKC88M",
+      "HW-01K77WPE68SSRHFM5TYYA7F5YF",
+      "HW-01K77WPE6Q0QEE8APATRE5K4MS",
+      "HW-01K77WPE68Q2NTEKRWSPCDZZGE",
+      "HW-01K77WPE68MMPS9ZVR6XTV9J61",
+      "HW-01K77WPE68JWCXJ0TCG1EDSB7A"
+    ]
+  }
+]
