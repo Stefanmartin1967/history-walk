@@ -13,6 +13,7 @@ import { showToast } from './toast.js';
 import { showConfirm, showAlert, showPrompt } from './modal.js';
 import { performCircuitDeletion } from './circuit-actions.js';
 import { eventBus } from './events.js';
+import { escapeHtml } from './utils.js';
 import QRCode from 'qrcode';
 
 export function isCircuitCompleted(circuit) {
@@ -523,6 +524,7 @@ export async function generateCircuitQR() {
     // 3. Génération & Affichage
     try {
         const url = await QRCode.toDataURL(dataString, { width: 300, margin: 2 });
+        const circuitName = activeCircuit ? activeCircuit.name : "Circuit";
 
         const html = `
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
@@ -530,8 +532,8 @@ export async function generateCircuitQR() {
                 <p style="text-align:center; color:var(--ink-soft); font-size:14px;">
                     ${message}
                 </p>
-                <div style="font-size:11px; color:var(--text-muted); word-break:break-all; text-align:center; max-width:100%;">
-                    ${dataString}
+                <div style="font-size:14px; font-weight:bold; color:var(--text-main); word-break:break-word; text-align:center; max-width:100%;">
+                    ${escapeHtml(circuitName)}
                 </div>
             </div>
         `;
