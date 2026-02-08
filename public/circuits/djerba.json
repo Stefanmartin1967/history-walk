@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "id": "HW-1770490365444",
+    "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
+    "file": "djerba/Boucle autour de Rym Beach via Mosquée Ibn Abass.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "7.2 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770532227556",
+    "name": "Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou",
+    "file": "djerba/Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "5.5 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770540385732",
+    "name": "Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane",
+    "file": "djerba/Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "5.8 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770490739597",
+    "name": "Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa",
+    "file": "djerba/Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "3.5 km",
+    "isOfficial": true,
+    "poiIds": []
+  }
+]
