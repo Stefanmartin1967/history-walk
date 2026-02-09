@@ -757,11 +757,7 @@ export function renderMobileMenu() {
         <div class="mobile-list actions-list" style="padding: 16px;">
             <button class="mobile-list-item" id="mob-action-scan">
                 <i data-lucide="scan-line"></i>
-                <span>Scanner (Circuit / Sync)</span>
-            </button>
-            <button class="mobile-list-item" id="mob-action-sync-share">
-                <i data-lucide="qr-code"></i>
-                <span>Partager ma progression (PC)</span>
+                <span>Scanner un circuit</span>
             </button>
             <div style="height:1px; background:var(--line); margin:10px 0;"></div>
             <button class="mobile-list-item" id="mob-action-restore">
@@ -787,10 +783,6 @@ export function renderMobileMenu() {
                 <span>Changer Thème</span>
             </button>
             <div style="height:1px; background:var(--line); margin:10px 0;"></div>
-            <button class="mobile-list-item" id="mob-action-share-app">
-                <i data-lucide="share-2"></i>
-                <span>Partager l'application</span>
-            </button>
             <button class="mobile-list-item bmc-btn-mobile" id="mob-action-bmc">
                 <i data-lucide="coffee"></i>
                 <span>Offrir un café</span>
@@ -803,7 +795,7 @@ export function renderMobileMenu() {
     `;
 
     document.getElementById('mob-action-scan').addEventListener('click', () => startGenericScanner());
-    document.getElementById('mob-action-sync-share').addEventListener('click', () => generateSyncQR());
+    // document.getElementById('mob-action-sync-share').addEventListener('click', () => generateSyncQR()); // SUPPRIMÉ
     document.getElementById('mob-action-restore').addEventListener('click', () => DOM.restoreLoader.click());
     document.getElementById('mob-action-save').addEventListener('click', () => saveUserData());
     document.getElementById('mob-action-geojson').addEventListener('click', () => DOM.geojsonLoader.click());
@@ -816,7 +808,7 @@ export function renderMobileMenu() {
     document.getElementById('mob-action-theme').addEventListener('click', () => {
         document.getElementById('btn-theme-selector').click(); 
     });
-    document.getElementById('mob-action-share-app').addEventListener('click', handleShareAppClick);
+    // document.getElementById('mob-action-share-app').addEventListener('click', handleShareAppClick); // SUPPRIMÉ
     document.getElementById('mob-action-bmc').addEventListener('click', () => {
         window.open('https://www.buymeacoffee.com/history_walk', '_blank');
     });
