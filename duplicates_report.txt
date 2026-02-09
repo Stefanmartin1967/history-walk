@@ -1,0 +1,24 @@
+Warning: Merge conflicts found in public/djerba.geojson. Attempting to parse with HEAD content.
+Found 209 mosques out of 267 total features.
+
+Found 5 pairs of mosques within 50m:
+- Distance: 2.27m
+  1. Mosquée Ibrahim El-Kalil Dhhira (جامع إبراهيم الخليل الذّحيرة) [ID: HW-01K77WPE6CV9R0X85VEA6135CQ]
+  2. Mosquée Ibrahim El-Kalil Dhira (جامع إبراهيم الخليل الذّحيرة) [ID: HW-01K77WPE6CP8P9RJP202ZRWJQJ]
+----------------------------------------
+- Distance: 44.50m
+  1. Mosquée Boumsour (جامع بومسور) [ID: HW-01K77WPE6KT8VGFJTHK03SWPZR]
+  2. Mosquée Mizwar (جامع مزوار) [ID: HW-01K77WPE6KQ3W8ZNZCKYQ3G9DB]
+----------------------------------------
+- Distance: 36.68m
+  1. Mosquée Boumsour (جامع بومسور) [ID: HW-01K77WPE6KT8VGFJTHK03SWPZR]
+  2. Mosquée Sidi Yati (جامع سيدي ياتي) [ID: HW-01K77WPE6M06HKCT56J0P2HVZZ]
+----------------------------------------
+- Distance: 21.66m
+  1. Mosquée Mizwar (جامع مزوار) [ID: HW-01K77WPE6KQ3W8ZNZCKYQ3G9DB]
+  2. Mosquée Sidi Yati (جامع سيدي ياتي) [ID: HW-01K77WPE6M06HKCT56J0P2HVZZ]
+----------------------------------------
+- Distance: 0.93m
+  1. Mosquée El Ghoula (جامع الغولة) [ID: HW-01K77WPE6NQ35ND0B1DQGT4BQT]
+  2. Mosquée Khnensa (مسجد الخنيسة) [ID: HW-01K77WPE6NGZN849YA6V0EC1R0]
+----------------------------------------
