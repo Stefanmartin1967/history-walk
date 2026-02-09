@@ -330,34 +330,39 @@ export function renderMobileCircuitsList() {
                 ? `<i data-lucide="utensils" style="width:14px; height:14px; margin-left:4px; vertical-align:text-bottom;"></i>`
                 : '';
 
-            // Bouton de téléchargement GPX (Seulement pour les officiels)
-            let downloadAction = '';
+        // Bouton de téléchargement GPX (Intégré au titre pour les officiels)
+        let downloadBtn = '';
             if (circuit.isOfficial && circuit.file) {
-                downloadAction = `
-                <a href="./circuits/${circuit.file}" download class="mobile-download-btn" title="Télécharger GPX" style="color:var(--ink-soft); margin-right:5px; display:flex; align-items:center;">
+            downloadBtn = `
+            <a href="./circuits/${circuit.file}" download title="Télécharger GPX" style="color:var(--ink-soft); margin-left:auto; display:flex; align-items:center; padding:4px;" onclick="event.stopPropagation();">
                     <i data-lucide="download" style="width:18px; height:18px;"></i>
                 </a>`;
             }
 
+        // Icone Bird/Foot
+        const iconName = circuit.realTrack ? 'footprints' : 'bird';
+
+        // Style du nom (Gras pour Officiel, Normal pour User)
+        const nameStyle = circuit.isOfficial ? 'font-weight:700;' : 'font-weight:400;';
+
             html += `
                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px;">
-                    <button class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" style="justify-content: space-between; flex:1; align-items:flex-start;">
-                        <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:10px;">
-                            <div style="display:flex; align-items:center;">
-                                <span style="font-weight:700; font-size:16px; color:var(--ink);">${escapeHtml(displayName)}</span>
-                                ${badgeHtml}
+                    <div class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" role="button" tabindex="0" style="justify-content: space-between; flex:1; align-items:flex-start; cursor:pointer;">
+                    <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:4px;"> <!-- Marge droite réduite -->
+                        <div style="display:flex; align-items:center; width:100%;">
+                            <span style="${nameStyle} font-size:16px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${escapeHtml(displayName)}</span>
+                            ${downloadBtn}
                             </div>
                             <div style="font-size:13px; color:var(--ink-soft); margin-top:4px; display:flex; align-items:center; flex-wrap:wrap;">
-                                ${total} POI • ${distDisplay} • ${zoneName}${restoIcon}
+                            ${total} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; margin:0 4px;"></i> • ${zoneName}${restoIcon}
                             </div>
                         </div>
 
                         <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; align-self:center;">
-                            ${statusIcon}
+                        <!-- Compteur supprimé -->
                             <i data-lucide="chevron-right" style="opacity:0.5; width:18px; height:18px;"></i>
                         </div>
-                    </button>
-                    ${downloadAction}
+                    </div>
                 </div>
             `;
         });
@@ -410,6 +415,9 @@ function renderMobileToolbar() {
 
     const zoneActive = !!state.activeFilters.zone;
 
+    // Alignement Justifié (Comme le Dock)
+    toolbar.style.justifyContent = 'space-around';
+
     toolbar.innerHTML = `
         <button id="mob-sort-date" class="toolbar-btn ${mobileSort.startsWith('date') ? 'active' : ''}">
             <i data-lucide="${dateIcon}"></i>
@@ -417,14 +425,14 @@ function renderMobileToolbar() {
         <button id="mob-sort-dist" class="toolbar-btn ${mobileSort.startsWith('dist') ? 'active' : ''}">
             <i data-lucide="${distIcon}"></i>
         </button>
-        <div class="toolbar-sep"></div>
+
         <button id="mob-filter-zone" class="toolbar-btn ${zoneActive ? 'active' : ''}">
             <i data-lucide="map-pin"></i>
         </button>
         <button id="mob-filter-todo" class="toolbar-btn ${state.filterCompleted ? 'active' : ''}">
             <i data-lucide="${state.filterCompleted ? 'list-todo' : 'list-checks'}"></i>
         </button>
-        <div class="toolbar-sep"></div>
+
         <button id="mob-reset" class="toolbar-btn">
             <i data-lucide="rotate-ccw"></i>
         </button>
