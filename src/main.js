@@ -697,11 +697,12 @@ function setupDesktopUIListeners() {
     }
 
     // --- SYNC / SCANNER (Desktop) ---
+    // SUPPRESSION DEMANDÉE : On retire les boutons Scanner et Sync Share du Desktop
     const btnSyncScan = document.getElementById('btn-sync-scan');
-    if (btnSyncScan) btnSyncScan.addEventListener('click', () => startGenericScanner());
+    if (btnSyncScan) btnSyncScan.style.display = 'none';
 
     const btnSyncShare = document.getElementById('btn-sync-share');
-    if (btnSyncShare) btnSyncShare.addEventListener('click', () => generateSyncQR());
+    if (btnSyncShare) btnSyncShare.style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
