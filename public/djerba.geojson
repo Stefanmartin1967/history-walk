@@ -1531,31 +1531,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          10.942283,
-          33.751786
-        ]
-      },
-      "properties": {
-        "Nom du site FR": "Mosquée Ibrahim El-Kalil Dhhira",
-        "Nom du site arabe": "جامع إبراهيم الخليل الذّحيرة",
-        "Catégorie": "Mosquée",
-        "Zone": "Sedouikech",
-        "Coordonnées GPS": "33.751786, 10.942283",
-        "Latitude": 33.751786,
-        "Longitude": 10.942283,
-        "Description": null,
-        "Source": null,
-        "Temps de visite": null,
-        "Prix d'entrée": null,
-        "Desc_wpt": null,
-        "HW_ID": "HW-01K77WPE6CV9R0X85VEA6135CQ"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           10.923667,
           33.791444
         ]
@@ -2524,31 +2499,6 @@
         "Prix d'entrée": null,
         "Desc_wpt": null,
         "HW_ID": "HW-01K77WPE6ECJK1CMJKYVNTKGGS"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          10.889722,
-          33.781583
-        ]
-      },
-      "properties": {
-        "Nom du site FR": "Mosquée El Chouhoud",
-        "Nom du site arabe": "جامع الشهود",
-        "Catégorie": "Mosquée",
-        "Zone": "El May",
-        "Coordonnées GPS": "33.781583, 10.889722",
-        "Latitude": 33.781583,
-        "Longitude": 10.889722,
-        "Description": "Située à Robbana. Infos à rechercher.",
-        "Source": null,
-        "Temps de visite": null,
-        "Prix d'entrée": null,
-        "Desc_wpt": null,
-        "HW_ID": "HW-01K77WPE6E5GCD9QGR33PMXVRP"
       }
     },
     {
@@ -4656,8 +4606,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          10.791056,
-          33.758056
+          10.794860611273545,
+          33.777147513068996
         ]
       },
       "properties": {
@@ -4665,9 +4615,9 @@
         "Nom du site arabe": "جامع الغولة",
         "Catégorie": "Mosquée",
         "Zone": "El Groa",
-        "Coordonnées GPS": "33.777194, 10.794861",
-        "Latitude": 33.758056,
-        "Longitude": 10.791056,
+        "Coordonnées GPS": "33.777147513068996, 10.794860611273545",
+        "Latitude": 33.777147513068996,
+        "Longitude": 10.794860611273545,
         "Description": null,
         "Source": null,
         "Temps de visite": null,
@@ -4706,8 +4656,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          10.791053,
-          33.758048
+          10.791050841108836,
+          33.75818454061917
         ]
       },
       "properties": {
@@ -4715,9 +4665,9 @@
         "Nom du site arabe": "مسجد الخنيسة",
         "Catégorie": "Mosquée",
         "Zone": "El Groa",
-        "Coordonnées GPS": "33.758056, 10.791056",
-        "Latitude": 33.758048,
-        "Longitude": 10.791053,
+        "Coordonnées GPS": "33.75818454061917, 10.791050841108836",
+        "Latitude": 33.75818454061917,
+        "Longitude": 10.791050841108836,
         "Description": null,
         "Source": null,
         "Temps de visite": null,
@@ -6290,11 +6240,7 @@
         "Nom du site FR": "Restaurant Cobry",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Guellala"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6311,11 +6257,7 @@
         "Nom du site FR": "Chez Adel",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Sedouikech"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6332,11 +6274,7 @@
         "Nom du site FR": "Chez Chouchou",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Taguermess"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6353,11 +6291,7 @@
         "Nom du site FR": "Grillades Zammouri",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Taguermess"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6374,11 +6308,7 @@
         "Nom du site FR": "El Ghorfa",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Houmt Souk"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6395,11 +6325,7 @@
         "Nom du site FR": "Le bistrot Djerba",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Taguermess"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6416,11 +6342,7 @@
         "Nom du site FR": "El Ghorfa",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Houmt Souk"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6437,11 +6359,7 @@
         "Nom du site FR": "Les palmiers",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Taguermess",
-=======
-        "Zone": "A définir",
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
         "Description": "Entre autre plat, on y trouve la souris d'agneau"
       }
     },
@@ -6459,11 +6377,7 @@
         "Nom du site FR": "Restaurant La Clémence",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Midoun",
-=======
-        "Zone": "A définir",
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
         "Description": "Véritable cuisine Djerbienne"
       }
     },
@@ -6481,11 +6395,7 @@
         "Nom du site FR": "Café Restaurant Santorini",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Mezraya",
-=======
-        "Zone": "A définir",
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
         "Description": "Restaurant situé face à la mer"
       }
     },
@@ -6503,11 +6413,7 @@
         "Nom du site FR": "La paillot de pirate",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Houmt Souk"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6524,11 +6430,7 @@
         "Nom du site FR": "L'autre monde",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Mezraya"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6545,11 +6447,7 @@
         "Nom du site FR": "Restaurant la lagune",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Taguermess",
-=======
-        "Zone": "A définir",
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
         "Description": "Restaurant situé en bord de mer, sur la plage"
       }
     },
@@ -6567,11 +6465,7 @@
         "Nom du site FR": "Restaurant Port D'Aghir",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Sedouikech",
-=======
-        "Zone": "A définir",
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
         "Description": "Restaurant de bord de plage, face à la mer"
       }
     },
@@ -6589,11 +6483,7 @@
         "Nom du site FR": "Restaurant La Mamma",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Midoun"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     },
     {
@@ -6610,11 +6500,7 @@
         "Nom du site FR": "Restaurant Grill La Perla",
         "Nom du site AR": "",
         "Catégorie": "Restaurant",
-<<<<<<< HEAD
         "Zone": "Taguermess"
-=======
-        "Zone": "A définir"
->>>>>>> e273cd94e560f8a8318101e614a89a2a2997f925
       }
     }
   ]
