@@ -2506,6 +2506,31 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
+          10.889722,
+          33.781583
+        ]
+      },
+      "properties": {
+        "Nom du site FR": "Mosquée El Chouhoud",
+        "Nom du site arabe": "جامع الشهود",
+        "Catégorie": "Mosquée",
+        "Zone": "El May",
+        "Coordonnées GPS": "33.781583, 10.889722",
+        "Latitude": 33.781583,
+        "Longitude": 10.889722,
+        "Description": "Située à Robbana. Infos à rechercher.",
+        "Source": null,
+        "Temps de visite": null,
+        "Prix d'entrée": null,
+        "Desc_wpt": null,
+        "HW_ID": "HW-01K77WPE6E5GCD9QGR33PMXVRP"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           10.877639,
           33.839861
         ]
@@ -5849,31 +5874,6 @@
         "Prix d'entrée": null,
         "Desc_wpt": null,
         "HW_ID": "HW-01K77WPE6RQNBBQXWYACNJTRAC"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          10.893311,
-          33.784959
-        ]
-      },
-      "properties": {
-        "Nom du site FR": "Mosquée El Chehoud",
-        "Nom du site arabe": "مسجد",
-        "Catégorie": "Mosquée",
-        "Zone": "El May",
-        "Coordonnées GPS": "33.784959, 10.893311",
-        "Latitude": 33.784959,
-        "Longitude": 10.893311,
-        "Description": "Nom provisoire, basé sur le lieu-dit. Située à Robbana. Infos à rechercher.",
-        "Source": null,
-        "Temps de visite": null,
-        "Prix d'entrée": null,
-        "Desc_wpt": null,
-        "HW_ID": "HW-01K77WPE6RXAVJ2QSRYR7DPF76"
       }
     },
     {
