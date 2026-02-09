@@ -1,18 +1,65 @@
 [
   {
-    "id": "HW-1770576008958",
-    "name": "Circuit de Mosquée El Chouhoud à Mosquée Houmet El Krashoua via Mosquée El Chehoud",
-    "file": "djerba/Circuit de Mosquée El Chouhoud à Mosquée Houmet El Krashoua via Mosquée El Chehoud.gpx",
+    "id": "HW-1770565762875",
+    "name": "Boucle autour de Mosquée Sidi Nasr via Mosquée El Hajjama",
+    "file": "djerba/Boucle autour de Mosquée Sidi Nasr via Mosquée El Hajjama.gpx",
     "description": "Circuit généré par History Walk.",
-    "distance": "5.6 km",
+    "distance": "8.7 km",
     "isOfficial": true,
-    "poiIds": [
-      "HW-01K77WPE6E5GCD9QGR33PMXVRP",
-      "HW-01K77WPE6RR5DT6GBCGYFDHXJS",
-      "HW-01K77WPE6RXAVJ2QSRYR7DPF76",
-      "HW-01K77WPE6E5GCD9QGR33PMXVRP",
-      "HW-01K77WPE6FCK1V446SXD2V5NNK",
-      "HW-01K77WPE6FYGYG0HW2BTHPGFF6"
-    ]
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770490365444",
+    "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
+    "file": "djerba/Boucle autour de Rym Beach via Mosquée Ibn Abass.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "7.2 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770542046084",
+    "name": "Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued",
+    "file": "djerba/Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "7.3 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770564366809",
+    "name": "Circuit de Mosquée Haouari à L&apos;autre monde via Mosquée Sellaouti",
+    "file": "djerba/Circuit de Mosquée Haouari à L'autre monde via Mosquée Sellaouti.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "4.3 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770532227556",
+    "name": "Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou",
+    "file": "djerba/Circuit de Mosquée Ouilihi à Mosquée  Berdaoui via Mosquée Mourou.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "5.5 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770540385732",
+    "name": "Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane",
+    "file": "djerba/Circuit de Mosquée Sidi Yati de Midoun à Ancienne Mosquée de Midoun via Mosque Sidi Sofiane.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "5.8 km",
+    "isOfficial": true,
+    "poiIds": []
+  },
+  {
+    "id": "HW-1770490739597",
+    "name": "Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa",
+    "file": "djerba/Circuit de Mosquée Sidi Zayed à Mosquée El Cheikh via Mosquée Elghorabaa.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "3.5 km",
+    "isOfficial": true,
+    "poiIds": []
   }
 ]

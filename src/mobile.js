@@ -543,10 +543,7 @@ export function renderMobilePoiList(features) {
     let isAllVisited = false;
 
     if (isCircuit) {
-        let currentCircuit = state.myCircuits.find(c => String(c.id) === String(state.activeCircuitId));
-        if (!currentCircuit && state.officialCircuits) {
-            currentCircuit = state.officialCircuits.find(c => String(c.id) === String(state.activeCircuitId));
-        }
+        const currentCircuit = state.myCircuits.find(c => c.id === state.activeCircuitId);
         pageTitle = currentCircuit ? currentCircuit.name : 'Circuit inconnu';
         
         if(features.length > 0) {

@@ -33,7 +33,6 @@ import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-ac
 
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
 import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } from './mobile.js';
-import { processImportedGpx } from './gpx.js';
 
 import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile, exportOfficialCircuitsJSON } from './fileManager.js';
 import { setupSearch, setupSmartSearch } from './searchManager.js';
@@ -375,106 +374,6 @@ async function initializeApp() {
                  module.loadCircuitFromIds(importIds, importName);
              });
         }, 500);
-    }
-
-    // --- GESTION DE L'IMPORT GPX VIA LIEN DIRECT (PATHNAME) ---
-    // Ex: /circuits/djerba/MonCircuit.gpx
-    // FIX: Si l'utilisateur clique sur le lien GPX, on veut qu'il le TÉLÉCHARGE, pas que l'app tente de l'importer en mode "visualisation SPA".
-    // Cependant, si le serveur ne force pas le téléchargement (Header Content-Disposition), le navigateur affiche le XML ou l'app SPA (si rewrite rule).
-    // Ici, le code intercepte le chargement de la page si l'URL finit par .gpx.
-    // Pour permettre le téléchargement via le navigateur externe (comportement attendu du QR Code GPX),
-    // on ne doit PAS exécuter cette logique d'auto-import si l'intention est de télécharger.
-    // MAIS : Comme c'est une SPA sur GitHub Pages, l'URL .gpx peut être redirigée vers index.html (404 fallback).
-    // Si c'est le cas, window.location.pathname finit par .gpx mais on sert l'app JS.
-    // STRATÉGIE : Si on est dans l'app et qu'on détecte .gpx dans l'URL, c'est que le téléchargement direct a échoué (ou rewrite).
-    // On remplace le contenu de la page par une page de téléchargement minimaliste et on force le Blob.
-
-    if (window.location.pathname.toLowerCase().endsWith('.gpx')) {
-        console.log("Démarrage Gestion GPX via URL:", window.location.pathname);
-
-        // --- PAGE DE TÉLÉCHARGEMENT MINIMALISTE ---
-        // On stoppe l'UI normale de l'app pour éviter la confusion
-        document.body.innerHTML = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; text-align:center; padding:20px; background:#f0f4f8; color:#102a43;">
-                <h1 style="font-size:24px; margin-bottom:10px;">Téléchargement en cours...</h1>
-                <p style="font-size:16px; color:#627d98; margin-bottom:30px;">Le fichier GPX va être téléchargé automatiquement.</p>
-                <div class="loader-spinner" style="border-top-color:#3b82f6; width:40px; height:40px; margin-bottom:20px;"></div>
-                <button id="retry-btn" style="padding:10px 20px; background:#3b82f6; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none; margin-right:10px;">
-                    Relancer le téléchargement
-                </button>
-                <button id="close-btn" style="padding:10px 20px; background:#e2e8f0; color:#475569; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none;">
-                    Fermer la page
-                </button>
-                <p id="close-msg" style="margin-top:20px; font-size:14px; color:#829ab1;">Une fois terminé, vous pouvez fermer cet onglet.</p>
-            </div>
-        `;
-
-        try {
-            const response = await fetch(window.location.href);
-            if (response.ok) {
-                const text = await response.text();
-                if (text.trim().startsWith('<?xml') || text.includes('<gpx')) {
-                    // C'est bien un fichier GPX servi par le fallback SPA
-                    const fileName = decodeURIComponent(window.location.pathname.split('/').pop());
-
-                    const triggerDownload = () => {
-                        const blob = new Blob([text], { type: 'application/gpx+xml' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = fileName;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    };
-
-                    triggerDownload();
-
-                    // Mise à jour de l'UI
-                    const title = document.querySelector('h1');
-                    const loader = document.querySelector('.loader-spinner');
-                    const retryBtn = document.getElementById('retry-btn');
-                    const closeBtn = document.getElementById('close-btn');
-                    const closeMsg = document.getElementById('close-msg');
-
-                    if(title) title.textContent = "Téléchargement terminé";
-                    if(loader) loader.style.display = 'none';
-
-                    if(retryBtn) {
-                        retryBtn.style.display = 'inline-block';
-                        retryBtn.onclick = triggerDownload;
-                    }
-
-                    if(closeBtn) {
-                        closeBtn.style.display = 'inline-block';
-                        closeBtn.onclick = () => {
-                            try {
-                                window.close();
-                            } catch(e) { console.log(e); }
-                            // Fallback visuel si la fenêtre ne se ferme pas
-                            setTimeout(() => {
-                                if(!window.closed) {
-                                    closeMsg.textContent = "Le navigateur a bloqué la fermeture automatique. Veuillez fermer l'onglet manuellement.";
-                                    closeMsg.style.color = "#d97706"; // Orange warning
-                                }
-                            }, 300);
-                        };
-                    }
-
-                    return; // On arrête l'initialisation ici
-                }
-            } else {
-                document.querySelector('h1').textContent = "Erreur de téléchargement";
-                document.querySelector('p').textContent = `Impossible de récupérer le fichier (Code ${response.status}).`;
-                document.querySelector('.loader-spinner').style.display = 'none';
-            }
-        } catch (e) {
-            console.error("Erreur récupération GPX URL:", e);
-            document.querySelector('h1').textContent = "Erreur réseau";
-            document.querySelector('.loader-spinner').style.display = 'none';
-        }
-        return; // Stop app init
     }
 }
 
