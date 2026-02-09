@@ -243,7 +243,7 @@ export function updateCircuitMetadata(updateTitle = true) {
 
     const activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
 
-    if (activeCircuitData && activeCircuitData.realTrack) {
+    if (activeCircuitData && activeCircuitData.realTrack && activeCircuitData.realTrack.length > 0) {
         totalDistance = getRealDistance(activeCircuitData);
         isRealTrack = true;
     } else {
@@ -386,9 +386,9 @@ export function convertToDraft() {
 }
 
 export async function loadCircuitById(id) {
-    let circuitToLoad = state.myCircuits.find(c => c.id === id);
+    let circuitToLoad = state.myCircuits.find(c => String(c.id) === String(id));
     if (!circuitToLoad && state.officialCircuits) {
-        circuitToLoad = state.officialCircuits.find(c => c.id === id);
+        circuitToLoad = state.officialCircuits.find(c => String(c.id) === String(id));
         // Protection contre la mutation de la liste officielle
         if (circuitToLoad) {
             circuitToLoad = { ...circuitToLoad };
@@ -529,6 +529,9 @@ export async function generateCircuitQR() {
                 <p style="text-align:center; color:var(--ink-soft); font-size:14px;">
                     Partager ce circuit avec un autre appareil.
                 </p>
+                <div style="margin-top:5px; padding:8px; background:var(--surface-muted, #f5f5f5); border-radius:6px; font-family:monospace; font-size:11px; color:var(--ink-soft); word-break:break-all; user-select:text; text-align:center; width:100%;">
+                    ${escapeHtml(appDataString)}
+                </div>
                 <div style="font-size:14px; font-weight:bold; color:var(--text-main); word-break:break-word; text-align:center; max-width:100%;">
                     ${escapeHtml(circuitName)}
                 </div>
