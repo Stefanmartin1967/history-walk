@@ -270,7 +270,7 @@ export function renderMobileCircuitsList() {
             <h1>Mes Circuits</h1>
         </div>
         <div id="mobile-toolbar-container"></div>
-        <div class="panel-content" style="padding: 10px 10px 140px 10px;">
+        <div class="panel-content" style="padding: 10px 0px 140px 0px;">
     `;
 
     if (allCircuits.length === 0) {
@@ -330,37 +330,43 @@ export function renderMobileCircuitsList() {
                 ? `<i data-lucide="utensils" style="width:14px; height:14px; margin-left:4px; vertical-align:text-bottom;"></i>`
                 : '';
 
-        // Bouton de téléchargement GPX (Intégré au titre pour les officiels)
-        let downloadBtn = '';
-            if (circuit.isOfficial && circuit.file) {
-            downloadBtn = `
-            <a href="./circuits/${circuit.file}" download title="Télécharger GPX" style="color:var(--ink-soft); margin-left:auto; display:flex; align-items:center; padding:4px;" onclick="event.stopPropagation();">
-                    <i data-lucide="download" style="width:18px; height:18px;"></i>
-                </a>`;
-            }
-
         // Icone Bird/Foot
         const iconName = circuit.realTrack ? 'footprints' : 'bird';
 
         // Style du nom (Gras pour Officiel, Normal pour User)
         const nameStyle = circuit.isOfficial ? 'font-weight:700;' : 'font-weight:400;';
 
+        // Action Droite (Chevron ou Téléchargement GPX pour Officiels)
+        let rightActionHtml = '';
+        if (circuit.isOfficial && circuit.file) {
+            // Le chevron est remplacé par le bouton de téléchargement
+            // NOTE: On supprime EXPLICITEMENT tout chevron ici
+            rightActionHtml = `
+            <a href="./circuits/${circuit.file}" download title="Télécharger GPX" style="color:var(--ink-soft); display:flex; align-items:center; justify-content:center; padding:12px; margin-right:-12px;" onclick="event.stopPropagation();">
+                <i data-lucide="download" style="width:24px; height:24px;"></i>
+            </a>`;
+        } else {
+            // Sinon, chevron classique
+            rightActionHtml = `
+            <div style="display:flex; align-items:center; justify-content:center; padding:12px; margin-right:-12px;">
+                <i data-lucide="chevron-right" style="opacity:0.5; width:24px; height:24px;"></i>
+            </div>`;
+        }
+
             html += `
                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px;">
-                    <div class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" role="button" tabindex="0" style="justify-content: space-between; flex:1; align-items:flex-start; cursor:pointer;">
+                    <div class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" role="button" tabindex="0" style="justify-content: space-between; flex:1; align-items:center; cursor:pointer;">
                     <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:4px;"> <!-- Marge droite réduite -->
                         <div style="display:flex; align-items:center; width:100%;">
                             <span style="${nameStyle} font-size:16px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${escapeHtml(displayName)}</span>
-                            ${downloadBtn}
                             </div>
                             <div style="font-size:13px; color:var(--ink-soft); margin-top:4px; display:flex; align-items:center; flex-wrap:wrap;">
                             ${total} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; margin:0 4px;"></i> • ${zoneName}${restoIcon}
                             </div>
                         </div>
 
-                        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; align-self:center;">
-                        <!-- Compteur supprimé -->
-                            <i data-lucide="chevron-right" style="opacity:0.5; width:18px; height:18px;"></i>
+                        <div style="display:flex; align-items:center; flex-shrink:0; align-self:center; height:100%;">
+                            ${rightActionHtml}
                         </div>
                     </div>
                 </div>
