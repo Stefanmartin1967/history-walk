@@ -116,3 +116,7 @@ La fonctionnalité de partage a été améliorée pour supporter les scanners ti
 Pour garantir une mise en page stable (Titre à gauche, Icônes à droite) malgré les conflits CSS potentiels, une stratégie de haute spécificité a été appliquée :
 *   **Classes** : `.pc-layout` et `.pc-text-block` dans `src/templates.js`.
 *   **CSS** : Utilisation de règles `!important` dans `style.css` pour forcer `flex-direction: row` sur l'entête et `flex-direction: column` sur le bloc de texte.
+
+---
+
+> Pour plus de détails sur l'architecture, la stratégie de données et les outils de maintenance (God Mode, Scout), consultez le fichier [TECHNICAL.md](TECHNICAL.md).
