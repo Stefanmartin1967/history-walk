@@ -22,10 +22,48 @@ L'application suit une architecture modulaire basée sur les standards ES Module
 
 ## 2. Gestion des Circuits (Lifecycle)
 
-### Cycle de Vie
-1.  **Brouillon** : Créé en mode sélection. Persisté dans IndexedDB (`circuitDraft_{mapId}`) à chaque modification.
-2.  **Officialisation** : Lors de l'export GPX, un ID unique est généré.
-3.  **Stockage** : Le circuit finalisé est stocké dans `state.myCircuits` et persisté localement.
+### Cycle de Vie Détaillé
+Ce workflow décrit le passage d'un circuit du statut de brouillon à celui de circuit officiel.
+
+#### 1. Création "Vol d'Oiseau" (Brouillon)
+*   **Action :** L'utilisateur clique sur des POIs en mode "Sélection".
+*   **Technique :**
+    *   Le circuit est stocké en mémoire dans `state.currentCircuit`.
+    *   L'ID du circuit est `null` (statut brouillon).
+    *   La distance est calculée via `getOrthodromicDistance` (somme des segments directs POI à POI).
+*   **Visuel :**
+    *   Une ligne **rouge en pointillés** relie les points.
+    *   L'icône "Oiseau" s'affiche à côté de la distance.
+    *   Le titre est "Nouveau Circuit" (ou généré auto "Boucle autour de...").
+
+#### 2. Exportation (Officialisation Locale)
+*   **Action :** L'utilisateur clique sur "Sauvegarder & Exporter GPX".
+*   **Technique :**
+    *   Un identifiant unique est généré : ex `HW-174125...`.
+    *   Cet ID est inscrit de force dans les métadonnées du fichier GPX (`<link>...[HW-ID:HW-1741...]</link>`).
+    *   Le circuit passe de "Brouillon" à "Mon Circuit" dans `state.myCircuits`.
+*   **Visuel :**
+    *   Le fichier `.gpx` est téléchargé.
+    *   Le circuit apparaît dans la liste "Explorer" (onglet gauche).
+
+#### 3. Importation de la Trace Réelle ("Trust Mode")
+*   **Action :** L'utilisateur clique sur "Importer GPX" et sélectionne le fichier (issu de Garmin, gpx.studio, etc.).
+*   **Technique :**
+    *   L'application scanne le fichier et détecte que l'ID interne (`HW-1741...`) **correspond** à l'ID du circuit actif.
+    *   Elle met à jour la propriété `realTrack` avec les coordonnées exactes du fichier.
+    *   Elle **conserve** les étapes (POI) intactes pour éviter toute suppression accidentelle.
+*   **Visuel :**
+    *   La ligne rouge en pointillés est remplacée par une ligne **bleue continue** (ou verte si marquée "Fait").
+    *   L'icône change pour des "Empreintes de pas".
+    *   La distance est recalculée précisément sur le tracé réel (`getRealDistance`).
+
+#### 4. Officialisation (Serveur)
+*   **Action (Développeur) :** Le fichier GPX final est placé dans le dossier `public/circuits/[mapId]/`.
+*   **Technique :**
+    *   Au déploiement, le fichier est indexé dans `[mapId].json` (via GitHub Action ou script).
+*   **Résultat :**
+    *   Le circuit devient accessible à tous avec le badge "Officiel" (Étoile).
+    *   Il ne peut plus être supprimé par les utilisateurs.
 
 ### Identifiant HW-ID
 L'identifiant `HW-ID` garantit la cohérence entre l'application et les fichiers GPX externes.
