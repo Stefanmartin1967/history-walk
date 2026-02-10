@@ -1347,7 +1347,7 @@ textarea.editable-input {
     flex-grow: 1;
     overflow-y: auto;
     position: relative;
-    padding: 8px;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -1364,9 +1364,9 @@ textarea.editable-input {
     min-height: 56px;
     box-sizing: border-box;
     gap: 8px;
-    margin-left: -8px;
-    margin-right: -8px;
-    width: calc(100% + 16px);
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
 }
 
 .header-title-mobile,
