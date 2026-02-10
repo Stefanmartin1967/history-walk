@@ -2008,8 +2008,17 @@ input[type=range] {
 
 /* --- PATCH POUR LA LISTE (Marges aérées pour scroll confortable) --- */
 @media (max-width: 768px) {
+    .mobile-standard-padding {
+        /* HARMONISATION : Marge latérale standard (6px) */
+        /* Note : On utilise padding-left/right pour ne pas écraser les paddings verticaux spécifiques */
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
     .mobile-list {
-        padding: 12px 12px calc(80px + env(safe-area-inset-bottom)) 12px !important;
+        /* Suppression du padding !important pour harmonisation via JS/classes */
+        /* Restauration du padding-bottom essentiel pour le scroll (Dock + Safe Area) */
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
     }
 
     /* 80px en bas pour ne pas cacher le dernier élément */
