@@ -428,33 +428,31 @@ body.sidebar-open #map {
 }
 
 .detail-section {
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    /* Nouveau design : Carte Unifiée (Container Blanc) */
-    background-color: var(--surface);
-    border-radius: 12px;
-    box-shadow: var(--shadow-soft);
-    border: 1px solid var(--line);
-    overflow: hidden;
+    /* Reset du container global pour sortir le titre */
+    background-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
 }
 
 .detail-section h3 {
     font-size: 13px;
     font-weight: 700;
-    color: var(--ink);
+    color: var(--ink-soft); /* Couleur plus douce pour titre hors carte */
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 0;
+    margin: 0 0 4px 4px; /* Marge bas/gauche pour alignement */
     display: flex;
     align-items: center;
-    /* Header Fin et Coloré */
-    padding: 4px 12px 0 12px; /* Increased top padding, removed bottom padding effectively */
-    background-color: transparent; /* Removed gray container background */
-    border-radius: 0;
-    border-bottom: none; /* Removed separator line */
-    min-height: 24px;
+    padding: 0;
+    background-color: transparent;
+    border-bottom: none;
+    min-height: 20px;
 }
 
 .detail-section h3 .action-button {
@@ -468,11 +466,12 @@ body.sidebar-open #map {
 }
 
 .detail-section .content {
+    /* Le style carte est déplacé ici */
     background: var(--surface);
-    box-shadow: none;
-    border-radius: 0;
-    /* Espace réduit en haut */
-    padding: 6px 12px 10px 12px;
+    box-shadow: var(--shadow-soft);
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
     margin-top: 0;

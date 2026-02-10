@@ -319,6 +319,7 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
     if (isMobileView()) {
         targetPanel.style.display = 'block';
         targetPanel.style.overflowY = 'auto'; // Fix for scrollbar issue
+        targetPanel.style.padding = '0 6px'; // HARMONIZATION: 6px margin for POI details
     } else {
         DOM.rightSidebar.style.display = 'flex';
         document.body.classList.add('sidebar-open');
