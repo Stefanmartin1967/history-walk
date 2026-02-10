@@ -466,15 +466,16 @@ body.sidebar-open #map {
 }
 
 .detail-section .content {
-    /* Le style carte est déplacé ici */
-    background: var(--surface);
+    /* Le style carte est déplacé ici - Style complet restauré */
+    background-color: var(--surface); /* Utilise la variable de thème */
     box-shadow: var(--shadow-soft);
-    border-radius: 12px;
+    border-radius: 12px; /* Coins arrondis restaurés */
     border: 1px solid var(--line);
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
     margin-top: 0;
+    overflow: hidden; /* Pour que le contenu ne dépasse pas des coins arrondis */
 }
 
 .content.structured-input-row,
@@ -1354,7 +1355,7 @@ textarea.editable-input {
 .mobile-view-header {
     flex-shrink: 0;
     background-color: var(--surface);
-    padding: 12px 16px; /* Increased side padding */
+    padding: 12px 16px;
     border-bottom: 1px solid var(--line);
     box-shadow: var(--shadow-soft);
     display: flex;
@@ -1364,6 +1365,7 @@ textarea.editable-input {
     box-sizing: border-box;
     gap: 8px;
     width: 100%;
+    margin: 0; /* Reset margin just in case */
 }
 
 .header-title-mobile,
