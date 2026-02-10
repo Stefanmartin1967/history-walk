@@ -19,7 +19,8 @@ export function isCircuitCompleted(circuit) {
     if (!circuit) return false;
     if (circuit.isOfficial) {
         // Pour les officiels, on regarde dans la carte d'état chargée
-        return state.officialCircuitsStatus[circuit.id] === true;
+        // FIX: Utilisation de String() pour éviter les mismatches (101 vs "101")
+        return state.officialCircuitsStatus[String(circuit.id)] === true;
     } else {
         // Pour les locaux, c'est une propriété directe
         return circuit.isCompleted === true;
@@ -40,8 +41,9 @@ export function notifyCircuitChanged() {
 // --- FONCTION CORRIGÉE ---
 export async function setCircuitVisitedState(circuitId, isVisited) {
     // 1. Recherche du circuit (Local ou Officiel)
-    let localCircuit = state.myCircuits.find(c => c.id === circuitId);
-    let officialCircuit = state.officialCircuits ? state.officialCircuits.find(c => c.id === circuitId) : null;
+    // FIX: Recherche robuste avec String()
+    let localCircuit = state.myCircuits.find(c => String(c.id) === String(circuitId));
+    let officialCircuit = state.officialCircuits ? state.officialCircuits.find(c => String(c.id) === String(circuitId)) : null;
 
     if (!localCircuit && !officialCircuit) return;
 
@@ -50,7 +52,7 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
         // CORRECTION : Si un circuit est officiel (même s'il a un Shadow local),
         // on DOIT mettre à jour le statut officiel car c'est lui qui est lu par la liste Explorer.
         if (officialCircuit) {
-            state.officialCircuitsStatus[circuitId] = isVisited;
+            state.officialCircuitsStatus[String(circuitId)] = isVisited;
             officialCircuit.isCompleted = isVisited; // Maj en mémoire pour UI immédiate
             await saveAppState(`official_circuits_status_${state.currentMapId}`, state.officialCircuitsStatus);
         }
@@ -63,14 +65,6 @@ export async function setCircuitVisitedState(circuitId, isVisited) {
 
         const name = (officialCircuit || localCircuit).name;
         console.log(`[Circuit] Circuit "${name}" marqué comme ${isVisited ? 'FAIT' : 'NON FAIT'}.`);
-
-    } catch (error) {
-        console.error("Erreur de sauvegarde statut circuit :", error);
-        showToast("Erreur lors de la sauvegarde du statut", "error");
-        return;
-    }
-
-        console.log(`[Circuit] Circuit "${circuit.name}" marqué comme ${isVisited ? 'FAIT' : 'NON FAIT'}.`);
 
     } catch (error) {
         console.error("Erreur de sauvegarde statut circuit :", error);

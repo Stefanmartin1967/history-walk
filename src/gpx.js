@@ -491,6 +491,9 @@ export async function processImportedGpx(file, circuitId) {
                             updatePolylines();
                         }
 
+                        // IMPORTANT : On notifie la liste pour mettre à jour l'icône (Oiseau -> Pieds)
+                        import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
+
                         resolve();
                     } else {
                         throw new Error("Circuit cible introuvable.");
