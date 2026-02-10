@@ -98,3 +98,38 @@ Nous maintenons une symétrie sémantique stricte entre les données de la carte
 *   **`djerba.geojson` (La Carte)** : Contient les **Lieux** (Points of Interest - POI). C'est la donnée géographique brute du territoire.
 *   **`djerba.json` (L'Index des Circuits)** : Contient la liste des **Itinéraires** officiels associés à ce territoire spécifique.
 *   **Logique de Scalabilité** : Si demain nous ajoutons une nouvelle destination (ex: `hammamet.geojson`), l'application cherchera automatiquement `hammamet.json` dans le dossier circuits pour charger les itinéraires correspondants. Cela permet d'ajouter des destinations à l'infini sans modifier le code source (`src/`), uniquement en ajoutant des données (`public/`).
+
+---
+
+## 6. Stratégie de Données & Sauvegardes
+
+L'architecture repose sur une distinction stricte entre les données statiques (officielles) et les données dynamiques (utilisateur), suivant une philosophie "Clean Slate".
+
+### 6.1 Types de Données
+*   **Données Officielles (Static)** : Carte de base (`[mapId].geojson`) et Circuits Officiels (`[mapId].json`). Chargées depuis le serveur, jamais incluses dans les sauvegardes pour éviter la redondance.
+*   **Données Utilisateur (Dynamic)** : Statut de visite, notes, lieux personnalisés, circuits créés, et photos. Stockées dans le navigateur (IndexedDB).
+
+### 6.2 Formats de Sauvegarde
+*   **Sauvegarde Mobile (`.txt`)** : Format léger (JSON minifié). Inclut préférences, visites, et circuits perso. **Exclut** les photos. Idéal pour le transfert rapide.
+*   **Sauvegarde PC (`.json`)** : Format complet. Inclut tout le contenu mobile + les photos encodées en Base64. Utilisé pour l'archivage long terme.
+
+### 6.3 Stockage des Photos (IndexedDB)
+*   **Local Only** : Les photos sont stockées dans le store `poiUserData` de la base IndexedDB du navigateur.
+*   **Optimisation** : Avant stockage, les images sont automatiquement compressées (JPEG 70%, max 1024px) pour économiser l'espace disque.
+
+---
+
+## 7. Outils & Maintenance
+
+### 7.1 Mode Administrateur ("God Mode")
+Un mode caché destiné au développeur pour débloquer des fonctions avancées (export GeoJSON maître, nettoyage).
+*   **Activation (Desktop)** : Séquence clavier **`G` -> `O` -> `D`** sur la fenêtre principale.
+
+### 7.2 Console de Fusion (`tools/fusion.html`)
+Outil dédié à la maintenance du fichier GeoJSON maître.
+*   **Usage** : Permet de fusionner les données collectées sur le terrain (via une sauvegarde Mobile) avec le fichier source du projet.
+*   **Fonction** : Analyse les différences, détecte les nouveaux lieux, et met à jour les coordonnées GPS ou les notes.
+
+### 7.3 Module Scout (`tools/scout.html`)
+Outil de repérage pour l'initialisation de nouvelles destinations.
+*   **Usage** : Interroge l'API Overpass (OpenStreetMap) pour générer un squelette GeoJSON de POIs (Mosquées, Forts, Musées, etc.) autour d'un point donné.
