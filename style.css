@@ -450,10 +450,10 @@ body.sidebar-open #map {
     display: flex;
     align-items: center;
     /* Header Fin et Coloré */
-    padding: 2px 12px;
-    background-color: var(--brand-soft);
+    padding: 4px 12px 0 12px; /* Increased top padding, removed bottom padding effectively */
+    background-color: transparent; /* Removed gray container background */
     border-radius: 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: none; /* Removed separator line */
     min-height: 24px;
 }
 
