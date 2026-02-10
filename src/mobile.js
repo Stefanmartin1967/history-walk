@@ -356,11 +356,8 @@ export function renderMobileCircuitsList() {
                 <i data-lucide="download" style="width:24px; height:24px;"></i>
             </a>`;
         } else {
-            // Sinon, chevron classique
-            rightActionHtml = `
-            <div style="display:flex; align-items:center; justify-content:center; padding:12px; margin-right:-12px;">
-                <i data-lucide="chevron-right" style="opacity:0.5; width:24px; height:24px;"></i>
-            </div>`;
+            // Sinon, aucun chevron (Zone cliquable globale suffit)
+            rightActionHtml = '';
         }
 
             html += `
@@ -790,7 +787,7 @@ export function renderMobileMenu() {
             </button>
             <button class="mobile-list-item" id="mob-action-save">
                 <i data-lucide="save"></i>
-                <span>Sauvegarder (.txt)</span>
+                <span>Sauvegarder les données</span>
             </button>
             <div style="height:1px; background:var(--line); margin:10px 0;"></div>
              <button class="mobile-list-item" id="mob-action-geojson">
