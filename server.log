@@ -1,17 +1,22 @@
-
-> version-suppression-poi-douce@1.0.0 dev
-> vite --host 0.0.0.0 --port 3000
-
-(!) Failed to run dependency scan. Skipping dependency pre-bundling. Error: failed to resolve rollupOptions.input value: "/app/fusion.html".
-    at resolvePath (file:///app/node_modules/vite/dist/node/chunks/config.js:31429:29)
-    at async Promise.all (index 1)
-    at async computeEntries (file:///app/node_modules/vite/dist/node/chunks/config.js:31434:44)
-    at async scan (file:///app/node_modules/vite/dist/node/chunks/config.js:31368:19)
-    at async file:///app/node_modules/vite/dist/node/chunks/config.js:34111:15
-
-  VITE v7.3.1  ready in 386 ms
-
-  ➜  Local:   http://localhost:3000/history-walk/
-  ➜  Network: http://192.168.0.2:3000/history-walk/
-10:06:55 PM [vite] (client) ✨ new dependencies optimized: lucide, qrcode, html5-qrcode
-10:16:55 PM [vite] (client) page reload src/circuit.js
+127.0.0.1 - - [10/Feb/2026 10:46:34] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:46:34] "GET /style.css?v=1.4 HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:46:34] "GET /src/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:47:08] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:47:08] "GET /style.css?v=1.4 HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:47:08] "GET /src/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:47:25] "HEAD / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:48:10] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:48:10] "GET /style.css?v=1.4 HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:48:10] "GET /src/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:48:59] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:48:59] "GET /style.css?v=1.4 HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:48:59] "GET /src/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:49:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:49:43] "GET /style.css?v=1.4 HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:49:43] "GET /src/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:50:02] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:50:02] "GET /style.css?v=1.4 HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:50:02] "GET /src/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:50:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:50:43] "GET /style.css?v=1.4 HTTP/1.1" 200 -
+127.0.0.1 - - [10/Feb/2026 10:50:43] "GET /src/main.js HTTP/1.1" 200 -

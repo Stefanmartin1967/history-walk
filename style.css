@@ -2555,10 +2555,10 @@ input[type=range] {
     border-top: none;
     border-bottom: 1px solid var(--line);
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
-    padding: 8px 16px;
-    gap: 12px;
+    padding: 8px 0;
+    gap: 0;
     z-index: 100;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
