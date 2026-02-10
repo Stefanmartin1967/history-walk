@@ -34,7 +34,16 @@ import { performCircuitDeletion, toggleCircuitVisitedStatus } from './circuit-ac
 import { displayGeoJSON, applyFilters, getPoiId } from './data.js';
 import { isMobileView, initMobileMode, switchMobileView, renderMobilePoiList } from './mobile.js';
 
-import { handleFileLoad, handleGpxFileImport, handlePhotoImport, saveUserData, handleRestoreFile, exportOfficialCircuitsJSON } from './fileManager.js';
+import {
+    handleFileLoad,
+    handleGpxFileImport,
+    handlePhotoImport,
+    saveUserData,
+    handleRestoreFile,
+    exportOfficialCircuitsJSON,
+    exportDataForMobilePC,
+    exportFullBackupPC
+} from './fileManager.js';
 import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
@@ -470,7 +479,7 @@ function setupFileListeners() {
         btnSaveMobile.addEventListener('click', () => {
             if (window.innerWidth > 768) {
                 // SUR PC : On veut le téléchargement direct
-                import('./fileManager.js').then(m => m.exportDataForMobilePC());
+                exportDataForMobilePC();
             } else {
                 // SUR MOBILE : On garde le système de partage .txt
                 saveUserData(false);
@@ -492,7 +501,7 @@ function setupFileListeners() {
         btnSaveFull.addEventListener('click', () => {
             if (window.innerWidth > 768) {
                 // SUR PC : Fenêtre "Enregistrer sous" classique
-                import('./fileManager.js').then(m => m.exportFullBackupPC());
+                exportFullBackupPC();
             } else {
                 saveUserData(true);
             }
