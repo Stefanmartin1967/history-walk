@@ -342,7 +342,7 @@ export function renderMobileCircuitsList() {
             // Le chevron est remplacé par le bouton de téléchargement
             // NOTE: On supprime EXPLICITEMENT tout chevron ici
             rightActionHtml = `
-            <a href="./circuits/${circuit.file}" download title="Télécharger GPX" style="color:var(--ink-soft); display:flex; align-items:center; justify-content:center; padding:12px; margin-right:-12px;" onclick="event.stopPropagation();">
+            <a href="./circuits/${circuit.file}" download title="Télécharger GPX" style="color:var(--ink-soft); display:flex; align-items:center; justify-content:center; padding:16px; margin-right:-16px; margin-top:-16px; margin-bottom:-16px; height:calc(100% + 32px);" onclick="event.stopPropagation();">
                 <i data-lucide="download" style="width:24px; height:24px;"></i>
             </a>`;
         } else {
