@@ -586,7 +586,7 @@ export function renderMobilePoiList(features) {
     listDiv.className = 'mobile-list';
     listDiv.style.flexGrow = '1';
     listDiv.style.overflowY = 'auto';
-    listDiv.style.padding = '10px';
+    listDiv.style.padding = '10px 6px'; // HARMONIZATION: 6px lateral padding
     
     let listHtml = '';
     listToDisplay.forEach(feature => {
