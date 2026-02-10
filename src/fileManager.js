@@ -7,6 +7,7 @@ import { saveAppState, savePoiData, saveCircuit, clearStore } from './database.j
 import { processImportedGpx } from './gpx.js';
 // Import pour contrôler la vue mobile
 import { isMobileView, switchMobileView } from './mobile.js';
+import { downloadFile } from './utils.js';
 
 // --- IMPORTATION GÉNÉRIQUE ---
 
@@ -282,8 +283,7 @@ async function prepareExportData(includePhotos = false) {
     const geojson = {
         type: 'FeatureCollection',
         features: state.loadedFeatures.map(f => {
-            // getPoiId doit être accessible dans ce fichier
-            const poiId = typeof getPoiId === 'function' ? getPoiId(f) : (f.properties.HW_ID || f.id);
+            const poiId = getPoiId(f);
             const userData = state.userData[poiId] || {};
             const finalUserData = { ...userData };
             if (!includePhotos) delete finalUserData.photos;
@@ -317,7 +317,6 @@ export async function exportDataForMobilePC() {
     try {
         const data = await prepareExportData(false);
         const jsonString = JSON.stringify(data, null, 2);
-        const { downloadFile } = await import('./utils.js');
         
         const now = new Date();
         const timestamp = now.toISOString().slice(0, 10) + '_' + 
@@ -344,7 +343,6 @@ export async function exportFullBackupPC() {
     try {
         const data = await prepareExportData(true);
         const jsonString = JSON.stringify(data, null, 2);
-        const { downloadFile } = await import('./utils.js');
         
         const now = new Date();
         const timestamp = now.toISOString().slice(0, 10) + '_' + 
@@ -367,7 +365,6 @@ export async function exportFullBackupPC() {
 export async function exportOfficialCircuitsJSON() {
     try {
         const { getRealDistance, getOrthodromicDistance } = await import('./map.js');
-        const { getPoiId } = await import('./data.js');
 
         // On fusionne les circuits locaux (futurs officiels) ET les circuits officiels existants
         // (moins ceux qui ont été supprimés de la mémoire via God Mode)
@@ -428,7 +425,6 @@ export async function exportOfficialCircuitsJSON() {
         });
 
         const jsonString = JSON.stringify(exportArray, null, 2);
-        const { downloadFile } = await import('./utils.js');
 
         const fileName = `${state.currentMapId || 'circuits'}.json`;
         downloadFile(fileName, jsonString, 'application/json');
