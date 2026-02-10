@@ -400,10 +400,22 @@ export async function processImportedGpx(file, circuitId) {
 
                 // 4. SAUVEGARDE ET MISE À JOUR INTELLIGENTE
                 if (circuitId) {
-                    // Mise à jour d'un circuit existant
-                    const circuitIndex = state.myCircuits.findIndex(c => c.id === circuitId);
-                    if (circuitIndex !== -1) {
-                        const currentCircuit = state.myCircuits[circuitIndex];
+                    // Mise à jour d'un circuit existant (Local ou Officiel)
+                    let targetCircuit = null;
+                    let isOfficial = false;
+
+                    const localIndex = state.myCircuits.findIndex(c => c.id === circuitId);
+                    if (localIndex !== -1) {
+                        targetCircuit = state.myCircuits[localIndex];
+                    } else if (state.officialCircuits) {
+                        const officialIndex = state.officialCircuits.findIndex(c => c.id === circuitId);
+                        if (officialIndex !== -1) {
+                            targetCircuit = state.officialCircuits[officialIndex];
+                            isOfficial = true;
+                        }
+                    }
+
+                    if (targetCircuit) {
                         let shouldUpdatePois = false;
                         let detectedFeatures = [];
 
@@ -414,7 +426,7 @@ export async function processImportedGpx(file, circuitId) {
                             shouldUpdatePois = false;
                         } else {
                             detectedFeatures = findFeaturesOnTrack(coordinates, state.loadedFeatures);
-                            const currentIds = new Set(currentCircuit.poiIds);
+                            const currentIds = new Set(targetCircuit.poiIds);
 
                             // Combien de NOUVEAUX points (non présents actuellement) ?
                             const newPoints = detectedFeatures.filter(f => !currentIds.has(getPoiId(f)));
@@ -425,7 +437,7 @@ export async function processImportedGpx(file, circuitId) {
                                 if (await showConfirm("Mise à jour des étapes", confirmMsg, "Mettre à jour", "Garder mes étapes")) {
                                     shouldUpdatePois = true;
                                 }
-                            } else if (detectedFeatures.length > 0 && detectedFeatures.length !== currentCircuit.poiIds.length) {
+                            } else if (detectedFeatures.length > 0 && detectedFeatures.length !== targetCircuit.poiIds.length) {
                                 // Cas où on a moins de points (ex: raccourci), on propose aussi
                                 if (await showConfirm("Mise à jour des étapes", "La trace semble différente de vos étapes actuelles. Voulez-vous réaligner les étapes sur le tracé ?", "Réaligner", "Garder")) {
                                     shouldUpdatePois = true;
@@ -434,10 +446,10 @@ export async function processImportedGpx(file, circuitId) {
                         }
 
                         // --- APPLICATION ---
-                        state.myCircuits[circuitIndex].realTrack = coordinates;
+                        targetCircuit.realTrack = coordinates;
 
                         if (shouldUpdatePois) {
-                            state.myCircuits[circuitIndex].poiIds = detectedFeatures.map(getPoiId);
+                            targetCircuit.poiIds = detectedFeatures.map(getPoiId);
                             showToast(`Trace importée et ${detectedFeatures.length} étapes mises à jour !`, "success");
                         } else {
                             if (foundHwId === circuitId) {
@@ -447,7 +459,14 @@ export async function processImportedGpx(file, circuitId) {
                             }
                         }
 
-                        await saveCircuit(state.myCircuits[circuitIndex]);
+                        if (!isOfficial) {
+                            // Sauvegarde normale pour les circuits locaux
+                            await saveCircuit(targetCircuit);
+                        } else {
+                            // Pour les officiels, la modif est en RAM seulement (perdue au reload, c'est normal pour l'utilisateur)
+                            // Si c'est le DEV qui fait ça, il devra exporter via "Sauvegarder & Exporter" pour persister
+                            console.log("Mise à jour en mémoire du circuit officiel.");
+                        }
 
                         // RAFFRAÎCHISSEMENT UI COMPLET (ESSENTIEL)
                         if (state.activeCircuitId === circuitId) {
