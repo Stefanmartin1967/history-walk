@@ -2009,10 +2009,10 @@ input[type=range] {
 /* --- PATCH POUR LA LISTE (Marges aérées pour scroll confortable) --- */
 @media (max-width: 768px) {
     .mobile-standard-padding {
-        /* HARMONISATION : Marge latérale standard (6px) */
+        /* HARMONISATION : Marge latérale standard (10px - Ajusté selon retour utilisateur) */
         /* Note : On utilise padding-left/right pour ne pas écraser les paddings verticaux spécifiques */
-        padding-left: 6px;
-        padding-right: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
     .mobile-list {
