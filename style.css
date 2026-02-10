@@ -1,6 +1,10 @@
+* { box-sizing: border-box; }
+
 /* style.css - BASE V1 RESTAURÉE + PATCH BOUTONS */
 :root,
 html[data-theme="maritime"] {
+    --spacing-md: 16px;
+    --spacing-item-gap: 12px;
     --sidebar-width: clamp(380px, 30vw, 480px);
     --bg: #0D3B66;
     --bg-2: #062B4D;
@@ -74,8 +78,7 @@ html[data-theme="night"] button {
 html,
 body {
     height: 100%;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: var(--surface-muted);
     color: var(--ink);
@@ -117,8 +120,6 @@ body {
     font-size: 20px;
     font-weight: 700;
     color: #fff;
-    margin: 0;
-    white-space: nowrap;
 }
 
 .search-container {
@@ -247,14 +248,6 @@ body {
 /* === FIX SPECIFICITY FOR PC DETAILS PANEL === */
 /* ========================================================= */
 
-/* REMOVED FOR NEW LAYOUT (Split Header)
-#details-panel .panel-header.pc-layout {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-}
-*/
 
 .btn:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -446,8 +439,6 @@ body.sidebar-open #map {
     color: var(--ink);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 0;
-    display: flex;
     align-items: center;
     /* Header Fin et Coloré */
     padding: 2px 12px;
@@ -617,14 +608,6 @@ body.sidebar-open #map {
 }
 
 #panel-title-display,
-.panel-nom-arabe {
-    margin: 0;
-    padding: 0;
-    line-height: 1.3;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
 
 #panel-title-display {
     font-size: 20px;
@@ -632,13 +615,6 @@ body.sidebar-open #map {
     font-weight: 700;
 }
 
-.panel-nom-arabe {
-    color: var(--ink-soft);
-    font-size: 16px;
-    margin-top: 2px;
-    font-style: italic;
-    min-height: 1.3em;
-}
 
 .editable-field .edit-controls {
     grid-column: 2;
@@ -670,8 +646,6 @@ body.sidebar-open #map {
     background: transparent;
     border: none;
     border-radius: 8px;
-    padding: 0;
-}
 
 .header-btn,
 .action-button {
@@ -786,8 +760,6 @@ textarea.editable-input {
     background: var(--surface);
     color: var(--ink-soft);
     cursor: pointer;
-    padding: 0;
-}
 
 .time-adjust-btn:hover {
     background: var(--surface-muted);
@@ -835,8 +807,6 @@ textarea.editable-input {
     font-weight: 700;
     color: var(--ink);
     flex-grow: 1;
-    margin: 0;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -877,15 +847,6 @@ textarea.editable-input {
     background: var(--surface-muted);
 }
 
-.header-name-input {
-    font-size: 18px;
-    color: var(--ink);
-    background-color: var(--surface-muted);
-    border: 1px solid var(--line);
-    width: 100%;
-    padding: 4px 8px;
-    border-radius: 6px;
-}
 
 .header-controls {
     display: grid;
@@ -1026,8 +987,6 @@ textarea.editable-input {
     color: var(--ink-soft);
     background: none;
     border: none;
-    padding: 0;
-    cursor: pointer;
     border-radius: 6px;
     display: grid;
     place-items: center;
@@ -1060,8 +1019,6 @@ textarea.editable-input {
     cursor: pointer;
     color: var(--ink-soft);
     border-radius: 12px;
-    padding: 0;
-    display: flex;
     justify-content: center;
     align-items: center;
     transition: all 0.2s;
@@ -1166,8 +1123,6 @@ textarea.editable-input {
 }
 
 .modal-header h2 {
-    margin: 0;
-    font-size: 20px;
     color: var(--ink);
 }
 
@@ -1347,8 +1302,6 @@ textarea.editable-input {
     flex-grow: 1;
     overflow-y: auto;
     position: relative;
-    padding: 0;
-    box-sizing: border-box;
 }
 
 #mobile-header,
@@ -1371,18 +1324,17 @@ textarea.editable-input {
 
 .header-title-mobile,
 .mobile-view-header h1 {
+    margin: 0;
     font-size: 22px;
     font-weight: 700;
     white-space: normal;
     text-align: center;
     flex-grow: 1;
     min-width: 0;
-    margin: 0;
 }
 
 #mobile-back-btn {
     padding: 0;
-    flex-shrink: 0;
     background: transparent;
     border: none;
     display: grid;
@@ -1428,46 +1380,10 @@ textarea.editable-input {
     color: var(--brand);
 }
 
-.mobile-nav-btn.add-poi-btn svg {
-    width: 28px;
-    height: 28px;
-}
 
-.welcome-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    padding: 24px;
-    text-align: center;
-}
 
-.welcome-container h1 {
-    font-size: 24px;
-    color: var(--ink);
-}
 
-.welcome-container p {
-    font-size: 16px;
-    color: var(--ink-soft);
-    max-width: 400px;
-    margin-bottom: 24px;
-}
 
-.welcome-container .btn-primary {
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    background-color: var(--brand);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
 
 .mobile-list {
     padding: 0;
@@ -1481,7 +1397,7 @@ textarea.editable-input {
     background-color: var(--surface);
     border: none;
     border-radius: 16px;
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-item-gap);
     box-shadow: var(--shadow-soft);
     text-align: left;
     cursor: pointer;
@@ -1558,7 +1474,7 @@ textarea.editable-input {
 }
 
 #mobile-main-container .panel-content {
-    padding: 0;
+    padding: 0 !important;
     gap: 0;
     overflow-y: visible; /* Allows sticky elements to work relative to parent scroller */
 }
@@ -1623,6 +1539,7 @@ textarea.editable-input {
 .title-names {
     text-align: right;
     min-width: 0;
+}
     flex: 1;
 }
 
@@ -1634,8 +1551,6 @@ textarea.editable-input {
 
 .title-names h2 {
     font-size: 22px;
-    margin: 0;
-    white-space: normal;
 }
 
 .title-names p {
@@ -1732,7 +1647,6 @@ textarea.editable-input {
 .editor-header h2 {
     font-size: 18px;
     color: var(--ink);
-    margin: 0;
 }
 
 #editor-cancel-btn,
@@ -2009,21 +1923,19 @@ input[type=range] {
 /* --- PATCH POUR LA LISTE (Marges aérées pour scroll confortable) --- */
 @media (max-width: 768px) {
     .mobile-standard-padding {
-        /* HARMONISATION : Marge latérale standard (10px - Ajusté selon retour utilisateur) */
-        /* Note : On utilise padding-left/right pour ne pas écraser les paddings verticaux spécifiques */
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
     }
 
     .mobile-list {
         /* Suppression du padding !important pour harmonisation via JS/classes */
         /* Restauration du padding-bottom essentiel pour le scroll (Dock + Safe Area) */
-        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        padding-bottom: calc(100px + env(safe-area-inset-bottom));
     }
 
     /* 80px en bas pour ne pas cacher le dernier élément */
     .mobile-list-item {
-        margin-bottom: 10px !important;
+        margin-bottom: var(--spacing-item-gap) !important;
     }
 }
 
@@ -2503,6 +2415,7 @@ input[type=range] {
 .explorer-item-content {
     flex: 1;
     min-width: 0;
+}
     display: flex;
     flex-direction: column;
 }
@@ -2707,4 +2620,14 @@ input[type=range] {
     color: var(--ink-soft);
     margin-bottom: 12px;
     text-align: left;
+}
+
+/* SAFETY NET FOR MOBILE */
+@media (max-width: 768px) {
+    .topbar,
+    #map,
+    .right-sidebar,
+    #app-version {
+        display: none !important;
+    }
 }
