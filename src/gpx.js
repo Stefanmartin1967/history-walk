@@ -401,17 +401,26 @@ export async function processImportedGpx(file, circuitId) {
                 // 4. SAUVEGARDE ET MISE À JOUR INTELLIGENTE
                 if (circuitId) {
                     // Mise à jour d'un circuit existant (Local ou Officiel)
+                    // CORRECTION : Priorité à l'Officiel (Visible) pour l'affichage, mais maj du Local (Shadow) si existant
                     let targetCircuit = null;
                     let isOfficial = false;
+                    let localCircuit = null;
 
-                    const localIndex = state.myCircuits.findIndex(c => c.id === circuitId);
-                    if (localIndex !== -1) {
-                        targetCircuit = state.myCircuits[localIndex];
-                    } else if (state.officialCircuits) {
-                        const officialIndex = state.officialCircuits.findIndex(c => c.id === circuitId);
+                    // 1. Recherche Officiel (Prioritaire pour l'affichage UI)
+                    if (state.officialCircuits) {
+                        const officialIndex = state.officialCircuits.findIndex(c => String(c.id) === String(circuitId));
                         if (officialIndex !== -1) {
                             targetCircuit = state.officialCircuits[officialIndex];
                             isOfficial = true;
+                        }
+                    }
+
+                    // 2. Recherche Local (Pour synchro ou si pas d'officiel)
+                    const localIndex = state.myCircuits.findIndex(c => String(c.id) === String(circuitId));
+                    if (localIndex !== -1) {
+                        localCircuit = state.myCircuits[localIndex];
+                        if (!targetCircuit) {
+                            targetCircuit = localCircuit;
                         }
                     }
 
@@ -445,11 +454,19 @@ export async function processImportedGpx(file, circuitId) {
                             }
                         }
 
-                        // --- APPLICATION ---
+                        // --- APPLICATION (VISUELLE) ---
                         targetCircuit.realTrack = coordinates;
+                        if (shouldUpdatePois) targetCircuit.poiIds = detectedFeatures.map(getPoiId);
 
+                        // --- SYNCHRONISATION DU SHADOW (SI EXISTANT) ---
+                        if (localCircuit && localCircuit !== targetCircuit) {
+                            localCircuit.realTrack = coordinates;
+                            if (shouldUpdatePois) localCircuit.poiIds = detectedFeatures.map(getPoiId);
+                            await saveCircuit(localCircuit); // On sauve le shadow
+                        }
+
+                        // --- FEEDBACK USER ---
                         if (shouldUpdatePois) {
-                            targetCircuit.poiIds = detectedFeatures.map(getPoiId);
                             showToast(`Trace importée et ${detectedFeatures.length} étapes mises à jour !`, "success");
                         } else {
                             if (foundHwId === circuitId) {
@@ -463,8 +480,7 @@ export async function processImportedGpx(file, circuitId) {
                             // Sauvegarde normale pour les circuits locaux
                             await saveCircuit(targetCircuit);
                         } else {
-                            // Pour les officiels, la modif est en RAM seulement (perdue au reload, c'est normal pour l'utilisateur)
-                            // Si c'est le DEV qui fait ça, il devra exporter via "Sauvegarder & Exporter" pour persister
+                            // Pour les officiels, la modif est en RAM seulement
                             console.log("Mise à jour en mémoire du circuit officiel.");
                         }
 
