@@ -192,7 +192,17 @@ export function renderMobileCircuitsList() {
     
     // 1. Fusion des listes (Officiels + Locaux)
     const officialCircuits = state.officialCircuits || [];
-    const localCircuits = state.myCircuits || [];
+    const localCircuits = (state.myCircuits || []).filter(c => {
+        if (c.isDeleted) return false;
+
+        // DEDUPLICATION : On cache le circuit local si un officiel existe déjà avec le même ID
+        // ou le même nom (au cas où l'ID aurait changé lors d'un vieil import)
+        const existsInOfficial = officialCircuits.some(off =>
+            String(off.id) === String(c.id) ||
+            (off.name && c.name && off.name.trim() === c.name.trim())
+        );
+        return !existsInOfficial;
+    });
 
     // On combine : Officiels d'abord
     let allCircuits = [...officialCircuits, ...localCircuits];
