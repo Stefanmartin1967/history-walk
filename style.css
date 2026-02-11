@@ -2635,3 +2635,34 @@ input[type=range] {
     opacity: 1;
     margin-left: 8px;
 }
+
+/* === PATCH TOPBAR REORG & DETAILS (Desktop) === */
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: auto;
+}
+.app-title {
+    flex-grow: 1;
+    min-width: 0;
+    margin-right: 20px;
+}
+.btn-support {
+    margin-left: 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.detail-section {
+    margin-bottom: 20px;
+}
+.arabic-text {
+    font-family: "Amiri", "Segoe UI", sans-serif;
+    font-size: 1.3em;
+    line-height: 1.6;
+    text-align: right;
+    direction: rtl;
+    display: block;
+    margin-top: 4px;
+}
