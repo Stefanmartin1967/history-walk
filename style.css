@@ -2417,3 +2417,153 @@ input[type=range] {
     padding-top: 10px;
     padding-bottom: 140px; /* Maintient l'espace pour le Dock et la toolbar */
 }
+
+/* === PATCH CLEAN CODE (Mobile ZERO PATCH) === */
+
+/* --- Headers & Layout --- */
+.mobile-header-back-btn {
+    margin-right: 10px;
+}
+.mobile-header-title-text {
+    margin: 0;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+.mobile-inline-filter-reset-btn {
+    margin-top: 10px;
+    padding: 8px var(--spacing-md);
+    background: var(--surface-muted);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+/* --- Circuit Cards --- */
+.mobile-circuit-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+.mobile-circuit-item {
+    justify-content: space-between;
+    flex: 1;
+    align-items: center;
+    cursor: pointer;
+}
+.mobile-circuit-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 10px 10px 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    color: var(--line);
+}
+.mobile-circuit-toggle.visited {
+    color: var(--ok);
+}
+.mobile-circuit-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    margin-right: 4px;
+}
+.mobile-circuit-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.mobile-circuit-title {
+    font-size: 16px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    font-weight: 400;
+}
+.mobile-circuit-title.official {
+    font-weight: 700;
+}
+.mobile-circuit-meta {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.mobile-circuit-action-box {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    align-self: center;
+    height: 100%;
+}
+.mobile-circuit-gpx-btn {
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    margin-right: -16px;
+    margin-top: -16px;
+    margin-bottom: -16px;
+    height: calc(100% + 32px);
+}
+
+/* --- Search --- */
+.mobile-search-container {
+    padding: var(--spacing-md);
+}
+.mobile-search-results-list {
+    margin-top: 20px;
+}
+
+/* --- Menu & POI List --- */
+.mobile-menu-list {
+    padding-top: var(--spacing-md);
+}
+.mobile-menu-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 10px 0;
+}
+.mobile-text-danger {
+    color: var(--danger);
+}
+.mobile-bmc-icon {
+    color: #e91e63;
+    margin-left: auto;
+    fill: #e91e63;
+}
+.mobile-version-text {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 12px;
+    margin-top: 20px;
+}
+
+.mobile-poi-item {
+    justify-content: space-between;
+}
+.mobile-poi-item-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.mobile-poi-icon-wrapper {
+    display: flex;
+    align-items: center;
+}
+.mobile-check-icon {
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    color: var(--ok);
+    stroke-width: 3;
+}
