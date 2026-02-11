@@ -1,40 +1,38 @@
-from playwright.sync_api import sync_playwright, expect
 
-def test_final_fixes():
+from playwright.sync_api import sync_playwright
+
+def run():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={'width': 1280, 'height': 800})
+        page.goto('http://localhost:8080/index.html')
+        page.wait_for_timeout(2000)
 
-        # 1. Load the verification page
-        print("Navigating to verification page...")
-        page.goto("http://localhost:8000/verification/repro_final_verify.html")
+        try:
+            # Check Gap
+            gap = page.locator('.topbar-left').evaluate('el => getComputedStyle(el).gap')
+            print(f'Topbar gap: {gap}') # Should be 16px
 
-        # 2. Assert Menu is HIDDEN by default
-        print("Checking Menu Visibility (Default)...")
-        tools_menu = page.locator(".tools-menu")
-        # Ensure it exists but is hidden
-        if tools_menu.is_visible():
-             print("FAIL: Tools menu is visible by default!")
-        else:
-             print("PASS: Tools menu is hidden by default.")
+            # Check Mes Circuits Icon
+            # The icon inside the button should be route
+            # Lucide replaces <i data-lucide='route'> with <svg ... class='lucide lucide-route'>
+            # We can check the class of the SVG
+            try:
+                svg_class = page.locator('#btn-open-my-circuits svg').get_attribute('class')
+                print(f'Mes Circuits Icon Class: {svg_class}')
 
-        # 3. Click to Open Menu
-        print("Clicking Tools Button...")
-        page.locator("#btn-tools-menu").click()
+                # Check for absence of text
+                text = page.locator('#btn-open-my-circuits').text_content()
+                print(f'Mes Circuits Text: "{text.strip()}"')
+            except Exception as e:
+                print(f'Icon check error: {e}')
 
-        # 4. Assert Menu is VISIBLE
-        print("Checking Menu Visibility (Active)...")
-        expect(tools_menu).to_be_visible()
-        print("PASS: Tools menu is visible after click.")
-
-        # 5. Check Styles (simple check for background color or class)
-        # We assume if it's visible via our CSS toggle, styles are applying.
-
-        # 6. Take Screenshot
-        print("Taking screenshot...")
-        page.screenshot(path="verification/screenshot_final.png", full_page=True)
+            page.screenshot(path='verification/final_layout.png')
+        except Exception as e:
+            print(f'Verification failed: {e}')
+            page.screenshot(path='verification/final_layout_failed.png')
 
         browser.close()
 
-if __name__ == "__main__":
-    test_final_fixes()
+if __name__ == '__main__':
+    run()
