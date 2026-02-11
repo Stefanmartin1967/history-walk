@@ -2579,3 +2579,59 @@ input[type=range] {
     flex-shrink: 1;
     min-width: 200px;
 }
+
+/* === PATCH TOPBAR SUPPORT BUTTON (Desktop Only) === */
+.topbar {
+    padding: 0 40px;
+}
+.app-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.topbar-right {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+.btn-support {
+    margin-left: 20px;
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #EF4444;
+}
+.btn-support:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* === PATCH TOPBAR SUPPORT BUTTON (Refinement: Icon Only + Reveal) === */
+.btn-support {
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.2);
+    transition: background 0.3s ease;
+}
+.btn-support svg {
+    color: #EF4444 !important;
+    fill: rgba(239, 68, 68, 0.2);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), fill 0.3s ease;
+}
+.btn-support span {
+    max-width: 0;
+    opacity: 0;
+    margin-left: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: all 0.4s ease;
+}
+.btn-support:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+.btn-support:hover svg {
+    transform: scale(1.1);
+    fill: #EF4444;
+}
+.btn-support:hover span {
+    max-width: 150px;
+    opacity: 1;
+    margin-left: 8px;
+}
