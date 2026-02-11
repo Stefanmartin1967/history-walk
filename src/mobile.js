@@ -280,7 +280,7 @@ export function renderMobileCircuitsList() {
             <h1>Mes Circuits</h1>
         </div>
         <div id="mobile-toolbar-container"></div>
-        <div class="panel-content mobile-standard-padding" style="padding-top: 10px; padding-bottom: 140px;">
+        <div class="panel-content" style="padding: 10px 6px 140px 6px;">
     `;
 
     if (allCircuits.length === 0) {
@@ -593,10 +593,10 @@ export function renderMobilePoiList(features) {
     container.appendChild(headerDiv);
 
     const listDiv = document.createElement('div');
-    listDiv.className = 'mobile-list mobile-standard-padding';
+    listDiv.className = 'mobile-list';
     listDiv.style.flexGrow = '1';
     listDiv.style.overflowY = 'auto';
-    listDiv.style.paddingTop = '10px';
+    listDiv.style.padding = '10px 6px'; // HARMONIZATION: 6px lateral padding
     
     let listHtml = '';
     listToDisplay.forEach(feature => {
@@ -775,7 +775,7 @@ export function renderMobileMenu() {
         <div class="mobile-view-header">
             <h1>Menu</h1>
         </div>
-        <div class="mobile-list actions-list mobile-standard-padding" style="padding-top: 16px;">
+        <div class="mobile-list actions-list" style="padding: 16px;">
             <button class="mobile-list-item" id="mob-action-scan">
                 <i data-lucide="scan-line"></i>
                 <span>Scanner un circuit</span>
