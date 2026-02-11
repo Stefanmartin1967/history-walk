@@ -529,13 +529,13 @@ body.sidebar-open #map {
 }
 
 .input-group input[type="number"] {
-    width: 45px;
+    width: auto;
+    min-width: 45px;
     text-align: center;
     border-radius: 8px;
     border: 1px solid var(--line);
     padding: 6px 4px;
-    height: 28px;
-    box-sizing: content-box;
+    height: 42px; /* 28px height + 6px*2 padding + 2px border = ~42px equivalent */
     background-color: var(--surface);
     color: var(--ink);
 }
@@ -753,9 +753,8 @@ textarea.editable-input {
     cursor: pointer;
     min-width: 70px;
     text-align: center;
-    height: 28px;
+    height: 42px; /* 28px height + 12px padding + 2px border */
     line-height: 28px;
-    box-sizing: content-box;
 }
 
 .duration-picker-trigger:hover {
@@ -1356,30 +1355,6 @@ textarea.editable-input {
     overflow-y: visible; /* Allows sticky elements to work relative to parent scroller */
 }
 
-@media (max-width: 768px) {
-    .detail-section {
-        margin-bottom: 6px;
-    }
-
-    .detail-section h3 {
-        font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 0;
-        display: flex;
-        align-items: center;
-        color: var(--ink-soft);
-        text-transform: uppercase;
-        /* On garde le style desktop (background coloré) */
-    }
-
-    .detail-section .content {
-        /* Reset du style "boîte séparée" mobile pour coller au design unifié */
-        padding: 6px 12px 10px 12px;
-        border-radius: 0;
-        box-shadow: none;
-        background: var(--surface);
-    }
-}
 
 
 .description-section .description-content,
@@ -1482,23 +1457,6 @@ textarea.editable-input {
     outline: none;
 }
 
-@media (max-width: 768px) {
-
-    .topbar,
-    #map,
-    .right-sidebar,
-    #app-version {
-        display: none !important;
-    }
-
-    #mobile-container {
-        display: flex !important;
-    }
-
-    .input-group {
-        gap: 8px;
-    }
-}
 
 @media (min-width: 769px) {
     #mobile-container {
@@ -1695,59 +1653,12 @@ input[type=range] {
 }
 
 /* --- PATCH POUR LA LISTE (Marges aérées pour scroll confortable) --- */
-@media (max-width: 768px) {
-    .mobile-standard-padding {
-        padding-left: var(--spacing-md);
-        padding-right: var(--spacing-md);
-    }
-
-    .mobile-list {
-        /* Suppression du padding !important pour harmonisation via JS/classes */
-        /* Restauration du padding-bottom essentiel pour le scroll (Dock + Safe Area) */
-        padding-bottom: calc(100px + env(safe-area-inset-bottom));
-    }
-
-    /* 80px en bas pour ne pas cacher le dernier élément */
-    .mobile-list-item {
-        margin-bottom: var(--spacing-item-gap) !important;
-    }
-}
 
 /* --- CSS POUR BARRE MOBILE --- */
 #mobile-dock {
     display: none;
 }
 
-@media (max-width: 768px) {
-    #mobile-dock {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        background: var(--surface-muted);
-        border-top: 1px solid var(--line);
-        border-radius: 0;
-        box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.03);
-        z-index: 2000;
-        overflow: visible;
-        padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .mobile-nav {
-        display: flex !important;
-        position: static;
-        width: 100%;
-        border-top: none;
-        box-shadow: none;
-        padding: 10px 0 10px 0;
-        background: transparent;
-        z-index: auto;
-        justify-content: space-around;
-    }
-}
 
 .mobile-nav-btn {
     background: none;
@@ -2387,11 +2298,103 @@ input[type=range] {
 }
 
 /* SAFETY NET FOR MOBILE */
+
+
+
+/* --- CONSOLIDATED MOBILE STYLES (16px Harmonization) --- */
 @media (max-width: 768px) {
+    :root {
+        --spacing-md: 16px;
+    }
+
+    /* 1. Reset Global Layout for Mobile */
     .topbar,
     #map,
     .right-sidebar,
     #app-version {
         display: none !important;
+    }
+
+    #mobile-container {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100dvh;
+        width: 100%;
+        background-color: var(--surface-muted);
+    }
+
+    /* 2. PADDING STRATEGY (The "16px" Fix) */
+    .mobile-standard-padding {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+
+    /* Apply to List and Details Content */
+    .mobile-list,
+    .panel-content,
+    .detail-section .content {
+        padding-left: var(--spacing-md) !important;
+        padding-right: var(--spacing-md) !important;
+    }
+
+    /* Exclude Full-Width Elements */
+    .mobile-view-header,
+    .mobile-toolbar,
+    .circuit-info-bar,
+    .detail-section h3 {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+        /* These often have their own padding, so we just ensure alignment */
+    }
+
+    /* 3. Component Adjustments */
+    .detail-section {
+        margin-bottom: 6px;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    .detail-section h3 {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .title-names {
+        text-align: left;
+    }
+
+    .input-group {
+        gap: 8px;
+    }
+
+    /* 4. Dock & Navigation */
+    #mobile-dock {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: var(--surface-muted);
+        border-top: 1px solid var(--line);
+        box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.03);
+        z-index: 2000;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .mobile-nav {
+        display: flex !important;
+        width: 100%;
+        padding: 10px 0;
+        justify-content: space-around;
+    }
+
+    /* 5. Viewer & Modals */
+    .viewer-content {
+        max-width: 95vw;
     }
 }
