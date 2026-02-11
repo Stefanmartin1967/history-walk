@@ -277,10 +277,10 @@ export function renderMobileCircuitsList() {
 
     let html = `
         <div class="mobile-view-header">
-            <h1 class="mobile-header-title-text">Mes Circuits</h1>
+            <h1>Mes Circuits</h1>
         </div>
         <div id="mobile-toolbar-container"></div>
-        <div class="panel-content mobile-standard-padding mobile-list-content">
+        <div class="panel-content mobile-standard-padding" style="padding-top: 10px; padding-bottom: 140px;">
     `;
 
     if (allCircuits.length === 0) {
@@ -292,7 +292,7 @@ export function renderMobileCircuitsList() {
         html += `<div style="text-align:center; color:var(--ink-soft); margin-top:40px; display:flex; flex-direction:column; align-items:center;">
             <i data-lucide="check-circle" style="width:48px; height:48px; color:var(--ok); margin-bottom:10px;"></i>
             <p>Bravo ! Tout est terminé.</p>
-            <button id="btn-reset-filter-inline" class="mobile-inline-filter-reset-btn">
+            <button id="btn-reset-filter-inline" style="margin-top:10px; padding:8px 16px; background:var(--surface-muted); border:1px solid var(--line); border-radius:8px;">
                 Tout afficher
             </button>
         </div>`;
@@ -343,6 +343,9 @@ export function renderMobileCircuitsList() {
         // Icone Bird/Foot
         const iconName = circuit.realTrack ? 'footprints' : 'bird';
 
+        // Style du nom (Gras pour Officiel, Normal pour User)
+        const nameStyle = circuit.isOfficial ? 'font-weight:700;' : 'font-weight:400;';
+
         // Action Droite (Chevron ou Téléchargement GPX pour Officiels)
         let rightActionHtml = '';
         if (circuit.isOfficial && circuit.file) {
@@ -359,26 +362,27 @@ export function renderMobileCircuitsList() {
 
             // Bouton Visité (Gauche)
             const visitedIcon = circuit._allVisited ? 'check-circle' : 'circle';
+            const visitedColor = circuit._allVisited ? 'var(--ok)' : 'var(--line)'; // Gris clair si pas fait, Vert si fait
             const toggleVisitedHtml = `
-                <div class="mobile-toggle-visited mobile-circuit-toggle ${circuit._allVisited ? 'visited' : ''}" data-id="${circuit.id}" data-visited="${circuit._allVisited}" onclick="event.stopPropagation();">
+                <div class="mobile-toggle-visited" data-id="${circuit.id}" data-visited="${circuit._allVisited}" style="display:flex; align-items:center; justify-content:center; padding:10px 10px 10px 0; color:${visitedColor}; cursor:pointer; flex-shrink:0;" onclick="event.stopPropagation();">
                     <i data-lucide="${visitedIcon}" style="width:24px; height:24px;"></i>
                 </div>
             `;
 
             html += `
-                <div class="mobile-circuit-wrapper">
-                    <div class="mobile-list-item mobile-circuit-item circuit-item-mobile" data-id="${circuit.id}" role="button" tabindex="0">
+                <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px;">
+                    <div class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" role="button" tabindex="0" style="justify-content: space-between; flex:1; align-items:center; cursor:pointer;">
                         ${toggleVisitedHtml}
-                        <div class="mobile-circuit-content">
-                            <div class="mobile-circuit-header">
-                                <span class="mobile-circuit-title ${circuit.isOfficial ? 'official' : ''}">${escapeHtml(displayName)}</span>
+                        <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:4px;"> <!-- Marge droite réduite -->
+                            <div style="display:flex; align-items:center; width:100%;">
+                                <span style="${nameStyle} font-size:16px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${escapeHtml(displayName)}</span>
                             </div>
-                            <div class="mobile-circuit-meta">
+                            <div style="font-size:13px; color:var(--ink-soft); margin-top:4px; display:flex; align-items:center; flex-wrap:wrap;">
                                 ${total} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; margin:0 4px;"></i> • ${zoneName}${restoIcon}
                             </div>
                         </div>
 
-                        <div class="mobile-circuit-action-box">
+                        <div style="display:flex; align-items:center; flex-shrink:0; align-self:center; height:100%;">
                             ${rightActionHtml}
                         </div>
                     </div>
@@ -743,13 +747,13 @@ export function renderMobileSearch() {
         <div class="mobile-view-header">
             <h1>Rechercher</h1>
         </div>
-        <div class="mobile-search mobile-search-container">
+        <div style="padding: 16px;" class="mobile-search">
             <div style="position:relative;">
                 <i data-lucide="search" class="search-icon" style="position:absolute; left:12px; top:12px;"></i>
                 <input type="text" id="mobile-search-input" placeholder="Nom du lieu..." 
                     style="width:100%; padding:10px 10px 10px 40px; border-radius:12px; border:1px solid var(--line);">
             </div>
-            <div id="mobile-search-results" class="mobile-list mobile-search-results-list"></div>
+            <div id="mobile-search-results" class="mobile-list" style="margin-top:20px;"></div>
         </div>
     `;
 
@@ -802,12 +806,12 @@ export function renderMobileMenu() {
         <div class="mobile-view-header">
             <h1>Menu</h1>
         </div>
-        <div class="mobile-list actions-list mobile-standard-padding mobile-menu-list">
+        <div class="mobile-list actions-list mobile-standard-padding" style="padding-top: 16px;">
             <button class="mobile-list-item" id="mob-action-scan">
                 <i data-lucide="scan-line"></i>
                 <span>Scanner un circuit</span>
             </button>
-            <div class="mobile-menu-divider"></div>
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
             <button class="mobile-list-item" id="mob-action-restore">
                 <i data-lucide="folder-down"></i>
                 <span>Restaurer les données</span>
@@ -816,28 +820,28 @@ export function renderMobileMenu() {
                 <i data-lucide="save"></i>
                 <span>Sauvegarder les données</span>
             </button>
-            <div class="mobile-menu-divider"></div>
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
              <button class="mobile-list-item" id="mob-action-geojson">
                 <i data-lucide="map"></i>
                 <span>Charger Destination (GeoJSON)</span>
             </button>
-            <button class="mobile-list-item mobile-text-danger" id="mob-action-reset">
+            <button class="mobile-list-item" id="mob-action-reset" style="color:var(--danger);">
                 <i data-lucide="trash-2"></i>
                 <span>Vider les données locales</span>
             </button>
-            <div class="mobile-menu-divider"></div>
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
             <button class="mobile-list-item" id="mob-action-theme">
                 <i data-lucide="palette"></i>
                 <span>Changer Thème</span>
             </button>
-            <div class="mobile-menu-divider"></div>
+            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
             <button class="mobile-list-item bmc-btn-mobile" id="mob-action-bmc">
                 <i data-lucide="coffee"></i>
                 <span>Offrir un café</span>
-                <i data-lucide="heart" class="mobile-bmc-icon"></i>
+                <i data-lucide="heart" style="color:#e91e63; margin-left:auto; fill:#e91e63;"></i>
             </button>
         </div>
-        <div class="mobile-version-text">
+        <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
             History Walk Mobile v${state.appVersion || '3.1'}
         </div>
     `;

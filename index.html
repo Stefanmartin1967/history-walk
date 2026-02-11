@@ -56,7 +56,7 @@
                 <div class="search-results" id="search-results" style="display: none;"></div>
             </div>
 
-            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="route"></i></button>
+            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="folder-heart"></i> <span>Mes Circuits</span></button>
 
             <div class="zones-container">
                 <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span
@@ -124,6 +124,13 @@
                     <button class="tools-menu-item" id="btn-export-pdf" disabled>
                         <i data-lucide="file-down"></i> PDF (Bientôt)
                     </button>
+
+                    <div style="height:1px; width:100%; background:var(--line); margin:5px 0;"></div>
+
+                    <button class="tools-menu-item" id="btn-bmc">
+                        <i data-lucide="coffee"></i> Offrir un café
+                        <i data-lucide="heart" style="color:#e91e63; margin-left:auto; fill:#e91e63; width:16px; height:16px;"></i>
+                    </button>
                 </div>
             </div>
 
@@ -152,11 +159,6 @@
         </div>
 
         <div class="topbar-right">
-            <button class="btn btn-support" id="btn-topbar-support" title="Soutenir le projet">
-                <i data-lucide="heart"></i>
-                <span>Soutenir le projet</span>
-            </button>
-
             <!-- HIDDEN LOADERS (Keep them for logic) -->
             <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
             <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
