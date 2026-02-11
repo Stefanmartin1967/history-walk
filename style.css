@@ -2567,3 +2567,15 @@ input[type=range] {
     color: var(--ok);
     stroke-width: 3;
 }
+
+/* === PATCH FIX REGRESSIONS (Topbar & Search) === */
+.topbar-left {
+    gap: 24px;
+}
+.topbar .btn {
+    flex-shrink: 0;
+}
+.search-container {
+    flex-shrink: 1;
+    min-width: 200px;
+}
