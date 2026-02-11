@@ -2685,3 +2685,8 @@ input[type=range] {
 #btn-open-my-circuits {
     padding: 0 10px;
 }
+
+/* === PATCH AÉRATION FINALE === */
+.topbar-left {
+    gap: 16px;
+}
