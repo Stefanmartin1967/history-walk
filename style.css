@@ -2335,6 +2335,8 @@ input[type=range] {
     .detail-section .content {
         padding-left: var(--spacing-md) !important;
         padding-right: var(--spacing-md) !important;
+        /* Ensure content clears the bottom dock */
+        padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
     }
 
     /* Exclude Full-Width Elements */
@@ -2349,17 +2351,28 @@ input[type=range] {
 
     /* 3. Component Adjustments */
     .detail-section {
-        margin-bottom: 6px;
+        margin-bottom: 0; /* Continuous flow */
         border-radius: 0;
         border: none;
         box-shadow: none;
+        border-bottom: 1px solid var(--surface-muted); /* Divider */
+        padding-bottom: 8px;
+    }
+
+    .detail-section:last-child {
+        border-bottom: none;
     }
 
     .detail-section h3 {
-        font-size: 14px;
-        font-weight: 600;
+        font-size: 13px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        background-color: transparent !important; /* Remove colored header background */
+        border-bottom: none; /* Remove header border */
+        color: var(--brand); /* Use color to distinguish title */
+        padding-top: 12px;
+        padding-bottom: 4px;
     }
 
     .title-names {
