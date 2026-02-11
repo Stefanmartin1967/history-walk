@@ -2411,3 +2411,9 @@ input[type=range] {
         max-width: 95vw;
     }
 }
+
+/* === PATCH CLEAN CODE (Mobile JS Refactor) === */
+.mobile-list-content {
+    padding-top: 10px;
+    padding-bottom: 140px; /* Maintient l'espace pour le Dock et la toolbar */
+}
