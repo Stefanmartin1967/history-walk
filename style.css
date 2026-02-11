@@ -1,6 +1,6 @@
 /* ==========================================================================
-   STYLE.CSS - REFACTORED (2025-02-12)
-   Component-Based Architecture | Mobile-First Principles | Clean & DRY
+   STYLE.CSS - CORRECTED & RESTORED (2025-02-12)
+   Fixes: Syntax errors, restores button identity, fixes map icons.
    ========================================================================== */
 
 /* 1. VARIABLES & THEMES
@@ -9,13 +9,12 @@
 html[data-theme="maritime"] {
     --spacing-xs: 4px;
     --spacing-sm: 8px;
-    --spacing-md: 16px;
+    --spacing-md: 16px; /* 16px standard gutter */
     --spacing-lg: 24px;
-    --spacing-xl: 32px;
 
     --sidebar-width: clamp(380px, 30vw, 480px);
     --header-height: 64px;
-    --mobile-nav-height: 60px; /* Standardized for bottom dock */
+    --mobile-nav-height: 60px;
 
     /* Colors */
     --bg: #0D3B66;
@@ -66,7 +65,7 @@ html, body {
     background-color: var(--surface-muted);
     color: var(--ink);
     transition: background-color 0.3s ease, color 0.3s ease;
-    overflow: hidden; /* Prevent body scroll, handle in containers */
+    overflow: hidden;
 }
 
 /* 3. LAYOUT & CONTAINERS
@@ -188,72 +187,94 @@ body.sidebar-open #map { right: var(--sidebar-width); }
     }
 }
 
-/* 4. COMPONENTS
+/* 4. BUTTONS (Restored Identities)
    -------------------------------------------------------------------------- */
 
-/* --- Buttons (Unified) --- */
-.btn, .action-button, .header-btn, .footer-btn, .toolbar-btn, .mobile-nav-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s ease;
-    border: none; background: transparent;
-    font-family: inherit;
-}
-
-/* Standard Button */
+/* Standard Action Button (Pill, Text+Icon) */
 .btn {
+    display: inline-flex; align-items: center; justify-content: center;
     gap: 8px; height: 38px; padding: 0 12px;
     border-radius: 12px;
     background: rgba(255, 255, 255, .10); color: #fff;
     border: 1px solid rgba(255, 255, 255, .18);
     font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: all 0.2s ease;
+    font-family: inherit;
 }
 .btn:hover:not(:disabled) { background: rgba(255, 255, 255, .14); transform: translateY(-1px); }
 .btn.active { background: var(--brand); border-color: transparent; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-/* Icon Button (Square/Round) */
-.action-button, .header-btn {
-    width: 34px; height: 34px; border-radius: 8px;
+/* Header/Toolbar Icon Button (Square, Bordered) */
+.header-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid var(--line);
     color: var(--ink-soft);
+    cursor: pointer; transition: all 0.2s ease;
 }
-.header-btn { border: 1px solid var(--line); border-radius: 10px; }
-.action-button:hover, .header-btn:hover { background: var(--surface-muted); color: var(--ink); }
+.header-btn:hover { background: var(--surface-muted); color: var(--ink); }
+
+/* Action Button (Icon Only, Subtle) */
+.action-button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: transparent; border: none;
+    color: var(--ink-soft);
+    cursor: pointer; transition: all 0.2s ease;
+}
+.action-button:hover { background: var(--surface-muted); color: var(--ink); }
 
 /* Footer Button (Round Large) */
 .footer-btn {
+    display: inline-flex; align-items: center; justify-content: center;
     width: 42px; height: 42px; border-radius: 12px;
+    background: transparent; border: none;
     color: var(--ink-soft);
+    cursor: pointer; transition: all 0.2s ease;
 }
 .footer-btn:hover:not(:disabled) { background: var(--surface); color: var(--ink); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 .footer-btn.active { color: var(--brand); background: var(--brand-soft); }
 
-/* Mobile Toolbar Button (Top Filters) */
+/* Mobile Toolbar Button */
 .toolbar-btn {
+    display: inline-flex; align-items: center; justify-content: center;
     width: 44px; height: 44px; /* Touch target size */
-    border-radius: 12px; color: var(--ink-soft);
+    border-radius: 12px;
+    background: transparent; border: none;
+    color: var(--ink-soft);
+    cursor: pointer; transition: all 0.2s ease;
 }
 .toolbar-btn.active { color: var(--brand); background: var(--brand-soft); }
 .toolbar-btn svg { width: 22px; height: 22px; }
 
 /* Mobile Nav Button (Bottom Dock) */
 .mobile-nav-btn {
-    flex: 1; flex-direction: column; gap: 4px;
+    display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
     padding: 8px 0; border-radius: 0;
+    background: transparent; border: none;
     color: var(--ink-soft); font-size: 11px;
+    cursor: pointer; transition: color 0.2s ease;
 }
 .mobile-nav-btn.active { color: var(--brand); font-weight: 600; }
 .mobile-nav-btn svg { width: 24px; height: 24px; }
 
-/* Large Action Button */
+/* Large Action Button (Mobile Panel) */
 .action-btn-large {
+    display: inline-flex; align-items: center; justify-content: center;
     width: 100%; padding: 16px; border-radius: 12px;
     font-weight: 700; font-size: 16px;
-    background: var(--brand); color: white;
+    background: var(--brand); color: white; border: none;
     box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
-    gap: 12px;
+    gap: 12px; cursor: pointer;
 }
 
-/* --- Search Bar --- */
+/* 5. SEARCH & LISTS
+   -------------------------------------------------------------------------- */
+/* Search Bar */
 .search-container { position: relative; width: 100%; max-width: 300px; }
 .search-icon {
     position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
@@ -280,39 +301,24 @@ body.sidebar-open #map { right: var(--sidebar-width); }
 .mobile-search #mobile-search-input::placeholder { color: var(--ink-soft); }
 .mobile-search .search-icon { color: var(--ink-soft); }
 
-.search-results {
-    position: absolute; top: 100%; left: 0; width: 100%; margin-top: 8px;
-    background-color: var(--surface);
-    border-radius: 8px; box-shadow: var(--shadow);
-    z-index: 1003; max-height: 400px; overflow-y: auto;
-    border: 1px solid var(--line);
-}
-.search-results button {
-    display: block; width: 100%; padding: 12px 15px;
-    background: none; border: none; text-align: left;
-    font-size: 15px; color: var(--ink); border-bottom: 1px solid var(--surface-muted);
-}
-.search-results button:hover { background-color: var(--surface-muted); }
-
-/* --- Mobile Toolbar (Top Filters) --- */
+/* Mobile Toolbar (Top Filters) */
 .mobile-toolbar {
     position: sticky; top: 0; z-index: 100;
     width: 100%;
     background: var(--surface);
     border-bottom: 1px solid var(--line);
     display: flex; justify-content: space-around; align-items: center;
-    padding: 8px var(--spacing-sm); /* Adjusted padding */
+    padding: 8px var(--spacing-sm);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-/* Ensure perfect alignment with bottom dock (5 items vs 5 items) */
-.mobile-toolbar .toolbar-btn { flex: 1; max-width: 60px; } /* Prevent buttons from stretching too wide */
+.mobile-toolbar .toolbar-btn { flex: 1; max-width: 60px; }
 #btn-categories span, #btn-filter-vus span, #btn-filter-planifies span,
 #btn-mode-selection span, #btn-tools-menu span { display: none !important; }
 
-/* --- Lists & Items --- */
+/* Lists & Items */
 .explorer-list, .mobile-list {
     display: flex; flex-direction: column; gap: 10px;
-    padding: var(--spacing-md); /* Consistent Padding */
+    padding: var(--spacing-md);
 }
 
 /* Mobile List Reset */
@@ -347,7 +353,8 @@ body.sidebar-open #map { right: var(--sidebar-width); }
 .mobile-list-item [data-lucide="route"] { color: var(--brand); }
 .mobile-list-item [data-lucide="chevron-right"] { margin-left: auto; margin-right: 0; color: var(--line); }
 
-/* --- Details Panel & Cards --- */
+/* 6. DETAILS PANEL & FORMS
+   -------------------------------------------------------------------------- */
 .sidebar-panel, .detail-section {
     display: flex; flex-direction: column;
     background: var(--surface);
@@ -370,7 +377,6 @@ body.sidebar-open #map { right: var(--sidebar-width); }
     border: 1px solid var(--line);
     overflow: hidden; flex-shrink: 0;
 }
-/* Mobile "Flat" Card Override */
 @media (max-width: 768px) {
     .detail-section {
         border-radius: 0; border: none; box-shadow: none;
@@ -389,7 +395,6 @@ body.sidebar-open #map { right: var(--sidebar-width); }
     display: flex; align-items: center; justify-content: space-between;
     margin: 0; min-height: 32px;
 }
-/* Mobile Header Override */
 @media (max-width: 768px) {
     .detail-section h3 {
         background-color: transparent; border-bottom: none;
@@ -407,7 +412,7 @@ body.sidebar-open #map { right: var(--sidebar-width); }
     }
 }
 
-/* --- Form Elements in Panels --- */
+/* Form Elements in Panels */
 .input-group { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .input-group label { font-weight: 500; font-size: 13px; color: var(--ink-soft); min-width: 60px; }
 .input-group input[type="number"] {
@@ -465,7 +470,8 @@ body.sidebar-open #map { right: var(--sidebar-width); }
     content: 'Cliquez sur le crayon...'; color: var(--ink-soft); font-style: italic;
 }
 
-/* --- Modals --- */
+/* 7. MODALS & UTILITIES
+   -------------------------------------------------------------------------- */
 .custom-modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(13, 59, 102, 0.6); backdrop-filter: blur(2px);
@@ -493,20 +499,57 @@ body.sidebar-open #map { right: var(--sidebar-width); }
 .custom-modal-btn.danger { background-color: var(--danger); color: white; }
 .custom-modal-btn.secondary { background-color: var(--surface-muted); color: var(--ink); }
 
-/* --- Map Markers & Polyline --- */
-.leaflet-marker-icon.marker-vip .hw-icon-wrapper {
-    width: 100%; height: 100%; background: #FEF08A;
-    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+/* --- MAP MARKERS (Standard & VIP) --- */
+.hw-icon { background: none !important; border: none !important; }
+
+/* Standard Icon Wrapper (Teardrop Shape) */
+.hw-icon-wrapper {
+    width: 100%; height: 100%;
+    background: var(--surface);
+    color: var(--brand);
+    border: 2px solid var(--surface);
+    border-radius: 50% 50% 50% 0; /* Teardrop */
+    transform: rotate(-45deg); /* Pointy end down */
     display: flex; justify-content: center; align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* Icon rotation correction */
+.hw-icon-wrapper svg, .hw-icon-wrapper i {
+    transform: rotate(45deg); /* Counter-rotate icon */
+    width: 20px; height: 20px;
+}
+
+/* Visited State (Standard) */
+.marker-visited .hw-icon-wrapper {
+    background: var(--ok); color: #fff; border-color: #fff;
+}
+
+/* Planned State (Standard) */
+.marker-planned .hw-icon-wrapper {
+    background: var(--warn); color: #fff; border-color: #fff;
+}
+
+/* VIP Icon (Shield/Banner Shape - Override) */
+.leaflet-marker-icon.marker-vip .hw-icon-wrapper {
+    background: #FEF08A;
+    color: #422006;
+    border-radius: 0; transform: none; border: none;
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
     filter: drop-shadow(0 4px 3px rgba(0,0,0,0.25));
 }
-.leaflet-marker-icon.marker-vip svg { color: #422006 !important; width: 22px; height: 22px; margin-top: 5px; }
+.leaflet-marker-icon.marker-vip .hw-icon-wrapper svg,
+.leaflet-marker-icon.marker-vip .hw-icon-wrapper i {
+    transform: none; /* No rotation needed */
+    margin-top: 5px; /* Adjust alignment */
+}
 
+/* Polylines */
 .circuit-polyline { stroke: var(--danger) !important; stroke-width: 3; stroke-dasharray: 6,6; opacity: 0.9; }
 .real-track-polyline { stroke: var(--brand) !important; stroke-width: 3; opacity: 0.8; }
 .real-track-polyline-done { stroke: var(--ok) !important; stroke-width: 3; opacity: 0.9; }
 
-/* 5. UTILITIES & ANIMATIONS
+/* 8. ANIMATIONS & UTILITIES
    -------------------------------------------------------------------------- */
 .loader-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -520,7 +563,6 @@ body.sidebar-open #map { right: var(--sidebar-width); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Toast Notifications */
 .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9998; display: flex; flex-direction: column; gap: 10px; }
 .toast {
     padding: 12px 18px; border-radius: 8px; color: #fff; font-weight: 600;
@@ -535,7 +577,7 @@ body.sidebar-open #map { right: var(--sidebar-width); }
 @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(100%); } }
 
-/* --- Photo Viewer (Fullscreen) --- */
+/* Photo Viewer */
 .photo-viewer {
     display: none; position: fixed; z-index: 10000; left: 0; top: 0;
     width: 100%; height: 100%; background-color: rgba(0,0,0,0.95);
@@ -551,8 +593,7 @@ body.sidebar-open #map { right: var(--sidebar-width); }
     font-size: 40px; font-weight: bold; cursor: pointer; z-index: 10001;
 }
 
-
-/* Mobile Utilities */
+/* Mobile Utilities - Fixed */
 @media (max-width: 768px) {
     .mobile-standard-padding {
         padding-left: var(--spacing-md) !important;
