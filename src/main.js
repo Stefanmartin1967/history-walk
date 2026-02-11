@@ -357,6 +357,14 @@ async function initializeApp() {
         });
     }
 
+    // Topbar Support Button Listener
+    const btnSupport = document.getElementById('btn-topbar-support');
+    if (btnSupport) {
+        btnSupport.addEventListener('click', () => {
+            window.open('https://www.buymeacoffee.com/history_walk', '_blank');
+        });
+    }
+
     // On allume la tour de contrôle
     setupGlobalEventListeners();
     setupUnsavedChangesWarning(); // <--- AJOUT DE LA PROTECTION

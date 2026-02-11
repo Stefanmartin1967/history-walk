@@ -2579,3 +2579,26 @@ input[type=range] {
     flex-shrink: 1;
     min-width: 200px;
 }
+
+/* === PATCH TOPBAR SUPPORT BUTTON (Desktop Only) === */
+.topbar {
+    padding: 0 40px;
+}
+.app-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.topbar-right {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+.btn-support {
+    margin-left: 20px;
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #EF4444;
+}
+.btn-support:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
