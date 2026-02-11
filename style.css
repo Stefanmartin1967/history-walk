@@ -84,25 +84,35 @@ html, body {
 .topbar-right { display: flex; align-items: center; gap: var(--spacing-sm); }
 .app-title { font-size: 20px; font-weight: 700; color: #fff; white-space: nowrap; }
 
-/* Desktop Menu Dropdown */
-.dropdown { position: relative; display: inline-block; }
-.dropdown-content {
+/* Desktop Menu Dropdowns (Tools & Zones) */
+.tools-dropdown-container, .zones-container { position: relative; display: inline-block; }
+
+.tools-menu, .zones-menu {
     display: none; position: absolute; right: 0; top: 100%; margin-top: 8px;
-    background-color: var(--surface); min-width: 220px;
+    background-color: var(--surface); min-width: 240px;
     box-shadow: var(--shadow-float); border-radius: 12px;
     z-index: 2000; padding: 8px 0; border: 1px solid var(--line);
 }
-.dropdown.active .dropdown-content { display: block; animation: fadeIn 0.2s ease; }
-.dropdown-content button {
-    display: flex; align-items: center; gap: 10px;
+.zones-menu { left: 0; right: auto; min-width: 280px; max-height: 400px; overflow-y: auto; } /* Zones align left */
+
+.tools-dropdown-container.active .tools-menu,
+.zones-container.active .zones-menu { display: block; animation: fadeIn 0.2s ease; }
+
+.tools-menu-item, .zones-menu button {
+    display: flex; align-items: center; gap: 12px;
     width: 100%; padding: 12px 16px;
     text-align: left; background: none; border: none;
     font-size: 14px; color: var(--ink); cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s; border-bottom: 1px solid var(--surface-muted);
 }
-.dropdown-content button:hover:not(:disabled) { background-color: var(--surface-muted); color: var(--brand); }
-.dropdown-content button:disabled { opacity: 0.5; cursor: not-allowed; }
-.dropdown-content svg { width: 18px; height: 18px; color: var(--ink-soft); }
+.tools-menu-item:last-child, .zones-menu button:last-child { border-bottom: none; }
+
+.tools-menu-item:hover:not(:disabled), .zones-menu button:hover { background-color: var(--surface-muted); color: var(--brand); }
+.tools-menu-item:disabled { opacity: 0.5; cursor: not-allowed; }
+.tools-menu-item svg, .zones-menu svg { width: 18px; height: 18px; color: var(--ink-soft); }
+
+/* God Mode Button */
+#admin-tools-container .tools-menu { right: 0; border: 2px solid var(--danger); }
 
 #map {
     position: absolute; top: var(--header-height); left: 0; right: 0; bottom: 0;
@@ -320,12 +330,8 @@ body.sidebar-open #map { right: var(--sidebar-width); }
     padding: 16px; border-radius: 16px; border: none; /* Flat style for mobile */
     margin-bottom: 0; /* Handled by gap on parent */
     width: 100%; text-align: left;
-    position: relative; z-index: 1; /* Ensure clickable */
+    position: relative;
     overflow: hidden; /* Prevent children from overflowing */
-}
-/* Ensure interactive elements inside list items are above the container click */
-.mobile-list-item button, .mobile-list-item a, .mobile-toggle-visited {
-    position: relative; z-index: 5;
 }
 .explorer-item:hover { background-color: var(--surface-muted); transform: translateY(-1px); border-color: var(--brand-soft); }
 
