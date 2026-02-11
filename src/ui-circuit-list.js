@@ -279,7 +279,6 @@ export function renderExplorerList() {
 
             const actionsHtml = `
                 <div style="display:flex; align-items:center; gap:0;">
-                    ${toggleVisitedBtn}
                     ${deleteBtn}
                 </div>
             `;
@@ -290,6 +289,7 @@ export function renderExplorerList() {
 
             return `
             <div class="explorer-item" data-id="${c.id}">
+                ${toggleVisitedBtn}
                 <div class="explorer-item-content">
                     <div class="explorer-item-name" title="${escapeXml(c.name)}">
                         ${escapeXml(displayName)}

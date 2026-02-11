@@ -2076,14 +2076,14 @@ input[type=range] {
 .explorer-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    /* justify-content: space-between; REMOVED to allow left stacking */
     background: var(--surface);
     padding: 12px;
     border-radius: 12px;
     box-shadow: var(--shadow-soft);
     cursor: pointer;
     transition: transform 0.1s, background-color 0.2s;
-    gap: 10px;
+    gap: 12px; /* Increased gap for left button separation */
     border: 1px solid var(--line);
 }
 

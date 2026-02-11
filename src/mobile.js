@@ -360,15 +360,25 @@ export function renderMobileCircuitsList() {
             rightActionHtml = '';
         }
 
+            // Bouton Visité (Gauche)
+            const visitedIcon = circuit._allVisited ? 'check-circle' : 'circle';
+            const visitedColor = circuit._allVisited ? 'var(--ok)' : 'var(--line)'; // Gris clair si pas fait, Vert si fait
+            const toggleVisitedHtml = `
+                <div class="mobile-toggle-visited" data-id="${circuit.id}" data-visited="${circuit._allVisited}" style="display:flex; align-items:center; justify-content:center; padding:10px 10px 10px 0; color:${visitedColor}; cursor:pointer; flex-shrink:0;" onclick="event.stopPropagation();">
+                    <i data-lucide="${visitedIcon}" style="width:24px; height:24px;"></i>
+                </div>
+            `;
+
             html += `
                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px;">
                     <div class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" role="button" tabindex="0" style="justify-content: space-between; flex:1; align-items:center; cursor:pointer;">
-                    <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:4px;"> <!-- Marge droite réduite -->
-                        <div style="display:flex; align-items:center; width:100%;">
-                            <span style="${nameStyle} font-size:16px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${escapeHtml(displayName)}</span>
+                        ${toggleVisitedHtml}
+                        <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:4px;"> <!-- Marge droite réduite -->
+                            <div style="display:flex; align-items:center; width:100%;">
+                                <span style="${nameStyle} font-size:16px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${escapeHtml(displayName)}</span>
                             </div>
                             <div style="font-size:13px; color:var(--ink-soft); margin-top:4px; display:flex; align-items:center; flex-wrap:wrap;">
-                            ${total} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; margin:0 4px;"></i> • ${zoneName}${restoIcon}
+                                ${total} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; margin:0 4px;"></i> • ${zoneName}${restoIcon}
                             </div>
                         </div>
 
@@ -398,9 +408,30 @@ export function renderMobileCircuitsList() {
     }
 
     container.querySelectorAll('.circuit-item-mobile').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', async (e) => {
+            if (e.target.closest('.mobile-toggle-visited') || e.target.closest('a')) return;
             const id = btn.dataset.id;
             await loadCircuitById(id);
+        });
+    });
+
+    container.querySelectorAll('.mobile-toggle-visited').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            const isVisited = btn.dataset.visited === 'true';
+
+            if(isVisited) {
+                 if(await showConfirm("Réinitialisation", "Voulez-vous vraiment décocher tous les lieux (remettre à 'Non visité') ?", "Tout décocher", "Annuler", true)) {
+                     await setCircuitVisitedState(id, false);
+                     renderMobileCircuitsList(); // Refresh UI
+                 }
+            } else {
+                 if(await showConfirm("Circuit Terminé", "Bravo ! Marquer tous les lieux de ce circuit comme visités ?", "Tout cocher", "Annuler")) {
+                     await setCircuitVisitedState(id, true);
+                     renderMobileCircuitsList(); // Refresh UI
+                 }
+            }
         });
     });
 }
