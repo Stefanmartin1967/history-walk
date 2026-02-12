@@ -2732,3 +2732,46 @@ input[type=range] {
 .app-title {
     font-size: 24px; /* Was 20px */
 }
+
+/* ========================================================= */
+/* === DYNAMIC HEADER ALIGNMENT (God Mode / Circuits) === */
+/* ========================================================= */
+
+/* Remove hardcoded margin-left: auto from specific buttons */
+#btn-open-my-circuits {
+    margin-left: 0;
+}
+
+/*
+   New strategy: Use a spacer to push content.
+   However, since we can't easily inject a spacer div dynamically between search and the first button without JS,
+   we will use the :nth-child selector trick if possible, or simpler:
+   Apply margin-left: auto to the God Mode container AND the Circuits button.
+   CSS Flexbox rule: If multiple items have auto margins, space is distributed.
+   But we want all right-side items grouped together.
+
+   BETTER STRATEGY:
+   The search-container is the last element on the "Left" side.
+   So we target the element AFTER search-container to push it to the right.
+*/
+
+.search-container + * {
+    margin-left: auto;
+}
+
+/* ========================================================= */
+/* === ROBUST HEADER ALIGNMENT (FIX) === */
+/* ========================================================= */
+
+/* Group all right-side actions in a container */
+.topbar-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Match existing gap */
+    margin-left: auto; /* Push the whole group to the right */
+}
+
+/* Remove previous failed attempts */
+.search-container + * {
+    margin-left: 0;
+}
