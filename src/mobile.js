@@ -280,7 +280,7 @@ export function renderMobileCircuitsList() {
             <h1>Mes Circuits</h1>
         </div>
         <div id="mobile-toolbar-container"></div>
-        <div class="panel-content mobile-standard-padding" style="padding-top: 10px; padding-bottom: 140px;">
+        <div class="panel-content mobile-standard-padding mobile-list-container">
     `;
 
     if (allCircuits.length === 0) {
@@ -352,7 +352,7 @@ export function renderMobileCircuitsList() {
             // Le chevron est remplacé par le bouton de téléchargement
             // NOTE: On supprime EXPLICITEMENT tout chevron ici
             rightActionHtml = `
-            <a href="./circuits/${circuit.file}" download title="Télécharger GPX" style="color:var(--ink-soft); display:flex; align-items:center; justify-content:center; padding:16px; margin-right:-16px; margin-top:-16px; margin-bottom:-16px; height:calc(100% + 32px);" onclick="event.stopPropagation();">
+            <a href="./circuits/${circuit.file}" download title="Télécharger GPX" class="mobile-download-btn" onclick="event.stopPropagation();">
                 <i data-lucide="download" style="width:24px; height:24px;"></i>
             </a>`;
         } else {

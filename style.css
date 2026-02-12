@@ -2411,3 +2411,26 @@ input[type=range] {
         max-width: 95vw;
     }
 }
+
+/* ==========================================================================
+   MOBILE REFACTOR (Safe Append-Only)
+   ========================================================================== */
+
+/* Cible 1 : Conteneur de la liste des circuits (remplace padding-bottom: 140px) */
+.mobile-list-container {
+    padding-top: 10px;
+    padding-bottom: 140px !important; /* Force le padding pour eviter le masquage par le dock */
+}
+
+/* Cible 2 : Bouton de téléchargement GPX (remplace margin-right: -16px, calc height, etc.) */
+.mobile-download-btn {
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    margin-right: -16px; /* Pour coller au bord droit */
+    margin-top: -16px;   /* Pour coller en haut */
+    margin-bottom: -16px; /* Pour coller en bas */
+    align-self: stretch; /* Remplace height: calc(100% + 32px) pour plus de robustesse */
+}
