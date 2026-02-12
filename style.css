@@ -2562,3 +2562,8 @@ input[type=range] {
     border: 1px solid var(--line);
     border-radius: 8px;
 }
+
+/* Cible 21 : Harmonisation Header (remplace padding-right:15px hardcoded) */
+.mobile-header-harmonized {
+    padding-right: 16px !important; /* Force 16px to match var(--spacing-md) */
+}
