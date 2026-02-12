@@ -2608,3 +2608,30 @@ input[type=range] {
         border-radius: 8px !important; /* Match dock */
     }
 }
+
+/* === HARMONISATION HEADER/TOOLBAR & LISTE (VERSION 3.5.2) === */
+@media (max-width: 768px) {
+    /* 1. Fusion Visuelle Header / Toolbar */
+    .mobile-view-header {
+        border-bottom: none !important; /* On supprime la ligne de séparation */
+        box-shadow: none !important; /* On supprime l'ombre intermédiaire */
+        padding-bottom: 4px !important; /* On réduit l'espace bas */
+        min-height: auto !important; /* Hauteur naturelle */
+        z-index: 102 !important; /* Au-dessus de la toolbar */
+    }
+
+    .mobile-toolbar {
+        border-top: none !important; /* Pas de bordure haute */
+        box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* Ombre uniquement en bas */
+        padding-top: 0 !important; /* Collé au header */
+        z-index: 101 !important;
+        position: sticky !important;
+        top: 0 !important; /* Si on veut que tout colle */
+        background-color: var(--surface) !important; /* Assurer fond blanc */
+    }
+
+    /* 2. Harmonisation Espacement Liste (Basé sur le plus petit : 8px) */
+    .mobile-list-container {
+        padding-top: 8px !important; /* Remplace le 10px précédent pour matcher margin-bottom: 8px */
+    }
+}

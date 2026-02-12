@@ -838,7 +838,7 @@ export function renderMobileMenu() {
             </button>
         </div>
         <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px; padding-bottom:100px;">
-            History Walk Mobile v${state.appVersion || '3.5.1'}
+            History Walk Mobile v${state.appVersion || '3.5.2'}
         </div>
     `;
 
