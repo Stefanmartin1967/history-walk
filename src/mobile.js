@@ -627,10 +627,7 @@ export function renderMobilePoiList(features) {
     container.appendChild(headerDiv);
 
     const listDiv = document.createElement('div');
-    listDiv.className = 'mobile-list mobile-standard-padding';
-    listDiv.style.flexGrow = '1';
-    listDiv.style.overflowY = 'auto';
-    listDiv.style.paddingTop = '10px';
+    listDiv.className = 'mobile-list mobile-standard-padding mobile-poi-list-container';
     
     let listHtml = '';
     listToDisplay.forEach(feature => {
@@ -641,7 +638,7 @@ export function renderMobilePoiList(features) {
         const checkIcon = isVisited ? '<i data-lucide="check" style="width:20px; height:20px; margin-left:5px; color:var(--ok); stroke-width:3;"></i>' : '';
 
         listHtml += `
-            <button class="mobile-list-item poi-item-mobile" data-id="${poiId}" style="justify-content: space-between;">
+            <button class="mobile-list-item poi-item-mobile mobile-poi-item-layout" data-id="${poiId}">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div style="color:${isVisited ? 'var(--ok)' : 'var(--brand)'}; display:flex; align-items:center;">
                         ${iconHtml}

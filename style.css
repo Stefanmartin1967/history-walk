@@ -2462,3 +2462,15 @@ input[type=range] {
     align-items: center;
     flex-wrap: wrap;
 }
+
+/* Cible 6 : Conteneur de la liste des POI (remplace flex-grow:1, overflow-y:auto, etc.) */
+.mobile-poi-list-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-top: 10px;
+}
+
+/* Cible 7 : Layout Item POI (remplace justify-content: space-between) */
+.mobile-poi-item-layout {
+    justify-content: space-between;
+}
