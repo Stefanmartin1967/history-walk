@@ -2635,3 +2635,25 @@ input[type=range] {
         padding-top: 8px !important; /* Remplace le 10px précédent pour matcher margin-bottom: 8px */
     }
 }
+
+/* === OPTIMISATION PWA & SAFE AREA (VERSION 3.5.3) === */
+@media (max-width: 768px) {
+    /* 1. Gestion du Notch (Encoche) en haut */
+    .mobile-view-header {
+        padding-top: calc(8px + env(safe-area-inset-top)) !important;
+        /* On s'assure que le contenu ne colle pas au status bar */
+    }
+
+    /* 2. Gestion de la Home Bar (Barre du bas) */
+    #mobile-dock {
+        padding-bottom: calc(4px + env(safe-area-inset-bottom)) !important;
+        /* Le dock remonte au-dessus de la barre système */
+    }
+
+    /* 3. Ajustement du padding bas des listes pour éviter d'être caché par le dock agrandi */
+    .mobile-list-container,
+    .mobile-poi-list-container,
+    .mobile-actions-container {
+        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+    }
+}
