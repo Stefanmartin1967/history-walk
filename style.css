@@ -2589,3 +2589,22 @@ input[type=range] {
         border-radius: 12px !important;
     }
 }
+
+/* === ALIGNEMENT TOOLBAR / DOCK (USER REQUEST) === */
+@media (max-width: 768px) {
+    /* On force la Toolbar à avoir le même padding vertical que le Dock */
+    .mobile-toolbar {
+        padding: 4px 0 !important;
+        justify-content: space-around !important; /* Safety */
+    }
+
+    /* On force les boutons de la Toolbar à se comporter comme ceux du Dock */
+    .toolbar-btn {
+        flex: 1 !important; /* Distribution égale */
+        width: auto !important; /* Overwrite width: 42px */
+        max-width: none !important;
+        padding: 8px 4px !important;
+        height: auto !important; /* Overwrite height: 42px */
+        border-radius: 8px !important; /* Match dock */
+    }
+}
