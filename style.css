@@ -2657,3 +2657,31 @@ input[type=range] {
         padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
     }
 }
+
+/* ========================================================= */
+/* === IMPROVED PC HEADER LAYOUT (Space & Alignment) === */
+/* ========================================================= */
+
+/* 1. Unlock layout: Allow left container to fill space */
+.topbar-left {
+    flex-grow: 1;
+    width: 100%;
+}
+
+/* 2. Push buttons to the right */
+/* Target the "Mes Circuits" button which follows the search bar */
+#btn-open-my-circuits {
+    margin-left: auto;
+}
+
+/* 3. Hide text for "Mes Circuits" button (Icon only) */
+#btn-open-my-circuits span {
+    display: none !important;
+}
+
+/* 4. Ensure Title has space */
+.app-title {
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 16px; /* Ensure spacing with search */
+}
