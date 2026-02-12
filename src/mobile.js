@@ -277,7 +277,10 @@ export function renderMobileCircuitsList() {
 
     let html = `
         <div class="mobile-view-header">
-            <h1>Mes Circuits</h1>
+            <h1 style="display:flex; align-items:center;">
+                Mes Circuits
+                <span style="font-size:10px; margin-left:10px; color:var(--brand); border:1px solid var(--brand); padding:2px 4px; border-radius:4px;">Ver: 49bb071</span>
+            </h1>
         </div>
         <div id="mobile-toolbar-container"></div>
         <div class="panel-content mobile-standard-padding mobile-list-container">
@@ -371,7 +374,7 @@ export function renderMobileCircuitsList() {
 
             html += `
                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px;">
-                    <div class="mobile-list-item circuit-item-mobile" data-id="${circuit.id}" role="button" tabindex="0" style="justify-content: space-between; flex:1; align-items:center; cursor:pointer;">
+                    <div class="mobile-list-item circuit-item-mobile mobile-card-layout" data-id="${circuit.id}" role="button" tabindex="0">
                         ${toggleVisitedHtml}
                         <div style="display:flex; flex-direction:column; flex:1; min-width:0; margin-right:4px;"> <!-- Marge droite réduite -->
                             <div style="display:flex; align-items:center; width:100%;">

@@ -2444,3 +2444,11 @@ input[type=range] {
     flex-shrink: 0;
     cursor: pointer;
 }
+
+/* Cible 4 : Layout de la Carte Circuit (remplace justify-content: space-between, flex:1, etc.) */
+.mobile-card-layout {
+    justify-content: space-between;
+    flex: 1;
+    align-items: center;
+    cursor: pointer;
+}
