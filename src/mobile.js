@@ -364,7 +364,7 @@ export function renderMobileCircuitsList() {
             const visitedIcon = circuit._allVisited ? 'check-circle' : 'circle';
             const visitedColor = circuit._allVisited ? 'var(--ok)' : 'var(--line)'; // Gris clair si pas fait, Vert si fait
             const toggleVisitedHtml = `
-                <div class="mobile-toggle-visited" data-id="${circuit.id}" data-visited="${circuit._allVisited}" style="display:flex; align-items:center; justify-content:center; padding:10px 10px 10px 0; color:${visitedColor}; cursor:pointer; flex-shrink:0;" onclick="event.stopPropagation();">
+                <div class="mobile-toggle-visited mobile-check-btn" data-id="${circuit.id}" data-visited="${circuit._allVisited}" style="color:${visitedColor};" onclick="event.stopPropagation();">
                     <i data-lucide="${visitedIcon}" style="width:24px; height:24px;"></i>
                 </div>
             `;
