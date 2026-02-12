@@ -2567,3 +2567,25 @@ input[type=range] {
 .mobile-header-harmonized {
     padding-right: var(--spacing-md) !important; /* Force match var(--spacing-md) */
 }
+
+/* === HARMONISATION MOBILE FINAL (USER REQUEST) === */
+@media (max-width: 768px) {
+    /* 1. Harmonisation Verticale des Conteneurs (Top 10px) */
+    .mobile-list-container,
+    .mobile-poi-list-container,
+    .mobile-actions-container,
+    .mobile-search-container {
+        padding-top: 10px !important;
+    }
+
+    /* 2. Optimisation Largeur : Padding Interne 12px (vs 16px) */
+    .mobile-list-item {
+        padding: 12px !important;
+        border-radius: 12px !important; /* Harmonisation Arrondis */
+    }
+
+    /* Cas spécifique Search Input */
+    .mobile-search-input {
+        border-radius: 12px !important;
+    }
+}

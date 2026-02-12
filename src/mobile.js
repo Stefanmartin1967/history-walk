@@ -276,7 +276,7 @@ export function renderMobileCircuitsList() {
     circuitsToDisplay = enrichedCircuits;
 
     let html = `
-        <div class="mobile-view-header">
+        <div class="mobile-view-header mobile-header-harmonized">
             <h1>Mes Circuits</h1>
         </div>
         <div id="mobile-toolbar-container"></div>
@@ -740,10 +740,10 @@ export function renderMobileSearch() {
     container.style.overflow = '';
 
     container.innerHTML = `
-        <div class="mobile-view-header">
+        <div class="mobile-view-header mobile-header-harmonized">
             <h1>Rechercher</h1>
         </div>
-        <div class="mobile-search mobile-search-container">
+        <div class="mobile-search mobile-search-container mobile-standard-padding">
             <div class="mobile-search-wrapper">
                 <i data-lucide="search" class="search-icon mobile-search-icon"></i>
                 <input type="text" id="mobile-search-input" placeholder="Nom du lieu..." 
@@ -799,7 +799,7 @@ export function renderMobileMenu() {
     container.style.overflow = '';
     
     container.innerHTML = `
-        <div class="mobile-view-header">
+        <div class="mobile-view-header mobile-header-harmonized">
             <h1>Menu</h1>
         </div>
         <div class="mobile-list actions-list mobile-standard-padding mobile-actions-container">
