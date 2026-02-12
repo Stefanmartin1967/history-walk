@@ -2474,3 +2474,27 @@ input[type=range] {
 .mobile-poi-item-layout {
     justify-content: space-between;
 }
+
+/* Cible 8 : Conteneur Menu Actions (remplace padding-top: 16px) */
+.mobile-actions-container {
+    padding-top: 16px;
+}
+
+/* Cible 9 : Séparateur Menu (remplace height:1px, background, margin) */
+.mobile-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 10px 0;
+}
+
+/* Cible 10 : Couleur Rouge (remplace color:var(--danger)) */
+.text-danger {
+    color: var(--danger);
+}
+
+/* Cible 11 : Icône Coeur BMC (remplace color:#e91e63, margin-left:auto, fill:#e91e63) */
+.bmc-heart-icon {
+    color: #e91e63;
+    margin-left: auto;
+    fill: #e91e63;
+}

@@ -806,12 +806,12 @@ export function renderMobileMenu() {
         <div class="mobile-view-header">
             <h1>Menu</h1>
         </div>
-        <div class="mobile-list actions-list mobile-standard-padding" style="padding-top: 16px;">
+        <div class="mobile-list actions-list mobile-standard-padding mobile-actions-container">
             <button class="mobile-list-item" id="mob-action-scan">
                 <i data-lucide="scan-line"></i>
                 <span>Scanner un circuit</span>
             </button>
-            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
+            <div class="mobile-divider"></div>
             <button class="mobile-list-item" id="mob-action-restore">
                 <i data-lucide="folder-down"></i>
                 <span>Restaurer les données</span>
@@ -820,29 +820,29 @@ export function renderMobileMenu() {
                 <i data-lucide="save"></i>
                 <span>Sauvegarder les données</span>
             </button>
-            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
+            <div class="mobile-divider"></div>
              <button class="mobile-list-item" id="mob-action-geojson">
                 <i data-lucide="map"></i>
                 <span>Charger Destination (GeoJSON)</span>
             </button>
-            <button class="mobile-list-item" id="mob-action-reset" style="color:var(--danger);">
+            <button class="mobile-list-item text-danger" id="mob-action-reset">
                 <i data-lucide="trash-2"></i>
                 <span>Vider les données locales</span>
             </button>
-            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
+            <div class="mobile-divider"></div>
             <button class="mobile-list-item" id="mob-action-theme">
                 <i data-lucide="palette"></i>
                 <span>Changer Thème</span>
             </button>
-            <div style="height:1px; background:var(--line); margin:10px 0;"></div>
+            <div class="mobile-divider"></div>
             <button class="mobile-list-item bmc-btn-mobile" id="mob-action-bmc">
                 <i data-lucide="coffee"></i>
                 <span>Offrir un café</span>
-                <i data-lucide="heart" style="color:#e91e63; margin-left:auto; fill:#e91e63;"></i>
+                <i data-lucide="heart" class="bmc-heart-icon"></i>
             </button>
         </div>
         <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
-            History Walk Mobile v${state.appVersion || '3.2_refactor'}
+            History Walk Mobile v${state.appVersion || '3.3_refactor'}
         </div>
     `;
 
