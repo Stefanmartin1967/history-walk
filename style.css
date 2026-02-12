@@ -2685,3 +2685,50 @@ input[type=range] {
     flex-shrink: 0;
     margin-right: 16px; /* Ensure spacing with search */
 }
+
+/* ========================================================= */
+/* === PC HEADER ZOOM +25% (User Request) === */
+/* ========================================================= */
+
+.topbar {
+    height: 80px; /* Was 64px */
+}
+
+/* Adjust map and sidebar positions to match new header height */
+#map,
+.right-sidebar {
+    top: 80px;
+}
+
+/* Increase button size */
+.btn {
+    height: 48px; /* Was 38px */
+    padding: 0 16px; /* Slightly more padding */
+    border-radius: 14px; /* Slightly more rounded */
+}
+
+/* Increase button icons */
+.btn svg {
+    width: 24px; /* Was 18px */
+    height: 24px;
+}
+
+/* Increase search input size */
+#search-input {
+    height: 48px; /* Was 38px */
+    border-radius: 14px; /* Match buttons */
+    padding-left: 52px; /* Adjust for larger icon spacing */
+    font-size: 18px; /* Larger text */
+}
+
+/* Adjust search icon position */
+.search-icon {
+    width: 24px;
+    height: 24px;
+    left: 16px;
+}
+
+/* Increase Title Size */
+.app-title {
+    font-size: 24px; /* Was 20px */
+}
