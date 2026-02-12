@@ -837,8 +837,8 @@ export function renderMobileMenu() {
                 <i data-lucide="heart" class="bmc-heart-icon"></i>
             </button>
         </div>
-        <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
-            History Walk Mobile v${state.appVersion || '3.5'}
+        <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px; padding-bottom:100px;">
+            History Walk Mobile v${state.appVersion || '3.5.1'}
         </div>
     `;
 
