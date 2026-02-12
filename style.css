@@ -2411,3 +2411,13 @@ input[type=range] {
         max-width: 95vw;
     }
 }
+
+/* ==========================================================================
+   MOBILE REFACTOR (Safe Append-Only)
+   ========================================================================== */
+
+/* Cible 1 : Conteneur de la liste des circuits (remplace padding-bottom: 140px) */
+.mobile-list-container {
+    padding-top: 10px;
+    padding-bottom: 140px !important; /* Force le padding pour eviter le masquage par le dock */
+}

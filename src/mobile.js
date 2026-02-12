@@ -280,7 +280,7 @@ export function renderMobileCircuitsList() {
             <h1>Mes Circuits</h1>
         </div>
         <div id="mobile-toolbar-container"></div>
-        <div class="panel-content mobile-standard-padding" style="padding-top: 10px; padding-bottom: 140px;">
+        <div class="panel-content mobile-standard-padding mobile-list-container">
     `;
 
     if (allCircuits.length === 0) {
