@@ -2434,3 +2434,13 @@ input[type=range] {
     margin-bottom: -16px; /* Pour coller en bas */
     align-self: stretch; /* Remplace height: calc(100% + 32px) pour plus de robustesse */
 }
+
+/* Cible 3 : Bouton Check/Visité (remplace padding:10px..., flex..., etc.) */
+.mobile-check-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 10px 10px 0;
+    flex-shrink: 0;
+    cursor: pointer;
+}
