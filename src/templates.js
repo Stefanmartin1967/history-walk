@@ -11,6 +11,7 @@ export const ICONS = {
     chevronLeft: `<i data-lucide="chevron-left" style="width:18px;height:18px;"></i>`,
     chevronRight: `<i data-lucide="chevron-right" style="width:18px;height:18px;"></i>`,
     x: `<i data-lucide="x" style="width:18px;height:18px;"></i>`,
+    arrowLeft: `<i data-lucide="arrow-left" style="width:24px;height:24px;"></i>`,
     arrowLeftToLine: `<i data-lucide="arrow-left-to-line" style="width:18px;height:18px;"></i>`,
     volume: `<i data-lucide="volume-2" style="width:18px;height:18px;"></i>`,
     imagePlus: `<i data-lucide="image-plus" style="width:18px;height:18px;"></i>`,
@@ -196,19 +197,31 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
     const mobileBtnStyle = 'width:36px; height:36px; background:var(--surface-muted); padding:0; border-radius:8px; border:none; display:grid; place-items:center;';
     const mobileGmapsBtn = gmapsButtonHtml.replace('class="action-button"', `class="action-button" style="${mobileBtnStyle}"`);
 
+    // Style spécifique pour la flèche retour (transparent)
+    const backBtnStyle = 'width:44px; height:44px; background:transparent; padding:0; border:none; display:grid; place-items:center; margin-left:-8px;';
+
     const mobileHtml = `
         <div class="panel-content" style="padding-bottom: 100px;">
             <div class="detail-section editable-field" data-field-id="title" style="position:sticky; top:0; z-index:20; background:var(--surface-muted); padding-bottom:12px; margin-bottom:0; border-bottom:1px solid var(--line);">
                 <div class="content" style="display:flex; flex-direction:column; gap:0;">
 
-                    <!-- ROW 1: Title + Close -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; margin-bottom: 10px;">
-                        <div class="title-names" style="flex:1; min-width:0; overflow:hidden;">
-                             <h2 id="mobile-title-fr" class="editable-text" style="margin:0; font-size:20px; font-weight:700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeXml(poiName)}</h2>
-                             <h2 id="mobile-title-ar" style="display:none; margin:0; font-size:20px; font-weight:700; text-align:right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" dir="rtl">${escapeXml(arName)}</h2>
+                    <!-- ROW 1: Header Grid (Back + Centered Title) -->
+                    <div style="display:grid; grid-template-columns: 44px 1fr 44px; align-items:center; width:100%; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; margin-bottom: 10px;">
+
+                        <!-- Left: Back Button -->
+                        <div style="display:flex; justify-content:flex-start;">
+                             <button id="details-close-btn" class="action-button" style="${backBtnStyle}">${ICONS.arrowLeft}</button>
                         </div>
-                        <div style="flex-shrink:0; margin-left:10px;">
-                             <button id="details-close-btn" class="action-button" style="${mobileBtnStyle}">${ICONS.x}</button>
+
+                        <!-- Center: Title -->
+                        <div class="title-names" style="text-align:center; overflow:hidden;">
+                             <h2 id="mobile-title-fr" class="editable-text" style="margin:0; font-size:18px; font-weight:700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeXml(poiName)}</h2>
+                             <h2 id="mobile-title-ar" style="display:none; margin:0; font-size:18px; font-weight:700; text-align:center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" dir="rtl">${escapeXml(arName)}</h2>
+                        </div>
+
+                        <!-- Right: Empty Placeholder (for balance) -->
+                        <div style="display:flex; justify-content:flex-end;">
+                             <!-- Reserved space -->
                         </div>
                     </div>
 

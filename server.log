@@ -1,0 +1,12 @@
+127.0.0.1 - - [12/Feb/2026 20:10:18] "GET /index_verify.html HTTP/1.1" 200 -
+127.0.0.1 - - [12/Feb/2026 20:10:18] "GET /style.css?v=1.9 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Feb/2026 20:10:18] code 404, message File not found
+127.0.0.1 - - [12/Feb/2026 20:10:18] "GET /src/main_verify.js HTTP/1.1" 404 -
+127.0.0.1 - - [12/Feb/2026 20:11:09] "GET /index_verify.html HTTP/1.1" 200 -
+127.0.0.1 - - [12/Feb/2026 20:11:10] "GET /style.css?v=1.9 HTTP/1.1" 200 -
+127.0.0.1 - - [12/Feb/2026 20:11:10] code 404, message File not found
+127.0.0.1 - - [12/Feb/2026 20:11:10] "GET /src/main_verify.js HTTP/1.1" 404 -
+127.0.0.1 - - [12/Feb/2026 20:14:17] "GET /test_template.html HTTP/1.1" 200 -
+127.0.0.1 - - [12/Feb/2026 20:14:17] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [12/Feb/2026 20:14:17] "GET /src/templates_test.js HTTP/1.1" 200 -
+127.0.0.1 - - [12/Feb/2026 20:14:17] "GET /src/mock_deps.js HTTP/1.1" 200 -
