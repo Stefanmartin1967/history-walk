@@ -287,15 +287,15 @@ export function renderMobileCircuitsList() {
     `;
 
     if (allCircuits.length === 0) {
-        html += `<p style="text-align:center; color:var(--ink-soft); margin-top:20px;">
+        html += `<p class="mobile-empty-state">
             Aucun circuit enregistré.<br>
             Utilisez le menu <b>Menu > Restaurer</b> pour charger une sauvegarde.
         </p>`;
     } else if (circuitsToDisplay.length === 0) {
-        html += `<div style="text-align:center; color:var(--ink-soft); margin-top:40px; display:flex; flex-direction:column; align-items:center;">
-            <i data-lucide="check-circle" style="width:48px; height:48px; color:var(--ok); margin-bottom:10px;"></i>
+        html += `<div class="mobile-finished-state">
+            <i data-lucide="check-circle" class="mobile-check-icon-large"></i>
             <p>Bravo ! Tout est terminé.</p>
-            <button id="btn-reset-filter-inline" style="margin-top:10px; padding:8px 16px; background:var(--surface-muted); border:1px solid var(--line); border-radius:8px;">
+            <button id="btn-reset-filter-inline" class="mobile-reset-filter-btn">
                 Tout afficher
             </button>
         </div>`;

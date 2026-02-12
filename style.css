@@ -2528,3 +2528,37 @@ input[type=range] {
 .mobile-search-results {
     margin-top: 20px;
 }
+
+/* Cible 17 : État "Liste Vide" (remplace text-align:center, etc.) */
+.mobile-empty-state {
+    text-align: center;
+    color: var(--ink-soft);
+    margin-top: 20px;
+}
+
+/* Cible 18 : État "Tout Terminé" (remplace flex-direction:column, etc.) */
+.mobile-finished-state {
+    text-align: center;
+    color: var(--ink-soft);
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Cible 19 : Grande Icône Check (remplace width:48px, etc.) */
+.mobile-check-icon-large {
+    width: 48px;
+    height: 48px;
+    color: var(--ok);
+    margin-bottom: 10px;
+}
+
+/* Cible 20 : Bouton Reset Filtre (remplace padding:8px 16px, background:var(--surface-muted), etc.) */
+.mobile-reset-filter-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: var(--surface-muted);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
