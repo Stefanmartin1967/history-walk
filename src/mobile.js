@@ -380,7 +380,7 @@ export function renderMobileCircuitsList() {
                             <div style="display:flex; align-items:center; width:100%;">
                                 <span style="${nameStyle} font-size:16px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${escapeHtml(displayName)}</span>
                             </div>
-                            <div style="font-size:13px; color:var(--ink-soft); margin-top:4px; display:flex; align-items:center; flex-wrap:wrap;">
+                            <div class="mobile-card-meta">
                                 ${total} POI • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; margin:0 4px;"></i> • ${zoneName}${restoIcon}
                             </div>
                         </div>
@@ -845,7 +845,7 @@ export function renderMobileMenu() {
             </button>
         </div>
         <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
-            History Walk Mobile v${state.appVersion || '3.1'}
+            History Walk Mobile v${state.appVersion || '3.2_refactor'}
         </div>
     `;
 
