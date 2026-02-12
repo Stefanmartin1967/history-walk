@@ -277,10 +277,7 @@ export function renderMobileCircuitsList() {
 
     let html = `
         <div class="mobile-view-header">
-            <h1 style="display:flex; align-items:center;">
-                Mes Circuits
-                <span style="font-size:10px; margin-left:10px; color:var(--brand); border:1px solid var(--brand); padding:2px 4px; border-radius:4px;">Ver: 49bb071</span>
-            </h1>
+            <h1>Mes Circuits</h1>
         </div>
         <div id="mobile-toolbar-container"></div>
         <div class="panel-content mobile-standard-padding mobile-list-container">
@@ -842,7 +839,7 @@ export function renderMobileMenu() {
             </button>
         </div>
         <div style="text-align:center; color:var(--ink-soft); font-size:12px; margin-top:20px;">
-            History Walk Mobile v${state.appVersion || '3.3_refactor'}
+            History Walk Mobile v${state.appVersion || '3.5'}
         </div>
     `;
 
