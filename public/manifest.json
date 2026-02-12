@@ -1,11 +1,11 @@
 {
   "name": "History Walk",
   "short_name": "History Walk",
-  "start_url": ".",
+  "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#0D3B66",
+  "background_color": "#F0F4F8",
   "theme_color": "#0D3B66",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icons/icon-192.png",
