@@ -2304,7 +2304,7 @@ input[type=range] {
 /* --- CONSOLIDATED MOBILE STYLES (16px Harmonization) --- */
 @media (max-width: 768px) {
     :root {
-        --spacing-md: 16px;
+        --spacing-md: 8px;
     }
 
     /* 1. Reset Global Layout for Mobile */
@@ -2323,10 +2323,10 @@ input[type=range] {
         background-color: var(--surface-muted);
     }
 
-    /* 2. PADDING STRATEGY (The "16px" Fix) */
+    /* 2. PADDING STRATEGY (Revised: 8px to maximize card width) */
     .mobile-standard-padding {
-        padding-left: var(--spacing-md);
-        padding-right: var(--spacing-md);
+        padding-left: 8px;
+        padding-right: 8px;
     }
 
     /* Apply to List and Details Content */
@@ -2501,7 +2501,7 @@ input[type=range] {
 
 /* Cible 12 : Mobile Search View (padding:16px) */
 .mobile-search-container {
-    padding: 16px;
+    padding: var(--spacing-md);
 }
 
 /* Cible 13 : Wrapper Input (position:relative) */
@@ -2565,5 +2565,5 @@ input[type=range] {
 
 /* Cible 21 : Harmonisation Header (remplace padding-right:15px hardcoded) */
 .mobile-header-harmonized {
-    padding-right: 16px !important; /* Force 16px to match var(--spacing-md) */
+    padding-right: var(--spacing-md) !important; /* Force match var(--spacing-md) */
 }
