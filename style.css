@@ -2452,3 +2452,13 @@ input[type=range] {
     align-items: center;
     cursor: pointer;
 }
+
+/* Cible 5 : Métadonnées Circuit (remplace font-size:13px, color:ink-soft, etc.) */
+.mobile-card-meta {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
