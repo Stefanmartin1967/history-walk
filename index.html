@@ -48,7 +48,8 @@
     </div>
 
     <div class="topbar">
-        <div class="topbar-left">
+        <!-- GROUP 1: LEFT (Title & Search) -->
+        <div class="header-group-left">
             <h1 class="app-title" id="app-title">History Walk</h1>
 
             <div class="search-container">
@@ -56,10 +57,35 @@
                 <input type="search" id="search-input" placeholder="Rechercher un lieu...">
                 <div class="search-results" id="search-results" style="display: none;"></div>
             </div>
+        </div>
 
-            <!-- ACTION GROUP (Pushed to Right) -->
-            <div class="topbar-actions-group">
+        <!-- GROUP 2: CENTER-RIGHT (Circuits & Filters) -->
+        <div class="header-group-center">
+            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="route"></i> <span>Mes Circuits</span></button>
 
+            <div class="zones-container">
+                <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span
+                        id="zonesLabel">Zone</span></button>
+                <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
+            </div>
+
+            <div class="zones-container">
+                <button class="btn" id="btn-categories" title="Filtrer par catégorie"><i data-lucide="list"></i> <span>Catégories</span></button>
+                <div class="zones-menu" id="categoriesMenu" style="display: none;"></div>
+            </div>
+
+            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les visités"><i
+                    data-lucide="eye"></i><span>Visités</span></button>
+
+            <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i
+                    data-lucide="calendar"></i><span>Planifiés</span></button>
+
+            <button class="btn" id="btn-mode-selection" title="Mode consultation"><i
+                    data-lucide="map-pin-off"></i><span>Sélection</span></button>
+        </div>
+
+        <!-- GROUP 3: FAR RIGHT (Tools & Admin) -->
+        <div class="header-group-right">
             <!-- GOD MODE TOOLS -->
             <div class="tools-dropdown-container" id="admin-tools-container" style="display:none;">
                 <button class="btn" id="btn-admin-menu" title="God Mode Tools"
@@ -82,28 +108,6 @@
                     </a>
                 </div>
             </div>
-
-            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="route"></i> <span>Mes Circuits</span></button>
-
-            <div class="zones-container">
-                <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span
-                        id="zonesLabel">Zone</span></button>
-                <div class="zones-menu" id="zonesMenu" style="display: none;"></div>
-            </div>
-
-            <div class="zones-container">
-                <button class="btn" id="btn-categories" title="Filtrer par catégorie"><i data-lucide="list"></i> <span>Catégories</span></button>
-                <div class="zones-menu" id="categoriesMenu" style="display: none;"></div>
-            </div>
-
-            <button class="btn" id="btn-filter-vus" title="Masquer/Afficher les visités"><i
-                    data-lucide="eye"></i><span>Visités</span></button>
-
-            <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i
-                    data-lucide="calendar-check"></i><span>Planifiés</span></button>
-
-            <button class="btn" id="btn-mode-selection" title="Mode consultation"><i
-                    data-lucide="map-pin-off"></i><span>Sélection</span></button>
 
             <div class="tools-dropdown-container">
                 <button class="btn" id="btn-tools-menu" title="Menu Outils"><i
@@ -161,10 +165,6 @@
                 </div>
             </div>
 
-            </div> <!-- End .topbar-actions-group -->
-        </div>
-
-        <div class="topbar-right">
             <!-- HIDDEN LOADERS (Keep them for logic) -->
             <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
             <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">

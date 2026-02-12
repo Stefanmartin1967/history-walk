@@ -567,11 +567,13 @@ function setupDesktopUIListeners() {
         state.activeFilters.vus = isActive;
 
         // Bascule de l'icône : Eye (inactif) -> Eye-off (actif)
-        const iconEl = btn.querySelector('[data-lucide]');
-        if (iconEl) {
-            iconEl.setAttribute('data-lucide', isActive ? 'eye-off' : 'eye');
-            createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
-        }
+        // Lucide remplace le <i> par un <svg>, donc on doit recréer le <i>
+        const iconName = isActive ? 'eye-off' : 'eye';
+        const label = btn.querySelector('span')?.textContent || 'Visités';
+
+        btn.innerHTML = `<i data-lucide="${iconName}"></i><span>${label}</span>`;
+        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
+
         applyFilters();
     });
 
@@ -581,11 +583,12 @@ function setupDesktopUIListeners() {
         state.activeFilters.planifies = isActive;
 
         // Bascule de l'icône : Calendar (inactif) -> Calendar-off (actif)
-        const iconEl = btn.querySelector('[data-lucide]');
-        if (iconEl) {
-            iconEl.setAttribute('data-lucide', isActive ? 'calendar-off' : 'calendar'); // Correction: Calendar-off (barré)
-            createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
-        }
+        const iconName = isActive ? 'calendar-off' : 'calendar';
+        const label = btn.querySelector('span')?.textContent || 'Planifiés';
+
+        btn.innerHTML = `<i data-lucide="${iconName}"></i><span>${label}</span>`;
+        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
+
         applyFilters();
     });
 
