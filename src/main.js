@@ -562,14 +562,30 @@ function setupDesktopUIListeners() {
     });
 
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {
-        const isActive = e.currentTarget.classList.toggle('active');
+        const btn = e.currentTarget;
+        const isActive = btn.classList.toggle('active');
         state.activeFilters.vus = isActive;
+
+        // Bascule de l'icône : Eye (inactif) -> Eye-off (actif)
+        const iconEl = btn.querySelector('[data-lucide]');
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', isActive ? 'eye-off' : 'eye');
+            createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
+        }
         applyFilters();
     });
 
     document.getElementById('btn-filter-planifies')?.addEventListener('click', (e) => {
-        const isActive = e.currentTarget.classList.toggle('active');
+        const btn = e.currentTarget;
+        const isActive = btn.classList.toggle('active');
         state.activeFilters.planifies = isActive;
+
+        // Bascule de l'icône : Calendar (inactif) -> Calendar-off (actif)
+        const iconEl = btn.querySelector('[data-lucide]');
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', isActive ? 'calendar-off' : 'calendar'); // Correction: Calendar-off (barré)
+            createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
+        }
         applyFilters();
     });
 
