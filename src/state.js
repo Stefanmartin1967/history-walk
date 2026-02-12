@@ -1,5 +1,5 @@
 // state.js
-export const APP_VERSION = '3.3_refactor'; // Version en mode propre !
+export const APP_VERSION = '3.4_refactor'; // Version en mode propre !
 export const MAX_CIRCUIT_POINTS = 15;
 
 export const POI_CATEGORIES = [

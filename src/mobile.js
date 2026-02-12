@@ -747,13 +747,13 @@ export function renderMobileSearch() {
         <div class="mobile-view-header">
             <h1>Rechercher</h1>
         </div>
-        <div style="padding: 16px;" class="mobile-search">
-            <div style="position:relative;">
-                <i data-lucide="search" class="search-icon" style="position:absolute; left:12px; top:12px;"></i>
+        <div class="mobile-search mobile-search-container">
+            <div class="mobile-search-wrapper">
+                <i data-lucide="search" class="search-icon mobile-search-icon"></i>
                 <input type="text" id="mobile-search-input" placeholder="Nom du lieu..." 
-                    style="width:100%; padding:10px 10px 10px 40px; border-radius:12px; border:1px solid var(--line);">
+                    class="mobile-search-input">
             </div>
-            <div id="mobile-search-results" class="mobile-list" style="margin-top:20px;"></div>
+            <div id="mobile-search-results" class="mobile-list mobile-search-results"></div>
         </div>
     `;
 

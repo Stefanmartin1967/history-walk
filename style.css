@@ -2498,3 +2498,33 @@ input[type=range] {
     margin-left: auto;
     fill: #e91e63;
 }
+
+/* Cible 12 : Mobile Search View (padding:16px) */
+.mobile-search-container {
+    padding: 16px;
+}
+
+/* Cible 13 : Wrapper Input (position:relative) */
+.mobile-search-wrapper {
+    position: relative;
+}
+
+/* Cible 14 : Icône Recherche (absolute, left/top) */
+.mobile-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+}
+
+/* Cible 15 : Input Recherche (width, padding, border) */
+.mobile-search-input {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+}
+
+/* Cible 16 : Résultats Recherche (margin-top:20px) */
+.mobile-search-results {
+    margin-top: 20px;
+}
