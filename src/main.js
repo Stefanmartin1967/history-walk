@@ -210,6 +210,27 @@ async function loadDefaultMap() {
 }
 
 async function initializeApp() {
+    // 0. Vérification Version (Cold Start Fix)
+    const storedVersion = localStorage.getItem('hw_app_version');
+    if (storedVersion !== APP_VERSION) {
+        console.log(`[Version] Mise à jour détectée : ${storedVersion} -> ${APP_VERSION}`);
+        localStorage.setItem('hw_app_version', APP_VERSION);
+        // Si ce n'est pas la première installation (donc storedVersion existe), on recharge pour purger
+        if (storedVersion) {
+            console.log("[Version] Rechargement forcé pour appliquer le nouveau design.");
+            // Petit délai pour laisser le temps au localStorage de s'écrire
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 100);
+            return;
+        }
+    } else {
+        // Au cas où storedVersion n'existe pas encore (premier lancement propre de cette version)
+        if (!storedVersion) {
+            localStorage.setItem('hw_app_version', APP_VERSION);
+        }
+    }
+
     // 0. Détection Mode Admin (God Mode)
     const urlParams = new URLSearchParams(window.location.search);
     console.log("[Main] Checking Admin Mode. Params:", window.location.search);
@@ -620,7 +641,9 @@ import { registerSW } from 'virtual:pwa-register';
 // SW Registration (Géré par Vite PWA)
 const updateSW = registerSW({
     onNeedRefresh() {
-        console.log("Nouvelle version disponible !");
+        console.log("Nouvelle version disponible ! Mise à jour en cours...");
+        // Force la mise à jour sans demander à l'utilisateur
+        updateSW(true);
     },
     onOfflineReady() {
         console.log("Application prête pour le mode hors-ligne !");
