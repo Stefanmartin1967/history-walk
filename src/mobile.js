@@ -609,12 +609,11 @@ export function renderMobilePoiList(features) {
     container.innerHTML = '';
 
     const headerDiv = document.createElement('div');
-    headerDiv.className = 'mobile-view-header';
+    headerDiv.className = 'mobile-view-header mobile-header-harmonized';
     headerDiv.style.flexShrink = '0';
     headerDiv.style.display = 'flex';
     headerDiv.style.alignItems = 'center';
     headerDiv.style.justifyContent = 'space-between';
-    headerDiv.style.paddingRight = '15px';
     headerDiv.innerHTML = `
         <div style="display:flex; align-items:center;">
             ${isCircuit ? '<button id="mobile-back-btn" style="margin-right:10px;"><i data-lucide="arrow-left"></i></button>' : ''}
