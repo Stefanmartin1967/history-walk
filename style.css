@@ -2666,3 +2666,78 @@ input[type=range] {
         padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
     }
 }
+
+
+/* --- LEAFLET CONTROLS HARMONIZATION --- */
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 24px !important;
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--line) !important;
+    background-color: var(--surface) !important;
+    color: var(--ink) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px !important; /* Space between buttons */
+}
+
+/* Remove default Leaflet borders between grouped buttons */
+.leaflet-bar {
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.leaflet-bar a:first-child {
+    border-bottom-left-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+}
+
+.leaflet-bar a:last-child {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+
+/* Zoom icons specific styling */
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    font-weight: bold !important;
+    color: var(--ink) !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover,
+.leaflet-control-layers-toggle:hover {
+    background-color: var(--surface-muted) !important;
+    color: var(--brand) !important;
+}
+
+/* Layers control specific adjustments */
+.leaflet-control-layers {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.leaflet-control-layers-toggle {
+    background-image: none !important; /* Remove default icon */
+}
+
+/* Add Lucide icon via CSS pseudo-element for Layers */
+.leaflet-control-layers-toggle::after {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 24px;
+    background-color: var(--ink); /* Icon color */
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 7 12 12 22 7 12 2'/%3E%3Cpolyline points='2 17 12 22 22 17'/%3E%3Cpolyline points='2 12 12 17 22 12'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 7 12 12 22 7 12 2'/%3E%3Cpolyline points='2 17 12 22 22 17'/%3E%3Cpolyline points='2 12 12 17 22 12'/%3E%3C/svg%3E") no-repeat center;
+}
+
+.leaflet-control-layers-toggle:hover::after {
+    background-color: var(--brand);
+}
