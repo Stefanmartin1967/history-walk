@@ -381,30 +381,17 @@ export function populateZonesMenu() {
 
     zonesMenu.innerHTML = '';
 
-    // On utilise state.currentFilteredFeatures pour avoir les comptes réels post-filtrage
-    // Mais attention : getZonesData() utilise par défaut state.loadedFeatures.
-    // Nous devons calculer manuellement les comptes basés sur les éléments VISIBLES.
+    // On demande les données calculées au spécialiste
+    const data = getZonesData();
 
-    const visibleFeatures = state.currentFilteredFeatures || state.loadedFeatures || [];
-    const zoneCounts = {};
-    let totalVisible = 0;
-
-    visibleFeatures.forEach(feature => {
-        const zone = feature.properties ? (feature.properties['Zone'] || 'Autre') : 'Autre';
-        zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
-        totalVisible++;
-    });
-
-    const sortedZones = Object.keys(zoneCounts).sort();
-
-    if (totalVisible === 0) {
+    if (!data || data.sortedZones.length === 0) {
         zonesMenu.innerHTML = '<button disabled>Aucune zone visible</button>';
         return;
     }
 
     // Création du bouton "Toutes"
     const allZonesBtn = document.createElement('button');
-    allZonesBtn.textContent = `Toutes les zones (${totalVisible})`;
+    allZonesBtn.textContent = `Toutes les zones (${data.totalVisible})`;
     allZonesBtn.onclick = () => {
         state.activeFilters.zone = null;
         if(zonesLabel) zonesLabel.textContent = 'Zone';
@@ -414,9 +401,9 @@ export function populateZonesMenu() {
     zonesMenu.appendChild(allZonesBtn);
 
     // Création des boutons par zone
-    sortedZones.forEach(zone => {
+    data.sortedZones.forEach(zone => {
         const zoneBtn = document.createElement('button');
-        zoneBtn.textContent = `${zone} (${zoneCounts[zone]})`;
+        zoneBtn.textContent = `${zone} (${data.zoneCounts[zone]})`;
         zoneBtn.onclick = () => {
             state.activeFilters.zone = zone;
             if(zonesLabel) zonesLabel.textContent = zone;

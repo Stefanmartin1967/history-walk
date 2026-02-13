@@ -48,8 +48,7 @@
     </div>
 
     <div class="topbar">
-        <!-- GROUP 1: LEFT (Title & Search) -->
-        <div class="header-group-left">
+        <div class="topbar-left">
             <h1 class="app-title" id="app-title">History Walk</h1>
 
             <div class="search-container">
@@ -57,11 +56,8 @@
                 <input type="search" id="search-input" placeholder="Rechercher un lieu...">
                 <div class="search-results" id="search-results" style="display: none;"></div>
             </div>
-        </div>
 
-        <!-- GROUP 2: CENTER-RIGHT (Circuits & Filters) -->
-        <div class="header-group-center">
-            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="route"></i> <span>Mes Circuits</span></button>
+            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="folder-heart"></i> <span>Mes Circuits</span></button>
 
             <div class="zones-container">
                 <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span
@@ -78,36 +74,10 @@
                     data-lucide="eye"></i><span>Visités</span></button>
 
             <button class="btn" id="btn-filter-planifies" title="Masquer/Afficher les planifiés"><i
-                    data-lucide="calendar"></i><span>Planifiés</span></button>
+                    data-lucide="calendar-check"></i><span>Planifiés</span></button>
 
             <button class="btn" id="btn-mode-selection" title="Mode consultation"><i
                     data-lucide="map-pin-off"></i><span>Sélection</span></button>
-        </div>
-
-        <!-- GROUP 3: FAR RIGHT (Tools & Admin) -->
-        <div class="header-group-right">
-            <!-- GOD MODE TOOLS -->
-            <div class="tools-dropdown-container" id="admin-tools-container" style="display:none;">
-                <button class="btn" id="btn-admin-menu" title="God Mode Tools"
-                    style="background-color: #ef4444; color: white;">
-                    <i data-lucide="shield-alert"></i>
-                    <span>GOD MODE</span>
-                </button>
-                <div class="tools-menu" id="admin-menu-content">
-                    <button class="tools-menu-item" id="btn-admin-scout">
-                        <i data-lucide="scan-eye"></i> Scout (Overpass)
-                    </button>
-                    <button class="tools-menu-item" id="btn-admin-export-master">
-                        <i data-lucide="database"></i> Export Master GeoJSON
-                    </button>
-                    <button class="tools-menu-item" id="btn-save-circuits">
-                        <i data-lucide="share-2"></i> Exporter Circuits
-                    </button>
-                    <a href="tools/fusion.html" target="_blank" class="tools-menu-item" style="text-decoration: none;">
-                        <i data-lucide="combine"></i> Console Fusion
-                    </a>
-                </div>
-            </div>
 
             <div class="tools-dropdown-container">
                 <button class="btn" id="btn-tools-menu" title="Menu Outils"><i
@@ -165,6 +135,31 @@
                 </div>
             </div>
 
+            <!-- GOD MODE TOOLS -->
+            <div class="tools-dropdown-container" id="admin-tools-container" style="display:none;">
+                <button class="btn" id="btn-admin-menu" title="God Mode Tools"
+                    style="background-color: #ef4444; color: white;">
+                    <i data-lucide="shield-alert"></i>
+                    <span>GOD MODE</span>
+                </button>
+                <div class="tools-menu" id="admin-menu-content">
+                    <button class="tools-menu-item" id="btn-admin-scout">
+                        <i data-lucide="scan-eye"></i> Scout (Overpass)
+                    </button>
+                    <button class="tools-menu-item" id="btn-admin-export-master">
+                        <i data-lucide="database"></i> Export Master GeoJSON
+                    </button>
+                    <button class="tools-menu-item" id="btn-save-circuits">
+                        <i data-lucide="share-2"></i> Exporter Circuits
+                    </button>
+                    <a href="tools/fusion.html" target="_blank" class="tools-menu-item" style="text-decoration: none;">
+                        <i data-lucide="combine"></i> Console Fusion
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="topbar-right">
             <!-- HIDDEN LOADERS (Keep them for logic) -->
             <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
             <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
@@ -179,7 +174,7 @@
     <div class="right-sidebar" id="right-sidebar">
         <div class="sidebar-tabs" id="sidebar-tabs">
             <button class="tab-button" data-tab="explorer" title="Mes Circuits"><span>Mes Circuits</span></button>
-            <button class="tab-button active" data-tab="circuit">Circuit</button>
+            <button class="tab-button active" data-tab="circuit" title="Circuit"><i data-lucide="route"></i></button>
             <button class="tab-button" data-tab="details">Détails</button>
         </div>
 

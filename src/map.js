@@ -36,8 +36,8 @@ export const iconMap = {
 export function initMap() {
     // Initialisation de la carte centrée sur Djerba
     map = L.map('map', {
-        zoomSnap: 0.1,
-        zoomDelta: 0.1,
+        zoomSnap: 0.25,
+        zoomDelta: 0.25,
         wheelPxPerZoomLevel: 180,
         attributionControl: false,
         preferCanvas: true
@@ -71,33 +71,6 @@ export function initMap() {
 
     L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
-
-    // --- INDICATEUR DE ZOOM TEMPORAIRE ---
-    const ZoomViewer = L.Control.extend({
-        onAdd: function(map) {
-            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control zoom-indicator');
-            container.style.backgroundColor = 'white';
-            container.style.padding = '5px 10px';
-            container.style.fontSize = '14px';
-            container.style.fontWeight = 'bold';
-            container.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
-            container.style.borderRadius = '5px';
-            container.style.marginTop = '10px';
-            container.innerText = 'Zoom: ' + map.getZoom();
-
-            map.on('zoomend', () => {
-                container.innerText = 'Zoom: ' + map.getZoom().toFixed(1);
-            });
-
-            return container;
-        },
-        onRemove: function(map) {
-            // Cleanup if needed
-        }
-    });
-
-    new ZoomViewer({ position: 'topleft' }).addTo(map);
-
     initMapListeners();
 }
 
@@ -358,19 +331,8 @@ export function fitMapToContent() {
     if (map && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
         const bounds = state.geojsonLayer.getBounds();
         if (bounds.isValid()) {
-             // Optimisation Zoom : On colle aux bords (padding minimal)
-             // Mais on tient compte du Header (80px) et de la Sidebar (si ouverte)
-             // padding: [top-left, bottom-right]
-             // top: 90px (80px header + 10px marge)
-             // right: 380px (sidebar) ou 10px (fermé)
-             const isSidebarOpen = document.body.classList.contains('sidebar-open');
-             const rightPadding = isSidebarOpen ? 390 : 10;
-
-             map.fitBounds(bounds, {
-                 paddingTopLeft: [10, 90],
-                 paddingBottomRight: [rightPadding, 10],
-                 maxZoom: 18 // Évite le zoom excessif sur un seul point
-             });
+             // On ajoute un peu de marge (5%) pour ne pas coller aux bords
+             map.fitBounds(bounds.pad(0.05));
         }
     }
 }

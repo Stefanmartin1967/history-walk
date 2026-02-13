@@ -562,33 +562,14 @@ function setupDesktopUIListeners() {
     });
 
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {
-        const btn = e.currentTarget;
-        const isActive = btn.classList.toggle('active');
+        const isActive = e.currentTarget.classList.toggle('active');
         state.activeFilters.vus = isActive;
-
-        // Bascule de l'icône : Eye (inactif) -> Eye-off (actif)
-        // Lucide remplace le <i> par un <svg>, donc on doit recréer le <i>
-        const iconName = isActive ? 'eye-off' : 'eye';
-        const label = btn.querySelector('span')?.textContent || 'Visités';
-
-        btn.innerHTML = `<i data-lucide="${iconName}"></i><span>${label}</span>`;
-        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
-
         applyFilters();
     });
 
     document.getElementById('btn-filter-planifies')?.addEventListener('click', (e) => {
-        const btn = e.currentTarget;
-        const isActive = btn.classList.toggle('active');
+        const isActive = e.currentTarget.classList.toggle('active');
         state.activeFilters.planifies = isActive;
-
-        // Bascule de l'icône : Calendar (inactif) -> Calendar-off (actif)
-        const iconName = isActive ? 'calendar-off' : 'calendar';
-        const label = btn.querySelector('span')?.textContent || 'Planifiés';
-
-        btn.innerHTML = `<i data-lucide="${iconName}"></i><span>${label}</span>`;
-        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
-
         applyFilters();
     });
 
