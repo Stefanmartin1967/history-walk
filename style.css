@@ -2827,3 +2827,64 @@ input[type=range] {
 .search-container + * {
     margin-left: 0 !important;
 }
+
+/* ========================================================= */
+/* === MAP CONTROLS HARMONIZATION (User Request) === */
+/* ========================================================= */
+
+/* Group all Leaflet controls */
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    border: none !important;
+    background-color: var(--surface) !important;
+    color: var(--ink) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 8px !important;
+    transition: transform 0.1s;
+}
+
+/* Remove default Leaflet border radius grouping to separate buttons */
+.leaflet-bar {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.leaflet-bar a:first-child,
+.leaflet-bar a:last-child {
+    border-radius: 12px !important;
+}
+
+/* Hover effect */
+.leaflet-bar a:hover,
+.leaflet-control-layers-toggle:hover {
+    background-color: var(--surface-muted) !important;
+    transform: translateY(-1px);
+}
+
+/* Fix icon size inside zoom buttons */
+.leaflet-control-zoom-in span,
+.leaflet-control-zoom-out span {
+    font-size: 24px !important;
+    font-weight: 300 !important;
+}
+
+/* Fix Layers Toggle Icon (often a background image in Leaflet) */
+.leaflet-control-layers-toggle {
+    background-size: 24px 24px !important;
+    /* Optional: replace with a Lucide icon via ::after if desired, but size fix is usually enough */
+}
+
+/* Ensure controls are positioned well below the 80px header */
+.leaflet-top {
+    top: 20px !important; /* Relative to map container which is already at top:80px */
+}
+.leaflet-left {
+    left: 20px !important;
+}
