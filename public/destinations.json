@@ -1,0 +1,16 @@
+{
+  "activeMapId": "djerba",
+  "maps": {
+    "djerba": {
+      "name": "Djerba",
+      "file": "djerba.geojson",
+      "startView": {
+        "center": [
+          33.77355,
+          10.94205
+        ],
+        "zoom": 12.7
+      }
+    }
+  }
+}
