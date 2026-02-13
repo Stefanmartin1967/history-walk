@@ -73,18 +73,6 @@ export function initMap() {
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
     initMapListeners();
 
-    // === ZOOM INDICATOR (New) ===
-    const ZoomIndicator = L.Control.extend({
-        onAdd: function(map) {
-            const div = L.DomUtil.create('div', 'leaflet-control-zoom-indicator');
-            div.innerHTML = `Zoom: ${map.getZoom().toFixed(1)}`;
-            map.on('zoom', () => {
-                div.innerHTML = `Zoom: ${map.getZoom().toFixed(1)}`;
-            });
-            return div;
-        }
-    });
-    new ZoomIndicator({ position: 'topleft' }).addTo(map);
 }
 
 /**
