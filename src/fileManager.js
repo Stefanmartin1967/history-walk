@@ -1,7 +1,7 @@
 // fileManager.js
 import { state } from './state.js';
 import { getPoiId, displayGeoJSON } from './data.js';
-import { DOM, closeDetailsPanel, updateExportButtonLabel } from './ui.js';
+import { DOM, closeDetailsPanel, updateExportButtonLabel } from './ui.js'; // Note: DOM is mostly used in ui.js, but keeping import if needed
 import { showToast } from './toast.js';
 import { saveAppState, savePoiData, saveCircuit, clearStore } from './database.js';
 import { processImportedGpx } from './gpx.js';
