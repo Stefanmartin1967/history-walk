@@ -92,7 +92,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 64px;
+    height: 80px; /* Plus grand pour boutons 48px */
     padding: 0 16px;
     display: flex;
     align-items: center;
@@ -127,7 +127,7 @@ body {
 }
 
 .app-title {
-    font-size: 20px;
+    font-size: 24px; /* Plus lisible */
     font-weight: 700;
     color: #fff;
     white-space: nowrap;
@@ -148,20 +148,20 @@ body {
     top: 50%;
     transform: translateY(-50%);
     color: #9eacba;
-    width: 20px;
-    height: 20px;
+    width: 24px; /* Icone plus grande */
+    height: 24px;
     pointer-events: none;
 }
 
 #search-input {
     width: 100%;
-    height: 38px;
+    height: 48px; /* Hauteur confortable */
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, .18);
     background-color: rgba(255, 255, 255, .10);
-    padding: 0 16px 0 44px;
+    padding: 0 16px 0 48px;
     color: white;
-    font-size: 15px;
+    font-size: 16px; /* Texte plus grand */
     transition: all .2s ease;
 }
 
@@ -215,22 +215,23 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    height: 38px;
-    padding: 0 12px;
-    border-radius: 12px;
+    gap: 10px;
+    height: 48px; /* Hauteur confortable */
+    padding: 0 16px;
+    border-radius: 14px;
     background: rgba(255, 255, 255, .10);
     color: #fff;
     border: 1px solid rgba(255, 255, 255, .18);
     font-weight: 600;
+    font-size: 15px;
     cursor: pointer;
     transition: all .18s ease;
     white-space: nowrap;
 }
 
 .btn svg {
-    width: 18px;
-    height: 18px;
+    width: 24px; /* Icone plus grande */
+    height: 24px;
 }
 
 .explorer-item-action {
@@ -326,7 +327,7 @@ body {
 
 #map {
     position: absolute;
-    top: 64px;
+    top: 80px; /* Ajusté à la topbar */
     left: 0;
     right: 0;
     bottom: 0;
@@ -370,7 +371,7 @@ body.sidebar-open #map {
 
 .right-sidebar {
     position: fixed;
-    top: 64px;
+    top: 80px; /* Ajusté à la topbar */
     right: 0;
     bottom: 0;
     height: auto;
@@ -1870,8 +1871,8 @@ input[type=range] {
     display: none;
     position: absolute;
     top: calc(100% + 10px);
-    left: 0;
-    right: auto;
+    left: auto; /* Correction : Alignement à droite */
+    right: 0;   /* Correction : Alignement à droite */
     background: var(--surface);
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
