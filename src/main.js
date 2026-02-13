@@ -125,13 +125,22 @@ async function loadOfficialCircuits() {
 async function loadDestinationsConfig() {
     const baseUrl = import.meta.env?.BASE_URL || './';
     const configUrl = baseUrl + 'destinations.json';
+
+    // Initialisation par défaut sécurisée (pour que le God Mode fonctionne même sans fichier)
+    state.destinations = {
+        activeMapId: 'djerba',
+        maps: {}
+    };
+
     try {
         const response = await fetch(configUrl);
         if (response.ok) {
-            state.destinations = await response.json();
-            console.log("[Config] destinations.json chargé avec succès.");
+            const json = await response.json();
+            // Fusion douce pour ne pas écraser la structure de base si le fichier est partiel
+            state.destinations = { ...state.destinations, ...json };
+            console.log("[Config] destinations.json chargé avec succès.", state.destinations);
         } else {
-            console.warn("[Config] destinations.json introuvable, utilisation valeurs par défaut.");
+            console.warn(`[Config] destinations.json introuvable (${response.status}), le God Mode permettra de le créer.`);
         }
     } catch (e) {
         console.error("[Config] Erreur chargement destinations.json:", e);
