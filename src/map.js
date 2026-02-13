@@ -71,6 +71,33 @@ export function initMap() {
 
     L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
+
+    // --- INDICATEUR DE ZOOM TEMPORAIRE ---
+    const ZoomViewer = L.Control.extend({
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control zoom-indicator');
+            container.style.backgroundColor = 'white';
+            container.style.padding = '5px 10px';
+            container.style.fontSize = '14px';
+            container.style.fontWeight = 'bold';
+            container.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
+            container.style.borderRadius = '5px';
+            container.style.marginTop = '10px';
+            container.innerText = 'Zoom: ' + map.getZoom();
+
+            map.on('zoomend', () => {
+                container.innerText = 'Zoom: ' + map.getZoom().toFixed(1);
+            });
+
+            return container;
+        },
+        onRemove: function(map) {
+            // Cleanup if needed
+        }
+    });
+
+    new ZoomViewer({ position: 'topleft' }).addTo(map);
+
     initMapListeners();
 }
 
