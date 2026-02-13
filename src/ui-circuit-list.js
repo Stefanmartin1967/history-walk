@@ -260,9 +260,7 @@ export function renderExplorerList() {
             const metaInfo = `${c.poiCount} POI`;
 
             // Indicateur Officiel
-            const officialIcon = c.isOfficial
-                ? `<i data-lucide="star" style="width:14px; height:14px; color:var(--primary); fill:var(--primary); margin-left:4px;"></i>`
-                : '';
+            const officialClass = c.isOfficial ? 'circuit-title-official' : '';
 
             // Actions : Suppression interdite pour les officiels (sauf Admin)
             const deleteBtn = (!c.isOfficial || state.isAdmin)
@@ -291,9 +289,8 @@ export function renderExplorerList() {
             <div class="explorer-item" data-id="${c.id}">
                 ${toggleVisitedBtn}
                 <div class="explorer-item-content">
-                    <div class="explorer-item-name" title="${escapeXml(c.name)}">
+                    <div class="explorer-item-name ${officialClass}" title="${escapeXml(c.name)}">
                         ${escapeXml(displayName)}
-                        ${officialIcon}
                     </div>
                     <div class="explorer-item-meta">
                         ${metaInfo} • ${distDisplay} <i data-lucide="${iconName}" style="width:14px; height:14px; vertical-align:text-bottom; margin:0 2px;"></i> • ${c.zoneName}${restoIcon}
