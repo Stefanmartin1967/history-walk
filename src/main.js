@@ -124,24 +124,21 @@ async function loadDestinationsConfig() {
     const baseUrl = import.meta.env?.BASE_URL || './';
     const configUrl = baseUrl + 'destinations.json';
 
-    // Initialisation par défaut sécurisée (pour que le God Mode fonctionne même sans fichier)
-    state.destinations = {
-        activeMapId: 'djerba',
-        maps: {}
-    };
+    // NOTE: state.destinations est déjà initialisé dans state.js avec une structure par défaut.
+    // On ne fait que mettre à jour SI le chargement réussit.
 
     try {
         const response = await fetch(configUrl);
         if (response.ok) {
             const json = await response.json();
-            // Fusion douce pour ne pas écraser la structure de base si le fichier est partiel
-            state.destinations = { ...state.destinations, ...json };
+            // Mise à jour de l'état global
+            state.destinations = json;
             console.log("[Config] destinations.json chargé avec succès.", state.destinations);
         } else {
-            console.warn(`[Config] destinations.json introuvable (${response.status}), le God Mode permettra de le créer.`);
+            console.warn(`[Config] destinations.json introuvable (${response.status}). Utilisation de la configuration par défaut en mémoire.`);
         }
     } catch (e) {
-        console.error("[Config] Erreur chargement destinations.json:", e);
+        console.error("[Config] Erreur chargement destinations.json (Reseau/Parse). Conservation défaut.", e);
     }
 }
 
