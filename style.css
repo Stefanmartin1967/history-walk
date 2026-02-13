@@ -2741,3 +2741,77 @@ input[type=range] {
 .leaflet-control-layers-toggle:hover::after {
     background-color: var(--brand);
 }
+
+/* --- BACKUP MODAL STYLES --- */
+.backup-option-btn {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.backup-option-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.backup-option-btn:active {
+    transform: translateY(0);
+}
+
+.backup-option-btn.primary {
+    background-color: var(--brand);
+    color: white;
+}
+
+.backup-option-btn.success {
+    background-color: var(--ok);
+    color: white;
+}
+
+.backup-option-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.backup-option-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.backup-title {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.backup-subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.backup-size-tag {
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}

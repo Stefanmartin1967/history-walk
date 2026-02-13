@@ -28,20 +28,26 @@
             <p style="color: var(--ink-light, #666); margin-bottom: 20px;">Choisissez le format de votre sauvegarde :
             </p>
 
-            <button id="btn-backup-full" class="action-button"
-                style="width: 100%; margin-bottom: 10px; background: var(--brand, #007bff); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="image"></i> Complet (PC)
+            <button id="btn-backup-full" class="backup-option-btn primary">
+                <div class="backup-option-icon">
+                    <i data-lucide="image"></i>
                 </div>
-                <span id="backup-size-full" style="font-size: 0.8em; opacity: 0.9; font-weight: normal; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 4px;">Calcul...</span>
+                <div class="backup-option-text">
+                    <span class="backup-title">Complet (PC)</span>
+                    <span class="backup-subtitle">Données + Photos</span>
+                </div>
+                <span id="backup-size-full" class="backup-size-tag">Calcul...</span>
             </button>
 
-            <button id="btn-backup-lite" class="action-button"
-                style="width: 100%; margin-bottom: 15px; background: var(--ok, #28a745); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="file-text"></i> Texte Seul (Mobile)
+            <button id="btn-backup-lite" class="backup-option-btn success">
+                <div class="backup-option-icon">
+                    <i data-lucide="file-text"></i>
                 </div>
-                <span id="backup-size-lite" style="font-size: 0.8em; opacity: 0.9; font-weight: normal; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 4px;">Calcul...</span>
+                <div class="backup-option-text">
+                    <span class="backup-title">Texte Seul (Mobile)</span>
+                    <span class="backup-subtitle">Rapide & Léger</span>
+                </div>
+                <span id="backup-size-lite" class="backup-size-tag">Calcul...</span>
             </button>
 
             <button id="btn-backup-cancel"
