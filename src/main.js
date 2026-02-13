@@ -125,7 +125,8 @@ async function loadOfficialCircuits() {
 async function loadDefaultMap() {
     // On récupère le nom du fichier (djerba.geojson)
     const fileName = 'djerba.geojson';
-    const defaultMapUrl = import.meta.env.BASE_URL + fileName;
+    const baseUrl = import.meta.env?.BASE_URL || './';
+    const defaultMapUrl = baseUrl + fileName;
 
     if (DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'flex';
 

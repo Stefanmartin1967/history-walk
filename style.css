@@ -2665,3 +2665,19 @@ input[type=range] {
         padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
     }
 }
+
+/* --- COORDINATE INDICATOR (Debug Tool) --- */
+.leaflet-control-coordinates {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-soft);
+    margin-right: 10px;
+    margin-bottom: 10px;
+    z-index: 1000;
+}
