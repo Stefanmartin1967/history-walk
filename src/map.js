@@ -71,8 +71,39 @@ export function initMap() {
 
     L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
+
+    addCoordinateControl(map);
+
     initMapListeners();
 
+}
+
+function addCoordinateControl(map) {
+    const CoordinatesControl = L.Control.extend({
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'leaflet-control-coordinates');
+            container.innerHTML = 'Center: ';
+            return container;
+        }
+    });
+
+    const coordinatesControl = new CoordinatesControl({ position: 'bottomright' });
+    map.addControl(coordinatesControl);
+
+    const updateCoordinates = () => {
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        const container = coordinatesControl.getContainer();
+        if (container) {
+            container.innerHTML = `Center: [${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}] | Zoom: ${zoom.toFixed(1)}`;
+        }
+    };
+
+    map.on('move', updateCoordinates);
+    map.on('zoom', updateCoordinates);
+
+    // Initial update
+    updateCoordinates();
 }
 
 /**
