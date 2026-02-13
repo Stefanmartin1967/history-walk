@@ -36,12 +36,12 @@ export const iconMap = {
 export function initMap() {
     // Initialisation de la carte centrée sur Djerba
     map = L.map('map', {
-        zoomSnap: 0.25,
-        zoomDelta: 0.25,
+        zoomSnap: 0.1,
+        zoomDelta: 0.1,
         wheelPxPerZoomLevel: 180,
         attributionControl: false,
         preferCanvas: true
-    }).setView([33.8076, 10.8451], 11);
+    }).setView([33.8076, 10.8451], 12.6);
 
     // 1. Couche "Plan" (OpenStreetMap) - Très léger
     const planLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
