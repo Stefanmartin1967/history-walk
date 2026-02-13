@@ -116,12 +116,16 @@ body {
     font-size: 20px;
     font-weight: 700;
     color: #fff;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .search-container {
     position: relative;
     width: 100%;
     max-width: 450px;
+    flex-shrink: 1;
+    min-width: 200px;
 }
 
 .search-icon {
