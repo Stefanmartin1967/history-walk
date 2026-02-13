@@ -2658,28 +2658,23 @@ input[type=range] {
     }
 }
 
-/* === AMELIORATIONS DESIGN PC (TITRE & BOUTON CIRCUIT) === */
-.app-title {
-    white-space: nowrap;
-    flex-shrink: 0;
-    overflow: visible; /* Ensure it doesn't clip */
-    margin-right: 8px;
+/* === ZOOM INDICATOR (New) === */
+.leaflet-control-zoom-indicator {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--ink);
+    border: 2px solid rgba(0,0,0,0.2);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    pointer-events: none;
+    margin-top: 10px !important;
+    margin-left: 10px !important;
 }
 
-/* Ajustement conteneur recherche pour laisser la place au titre */
-.search-container {
-    flex-shrink: 1; /* Peut rétrécir si nécessaire */
-    min-width: 200px; /* Mais garde une taille décente */
-}
-
-/* Centrage parfait de l'icône dans le bouton onglet Circuit */
-.tab-button[data-tab="circuit"] {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0; /* Reset padding for icon only */
-}
-.tab-button[data-tab="circuit"] svg {
-    width: 20px;
-    height: 20px;
+@media (max-width: 768px) {
+    .leaflet-control-zoom-indicator {
+        display: none;
+    }
 }
