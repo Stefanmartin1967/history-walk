@@ -1,5 +1,5 @@
 // state.js
-export const APP_VERSION = '3.5.3'; // Version en mode propre !
+export const APP_VERSION = '3.5.5'; // Version en mode propre !
 export const MAX_CIRCUIT_POINTS = 15;
 
 export const POI_CATEGORIES = [
@@ -14,6 +14,11 @@ import { getPoiName } from './utils.js';
 export const state = {
     isMobile: false,
     currentMapId: null,
+    // Structure par défaut robuste pour éviter les crashs si le JSON manque
+    destinations: {
+        activeMapId: 'djerba',
+        maps: {}
+    },
     userData: {},
     myCircuits: [],
     officialCircuits: [],

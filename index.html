@@ -28,16 +28,26 @@
             <p style="color: var(--ink-light, #666); margin-bottom: 20px;">Choisissez le format de votre sauvegarde :
             </p>
 
-            <button id="btn-backup-full" class="action-button"
-                style="width: 100%; margin-bottom: 10px; background: var(--brand, #007bff); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <i data-lucide="image"></i> Complet (PC)
-                <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Avec Photos</span>
+            <button id="btn-backup-full" class="backup-option-btn primary">
+                <div class="backup-option-icon">
+                    <i data-lucide="image"></i>
+                </div>
+                <div class="backup-option-text">
+                    <span class="backup-title">Complet (PC)</span>
+                    <span class="backup-subtitle">Données + Photos</span>
+                </div>
+                <span id="backup-size-full" class="backup-size-tag">Calcul...</span>
             </button>
 
-            <button id="btn-backup-lite" class="action-button"
-                style="width: 100%; margin-bottom: 15px; background: var(--ok, #28a745); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <i data-lucide="file-text"></i> Texte Seul (Mobile)
-                <span style="font-size: 0.8em; opacity: 0.8; font-weight: normal;">• Rapide</span>
+            <button id="btn-backup-lite" class="backup-option-btn success">
+                <div class="backup-option-icon">
+                    <i data-lucide="file-text"></i>
+                </div>
+                <div class="backup-option-text">
+                    <span class="backup-title">Texte Seul (Mobile)</span>
+                    <span class="backup-subtitle">Rapide & Léger</span>
+                </div>
+                <span id="backup-size-lite" class="backup-size-tag">Calcul...</span>
             </button>
 
             <button id="btn-backup-cancel"
@@ -56,34 +66,10 @@
                 <input type="search" id="search-input" placeholder="Rechercher un lieu...">
                 <div class="search-results" id="search-results" style="display: none;"></div>
             </div>
+        </div>
 
-            <!-- ACTION GROUP (Pushed to Right) -->
-            <div class="topbar-actions-group">
-
-            <!-- GOD MODE TOOLS -->
-            <div class="tools-dropdown-container" id="admin-tools-container" style="display:none;">
-                <button class="btn" id="btn-admin-menu" title="God Mode Tools"
-                    style="background-color: #ef4444; color: white;">
-                    <i data-lucide="shield-alert"></i>
-                    <span>GOD MODE</span>
-                </button>
-                <div class="tools-menu" id="admin-menu-content">
-                    <button class="tools-menu-item" id="btn-admin-scout">
-                        <i data-lucide="scan-eye"></i> Scout (Overpass)
-                    </button>
-                    <button class="tools-menu-item" id="btn-admin-export-master">
-                        <i data-lucide="database"></i> Export Master GeoJSON
-                    </button>
-                    <button class="tools-menu-item" id="btn-save-circuits">
-                        <i data-lucide="share-2"></i> Exporter Circuits
-                    </button>
-                    <a href="tools/fusion.html" target="_blank" class="tools-menu-item" style="text-decoration: none;">
-                        <i data-lucide="combine"></i> Console Fusion
-                    </a>
-                </div>
-            </div>
-
-            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="route"></i> <span>Mes Circuits</span></button>
+        <div class="topbar-center">
+            <button class="btn" id="btn-open-my-circuits" title="Mes Circuits"><i data-lucide="route"></i></button>
 
             <div class="zones-container">
                 <button class="btn" id="btn-filter-zones" title="Filtre par Zone"><i data-lucide="map-pin"></i> <span
@@ -104,6 +90,38 @@
 
             <button class="btn" id="btn-mode-selection" title="Mode consultation"><i
                     data-lucide="map-pin-off"></i><span>Sélection</span></button>
+        </div>
+
+        <div class="topbar-right">
+            <!-- GOD MODE TOOLS -->
+            <div class="tools-dropdown-container" id="admin-tools-container" style="display:none;">
+                <button class="btn" id="btn-admin-menu" title="God Mode Tools"
+                    style="background-color: #ef4444; color: white;">
+                    <i data-lucide="shield-alert"></i>
+                    <span>GOD MODE</span>
+                </button>
+                <div class="tools-menu" id="admin-menu-content">
+                    <button class="tools-menu-item" id="btn-admin-scout">
+                        <i data-lucide="scan-eye"></i> Scout (Overpass)
+                    </button>
+                    <button class="tools-menu-item" id="btn-admin-export-master">
+                        <i data-lucide="database"></i> Export Master GeoJSON
+                    </button>
+                    <button class="tools-menu-item" id="btn-save-circuits">
+                        <i data-lucide="share-2"></i> Exporter Circuits
+                    </button>
+                    <div style="height:1px; width:100%; background:var(--line); margin:5px 0;"></div>
+                    <button class="tools-menu-item" id="btn-admin-capture-view">
+                        <i data-lucide="aperture"></i> Capturer la vue
+                    </button>
+                    <button class="tools-menu-item" id="btn-admin-export-destinations">
+                        <i data-lucide="globe"></i> Exporter Destinations
+                    </button>
+                    <a href="tools/fusion.html" target="_blank" class="tools-menu-item" style="text-decoration: none;">
+                        <i data-lucide="combine"></i> Console Fusion
+                    </a>
+                </div>
+            </div>
 
             <div class="tools-dropdown-container">
                 <button class="btn" id="btn-tools-menu" title="Menu Outils"><i
@@ -130,12 +148,8 @@
                         <i data-lucide="folder-down"></i> Restaurer
                     </button>
 
-                    <button class="tools-menu-item" id="btn-save-full" disabled>
-                        <i data-lucide="save-all"></i> Sauvegarde PC
-                    </button>
-
-                    <button class="tools-menu-item" id="btn-save-mobile" disabled>
-                        <i data-lucide="save"></i> Sauvegarde Données
+                    <button class="tools-menu-item" id="btn-open-backup-modal" disabled>
+                        <i data-lucide="save"></i> Sauvegarder...
                     </button>
 
                     <div style="height:1px; width:100%; background:var(--line); margin:5px 0;"></div>
@@ -161,10 +175,6 @@
                 </div>
             </div>
 
-            </div> <!-- End .topbar-actions-group -->
-        </div>
-
-        <div class="topbar-right">
             <!-- HIDDEN LOADERS (Keep them for logic) -->
             <input type="file" id="geojson-loader" accept=".geojson,.json" style="display: none;">
             <input type="file" id="photo-gps-loader" accept=".jpg,.jpeg" multiple style="display: none;">
@@ -430,7 +440,10 @@
     <script type="importmap">
     {
         "imports": {
-            "lucide": "https://unpkg.com/lucide@0.469.0/dist/esm/lucide.js"
+            "lucide": "https://unpkg.com/lucide@0.469.0/dist/esm/lucide.js",
+            "qrcode": "https://esm.sh/qrcode@1.5.3",
+            "html5-qrcode": "https://esm.sh/html5-qrcode@2.3.8",
+            "virtual:pwa-register": "./src/pwa-register-mock.js"
         }
     }
     </script>
