@@ -152,9 +152,25 @@ function captureCurrentMapView() {
         return;
     }
 
-    if (!state.destinations || !state.currentMapId) {
-        showToast("Configuration destinations.json introuvable.", "error");
+    if (!state.currentMapId) {
+        showToast("Aucune carte active identifiée.", "error");
         return;
+    }
+
+    // --- BLINDAGE DE SÉCURITÉ ---
+    // On s'assure que la structure existe même si le chargement initial a échoué
+    if (!state.destinations) {
+        state.destinations = { activeMapId: state.currentMapId, maps: {} };
+    }
+    if (!state.destinations.maps) {
+        state.destinations.maps = {};
+    }
+    if (!state.destinations.maps[state.currentMapId]) {
+        // Initialisation de la destination courante si nouvelle
+        state.destinations.maps[state.currentMapId] = {
+            name: state.currentMapId.charAt(0).toUpperCase() + state.currentMapId.slice(1),
+            file: `${state.currentMapId}.geojson`
+        };
     }
 
     // Récupération des valeurs actuelles
@@ -169,10 +185,6 @@ function captureCurrentMapView() {
     const newZoom = parseFloat(zoom.toFixed(1));
 
     // Mise à jour de l'objet state
-    if (!state.destinations.maps[state.currentMapId]) {
-        state.destinations.maps[state.currentMapId] = {};
-    }
-
     state.destinations.maps[state.currentMapId].startView = {
         center: newCenter,
         zoom: newZoom

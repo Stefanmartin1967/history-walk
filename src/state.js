@@ -14,7 +14,11 @@ import { getPoiName } from './utils.js';
 export const state = {
     isMobile: false,
     currentMapId: null,
-    destinations: null, // Configuration des cartes (destinations.json)
+    // Structure par défaut robuste pour éviter les crashs si le JSON manque
+    destinations: {
+        activeMapId: 'djerba',
+        maps: {}
+    },
     userData: {},
     myCircuits: [],
     officialCircuits: [],
