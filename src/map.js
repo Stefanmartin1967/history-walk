@@ -331,8 +331,19 @@ export function fitMapToContent() {
     if (map && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
         const bounds = state.geojsonLayer.getBounds();
         if (bounds.isValid()) {
-             // On ajoute un peu de marge (5%) pour ne pas coller aux bords
-             map.fitBounds(bounds.pad(0.05));
+             // Optimisation Zoom : On colle aux bords (padding minimal)
+             // Mais on tient compte du Header (80px) et de la Sidebar (si ouverte)
+             // padding: [top-left, bottom-right]
+             // top: 90px (80px header + 10px marge)
+             // right: 380px (sidebar) ou 10px (fermé)
+             const isSidebarOpen = document.body.classList.contains('sidebar-open');
+             const rightPadding = isSidebarOpen ? 390 : 10;
+
+             map.fitBounds(bounds, {
+                 paddingTopLeft: [10, 90],
+                 paddingBottomRight: [rightPadding, 10],
+                 maxZoom: 18 // Évite le zoom excessif sur un seul point
+             });
         }
     }
 }
