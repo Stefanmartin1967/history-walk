@@ -19,7 +19,7 @@ export function setupSearch() {
     
     // 2. Affichage des résultats
     if (results.length > 0) {
-        // On limite à 50 résultats pour ne pas surcharger (Augmenté de 10 à 50)
+        // On limite à 50 résultats pour ne pas surcharger
         results.slice(0, 50).forEach(feature => {
             const resultBtn = document.createElement('button');
             resultBtn.textContent = getPoiName(feature); // Utilise le nom intelligent (custom > officiel)
