@@ -122,10 +122,55 @@ async function loadOfficialCircuits() {
 
 // --- INITIALISATION ---
 
-async function loadDefaultMap() {
-    // On récupère le nom du fichier (djerba.geojson)
-    const fileName = 'djerba.geojson';
+async function loadDestinationsConfig() {
     const baseUrl = import.meta.env?.BASE_URL || './';
+    const configUrl = baseUrl + 'destinations.json';
+    try {
+        const response = await fetch(configUrl);
+        if (response.ok) {
+            state.destinations = await response.json();
+            console.log("[Config] destinations.json chargé avec succès.");
+        } else {
+            console.warn("[Config] destinations.json introuvable, utilisation valeurs par défaut.");
+        }
+    } catch (e) {
+        console.error("[Config] Erreur chargement destinations.json:", e);
+    }
+}
+
+async function loadDefaultMap() {
+    // 0. Chargement de la config des destinations
+    await loadDestinationsConfig();
+
+    const baseUrl = import.meta.env?.BASE_URL || './';
+
+    // Détermination de la carte active
+    let activeMapId = 'djerba'; // Défaut
+    let startView = null;
+
+    if (state.destinations) {
+        // Priorité : URL Param > Config active > Djerba
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlMapId = urlParams.get('map');
+
+        if (urlMapId && state.destinations.maps[urlMapId]) {
+            activeMapId = urlMapId;
+        } else if (state.destinations.activeMapId && state.destinations.maps[state.destinations.activeMapId]) {
+            activeMapId = state.destinations.activeMapId;
+        }
+
+        // Récupération de la vue de départ si dispo
+        if (state.destinations.maps[activeMapId] && state.destinations.maps[activeMapId].startView) {
+            startView = state.destinations.maps[activeMapId].startView;
+        }
+    }
+
+    // Nom du fichier GeoJSON (supposé correspondre à l'ID ou défini dans la config)
+    let fileName = `${activeMapId}.geojson`;
+    if (state.destinations && state.destinations.maps[activeMapId] && state.destinations.maps[activeMapId].file) {
+        fileName = state.destinations.maps[activeMapId].file;
+    }
+
     const defaultMapUrl = baseUrl + fileName;
 
     if (DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'flex';
@@ -137,18 +182,16 @@ async function loadDefaultMap() {
         const geojsonData = await response.json();
 
         // --- 1. IDENTITÉ DYNAMIQUE ---
-        // On enlève ".geojson" pour avoir "djerba"
-        const mapId = fileName.split('.')[0];
-        state.currentMapId = mapId;
-        updateAppTitle(mapId);
+        state.currentMapId = activeMapId;
+        updateAppTitle(activeMapId);
 
-        await saveAppState('lastMapId', mapId);
+        await saveAppState('lastMapId', activeMapId);
 
         // 2. Chargement Données Utilisateur & Circuits (UNIFIÉ)
         try {
-            state.userData = await getAllPoiDataForMap(mapId) || {};
-            state.myCircuits = await getAllCircuitsForMap(mapId) || [];
-            state.officialCircuitsStatus = await getAppState(`official_circuits_status_${mapId}`) || {};
+            state.userData = await getAllPoiDataForMap(activeMapId) || {};
+            state.myCircuits = await getAllCircuitsForMap(activeMapId) || [];
+            state.officialCircuitsStatus = await getAppState(`official_circuits_status_${activeMapId}`) || {};
             await loadOfficialCircuits(); // Chargement séparé
 
             // --- NETTOYAGE AUTOMATIQUE DES FANTÔMES (Correction "Multiplication" & "0 POI") ---
@@ -194,7 +237,21 @@ async function loadDefaultMap() {
 
         } else {
             // MODE DESKTOP : On affiche la carte Leaflet
-            await displayGeoJSON(geojsonData, mapId);
+            await displayGeoJSON(geojsonData, activeMapId);
+
+            // Initialisation de la vue (Centre/Zoom) selon la config destinations.json
+            // Uniquement si on vient de charger une nouvelle carte (pas de restauration d'état précédente ici)
+            // Note: displayGeoJSON ne change pas la vue si la carte est déjà init.
+            // On force ici si startView est défini.
+            if (startView) {
+                // On importe map dynamiquement au cas où
+                import('./map.js').then(({ map }) => {
+                    if (map) {
+                        map.setView(startView.center, startView.zoom);
+                    }
+                });
+            }
+
             // Rafraîchir la liste des circuits maintenant que les features sont chargées (pour calcul Visité/Distance)
             import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
         }

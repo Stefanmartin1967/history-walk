@@ -3,6 +3,7 @@ import { eventBus } from './events.js';
 import { downloadFile } from './utils.js';
 import { showToast } from './toast.js';
 import { closeAllDropdowns } from './ui.js';
+import { map } from './map.js';
 
 export function initAdminMode() {
     // Initial check
@@ -54,6 +55,17 @@ function setupAdminListeners() {
     const btnExport = document.getElementById('btn-admin-export-master');
     if (btnExport) {
         btnExport.addEventListener('click', exportMasterGeoJSON);
+    }
+
+    // --- NOUVEAU : Calibration Carte ---
+    const btnCaptureView = document.getElementById('btn-admin-capture-view');
+    if (btnCaptureView) {
+        btnCaptureView.addEventListener('click', captureCurrentMapView);
+    }
+
+    const btnExportDestinations = document.getElementById('btn-admin-export-destinations');
+    if (btnExportDestinations) {
+        btnExportDestinations.addEventListener('click', exportDestinationsConfig);
     }
 }
 
@@ -130,4 +142,53 @@ function exportMasterGeoJSON() {
         console.error(e);
         showToast("Erreur lors de l'export.", "error");
     }
+}
+
+// --- CALIBRATION CARTE (GOD MODE) ---
+
+function captureCurrentMapView() {
+    if (!map) {
+        showToast("Carte non initialisée.", "error");
+        return;
+    }
+
+    if (!state.destinations || !state.currentMapId) {
+        showToast("Configuration destinations.json introuvable.", "error");
+        return;
+    }
+
+    // Récupération des valeurs actuelles
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+
+    // Arrondi pour propreté (5 décimales pour lat/lng, 1 pour zoom)
+    const newCenter = [
+        parseFloat(center.lat.toFixed(5)),
+        parseFloat(center.lng.toFixed(5))
+    ];
+    const newZoom = parseFloat(zoom.toFixed(1));
+
+    // Mise à jour de l'objet state
+    if (!state.destinations.maps[state.currentMapId]) {
+        state.destinations.maps[state.currentMapId] = {};
+    }
+
+    state.destinations.maps[state.currentMapId].startView = {
+        center: newCenter,
+        zoom: newZoom
+    };
+
+    console.log(`[GodMode] Nouvelle vue capturée pour ${state.currentMapId}:`, state.destinations.maps[state.currentMapId].startView);
+    showToast(`Vue mémorisée pour ${state.currentMapId} !`, "success");
+}
+
+function exportDestinationsConfig() {
+    if (!state.destinations) {
+        showToast("Aucune configuration à exporter.", "error");
+        return;
+    }
+
+    const jsonStr = JSON.stringify(state.destinations, null, 2);
+    downloadFile('destinations.json', jsonStr, 'application/json');
+    showToast("destinations.json exporté !", "success");
 }
