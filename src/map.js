@@ -337,6 +337,16 @@ export function refreshMapMarkers(visibleFeatures) {
 
 // --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT ---
 export function fitMapToContent() {
+    // Si on a une configuration fixe pour la carte actuelle, on l'utilise PRIORITAIREMENT
+    if (state.currentMapId && state.destinations && state.destinations.maps && state.destinations.maps[state.currentMapId]) {
+        const config = state.destinations.maps[state.currentMapId];
+        if (config.startView) {
+            map.setView(config.startView.center, config.startView.zoom);
+            return;
+        }
+    }
+
+    // Sinon, comportement par défaut (Fit Bounds)
     if (map && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
         const bounds = state.geojsonLayer.getBounds();
         if (bounds.isValid()) {
