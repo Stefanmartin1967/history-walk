@@ -53,13 +53,11 @@ import { setupTabs } from './ui-sidebar.js';
 
 // --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
 function setSaveButtonsState(enabled) {
-    const btnMobile = document.getElementById('btn-save-mobile');
-    const btnFull = document.getElementById('btn-save-full');
+    const btnBackup = document.getElementById('btn-open-backup-modal');
     const btnRestore = document.getElementById('btn-restore-data');
 
-    // Les boutons de sauvegarde s'activent si une carte est chargée
-    if (btnMobile) btnMobile.disabled = !enabled;
-    if (btnFull) btnFull.disabled = !enabled;
+    // Le bouton de sauvegarde s'active si une carte est chargée
+    if (btnBackup) btnBackup.disabled = !enabled;
 
     // Le bouton Restaurer est TOUJOURS disponible sur PC
     if (btnRestore) btnRestore.disabled = false;
