@@ -1,0 +1,23 @@
+{
+  "activeMapId": "djerba",
+  "maps": {
+    "djerba": {
+      "name": "Djerba",
+      "file": "djerba.geojson",
+      "circuitsFile": "circuits/djerba.json",
+      "startView": {
+        "center": [33.77267, 10.94226],
+        "zoom": 12.7
+      }
+    },
+    "hammamet": {
+      "name": "Hammamet",
+      "file": "hammamet.geojson",
+      "circuitsFile": "circuits/hammamet.json",
+      "startView": {
+        "center": [36.4, 10.6],
+        "zoom": 13.0
+      }
+    }
+  }
+}
