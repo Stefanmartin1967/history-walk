@@ -2775,3 +2775,55 @@ input[type=range] {
 .search-container + * {
     margin-left: 0;
 }
+
+/* ========================================================= */
+/* === 3-COLUMN HEADER LAYOUT (Space-Between) === */
+/* ========================================================= */
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Height is already set to 80px by previous block */
+}
+
+/* GROUP 1: LEFT (Title & Search) */
+.header-group-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0; /* Do not shrink */
+}
+
+/* GROUP 2: CENTER (Filters & Circuits) */
+.header-group-center {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content in the available space */
+    flex-grow: 1; /* Occupy remaining space */
+    padding-left: 40px; /* Visual offset to the right as requested */
+    gap: 8px; /* Spacing between buttons */
+}
+
+/* GROUP 3: RIGHT (Tools & God Mode) */
+.header-group-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0; /* Do not shrink */
+}
+
+/* Clean up old layout rules to avoid conflict */
+.topbar-left,
+.topbar-actions-group,
+.topbar-right {
+    display: none; /* Hide old classes if they linger */
+}
+
+/* Ensure margin resets */
+#btn-open-my-circuits {
+    margin-left: 0 !important;
+}
+.search-container + * {
+    margin-left: 0 !important;
+}
