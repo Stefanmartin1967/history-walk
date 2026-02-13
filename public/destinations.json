@@ -4,33 +4,13 @@
     "djerba": {
       "name": "Djerba",
       "file": "djerba.geojson",
-<<<<<<< HEAD
       "startView": {
         "center": [
-          33.77355,
-          10.94205
+          33.77408,
+          10.94839
         ],
         "zoom": 12.7
       }
     }
   }
 }
-=======
-      "circuitsFile": "circuits/djerba.json",
-      "startView": {
-        "center": [33.77267, 10.94226],
-        "zoom": 12.7
-      }
-    },
-    "hammamet": {
-      "name": "Hammamet",
-      "file": "hammamet.geojson",
-      "circuitsFile": "circuits/hammamet.json",
-      "startView": {
-        "center": [36.4, 10.6],
-        "zoom": 13.0
-      }
-    }
-  }
-}
->>>>>>> f519cfd4cad175ada99fdf77285ca5b1a1b64a4d

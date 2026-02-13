@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="History Walk 3.1.1" schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/PowerExtension/v1 http://www.garmin.com/xmlschemas/PowerExtensionv1.xsd http://www.topografix.com/GPX/gpx_style/0/2 http://www.topografix.com/GPX/gpx_style/0/2/gpx_style.xsd" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:gpxpx="http://www.garmin.com/xmlschemas/PowerExtension/v1" xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2">
+<gpx version="1.1" creator="History Walk 3.5.5" schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/PowerExtension/v1 http://www.garmin.com/xmlschemas/PowerExtensionv1.xsd http://www.topografix.com/GPX/gpx_style/0/2 http://www.topografix.com/GPX/gpx_style/0/2/gpx_style.xsd" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:gpxpx="http://www.garmin.com/xmlschemas/PowerExtension/v1" xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2">
   <metadata>
     <name>Boucle autour de Rym Beach via Mosquée Ibn Abass</name>
     <desc>Circuit généré par History Walk.</desc>
@@ -8,7 +8,7 @@
       <link href="https://gpx.studio"/>
     </author>
     <link href="https://stefanmartin1967.github.io/history-walk/">
-      <text>History Walk [HW-ID:HW-1770712580687]</text>
+      <text>History Walk [HW-ID:HW-1771013662763]</text>
     </link>
   </metadata>
   <wpt lat="33.82705" lon="11.04622">
@@ -161,7 +161,7 @@
       <trkpt lat="33.824718" lon="11.049937">
         <ele>-1.5</ele>
       </trkpt>
-      <trkpt lat="33.824684" lon="11.049882">
+      <trkpt lat="33.82467" lon="11.049861">
         <ele>-2</ele>
       </trkpt>
       <trkpt lat="33.824645" lon="11.049819">
@@ -248,35 +248,86 @@
       <trkpt lat="33.821327" lon="11.04218">
         <ele>5.5</ele>
       </trkpt>
-      <trkpt lat="33.821234" lon="11.042198">
+      <trkpt lat="33.821582" lon="11.042129">
+        <ele>5.75</ele>
+      </trkpt>
+      <trkpt lat="33.821751" lon="11.042088">
+        <ele>6.25</ele>
+      </trkpt>
+      <trkpt lat="33.821893" lon="11.042117">
+        <ele>6.5</ele>
+      </trkpt>
+      <trkpt lat="33.822022" lon="11.042135">
+        <ele>7</ele>
+      </trkpt>
+      <trkpt lat="33.822184" lon="11.042128">
+        <ele>7.5</ele>
+      </trkpt>
+      <trkpt lat="33.822423" lon="11.04213">
+        <ele>8.25</ele>
+      </trkpt>
+      <trkpt lat="33.822559" lon="11.042169">
+        <ele>8.75</ele>
+      </trkpt>
+      <trkpt lat="33.822689" lon="11.042219">
+        <ele>8.75</ele>
+      </trkpt>
+      <trkpt lat="33.822807" lon="11.042274">
+        <ele>9</ele>
+      </trkpt>
+      <trkpt lat="33.822925" lon="11.042346">
+        <ele>9.25</ele>
+      </trkpt>
+      <trkpt lat="33.822961" lon="11.042364">
+        <ele>9.5</ele>
+      </trkpt>
+      <trkpt lat="33.822814" lon="11.042767">
+        <ele>0</ele>
+      </trkpt>
+      <trkpt lat="33.822961" lon="11.042364">
+        <ele>9.25</ele>
+      </trkpt>
+      <trkpt lat="33.822925" lon="11.042346">
+        <ele>9.25</ele>
+      </trkpt>
+      <trkpt lat="33.822807" lon="11.042274">
+        <ele>9</ele>
+      </trkpt>
+      <trkpt lat="33.822689" lon="11.042219">
+        <ele>8.75</ele>
+      </trkpt>
+      <trkpt lat="33.822559" lon="11.042169">
+        <ele>8.75</ele>
+      </trkpt>
+      <trkpt lat="33.822423" lon="11.04213">
+        <ele>8.25</ele>
+      </trkpt>
+      <trkpt lat="33.822184" lon="11.042128">
+        <ele>7.5</ele>
+      </trkpt>
+      <trkpt lat="33.822022" lon="11.042135">
+        <ele>7</ele>
+      </trkpt>
+      <trkpt lat="33.821893" lon="11.042117">
+        <ele>6.5</ele>
+      </trkpt>
+      <trkpt lat="33.821751" lon="11.042088">
+        <ele>6.25</ele>
+      </trkpt>
+      <trkpt lat="33.821724" lon="11.041956">
+        <ele>6</ele>
+      </trkpt>
+      <trkpt lat="33.821686" lon="11.041844">
+        <ele>6</ele>
+      </trkpt>
+      <trkpt lat="33.82148" lon="11.041408">
+        <ele>5.75</ele>
+      </trkpt>
+      <trkpt lat="33.821462" lon="11.041376">
+        <ele>5.75</ele>
+      </trkpt>
+      <trkpt lat="33.821307" lon="11.041095">
         <ele>5.5</ele>
-      </trkpt>
-      <trkpt lat="33.821296" lon="11.042156">
-        <ele>5.5</ele>
-      </trkpt>
-      <trkpt lat="33.821354" lon="11.0421">
-        <ele>5.75</ele>
-      </trkpt>
-      <trkpt lat="33.8214" lon="11.042034">
-        <ele>5.75</ele>
-      </trkpt>
-      <trkpt lat="33.821434" lon="11.041964">
-        <ele>5.75</ele>
-      </trkpt>
-      <trkpt lat="33.821453" lon="11.041898">
-        <ele>5.75</ele>
-      </trkpt>
-      <trkpt lat="33.821467" lon="11.041816">
-        <ele>5.75</ele>
-      </trkpt>
-      <trkpt lat="33.821458" lon="11.041589">
-        <ele>5.75</ele>
-      </trkpt>
-      <trkpt lat="33.821427" lon="11.041512">
-        <ele>5.75</ele>
-      </trkpt>
-      <trkpt lat="33.821345" lon="11.041346">
-        <ele>5.75</ele>
       </trkpt>
       <trkpt lat="33.821233" lon="11.041157">
         <ele>5.5</ele>
@@ -327,6 +378,9 @@
         <ele>5.25</ele>
       </trkpt>
       <trkpt lat="33.818035" lon="11.040263">
+        <ele>5.75</ele>
+      </trkpt>
+      <trkpt lat="33.818058" lon="11.040173">
         <ele>5.75</ele>
       </trkpt>
       <trkpt lat="33.818206" lon="11.039613">
@@ -590,9 +644,6 @@
       <trkpt lat="33.81785" lon="11.031123">
         <ele>5</ele>
       </trkpt>
-      <trkpt lat="33.817826" lon="11.030923">
-        <ele>5</ele>
-      </trkpt>
       <trkpt lat="33.817825" lon="11.030908">
         <ele>5</ele>
       </trkpt>
@@ -610,6 +661,9 @@
       </trkpt>
       <trkpt lat="33.817976" lon="11.030266">
         <ele>5</ele>
+      </trkpt>
+      <trkpt lat="33.817978" lon="11.030152">
+        <ele>4.75</ele>
       </trkpt>
       <trkpt lat="33.817984" lon="11.029909">
         <ele>4.75</ele>
@@ -749,6 +803,9 @@
       <trkpt lat="33.823522" lon="11.027855">
         <ele>2.75</ele>
       </trkpt>
+      <trkpt lat="33.823611" lon="11.027996">
+        <ele>4.25</ele>
+      </trkpt>
       <trkpt lat="33.824172" lon="11.028877">
         <ele>4.25</ele>
       </trkpt>
@@ -798,9 +855,6 @@
         <ele>2.75</ele>
       </trkpt>
       <trkpt lat="33.824575" lon="11.03327">
-        <ele>3.25</ele>
-      </trkpt>
-      <trkpt lat="33.824581" lon="11.033301">
         <ele>3.25</ele>
       </trkpt>
       <trkpt lat="33.824584" lon="11.033314">

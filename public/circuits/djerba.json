@@ -1,11 +1,17 @@
 [
   {
-    "id": "HW-1770712580687",
+    "id": "HW-1771013662763",
     "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
-    "file": "djerba/boucle_rym_beach.gpx",
-    "description": "Circuit généré par History Walk.",
-    "distance": "6.8 km",
+    "file": "boucle_autour_de_rym_beach_via_mosqu_e_ibn_abass.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "7.2 km",
     "isOfficial": true,
-    "poiIds": []
+    "poiIds": [
+      "HW-01K77WPE67RPHVJVH6A0PC0ZWD",
+      "HW-01K77WPE6722XTDVPGCQTPPBXR",
+      "HW-01K77WPE671G6V27VYYNMJV2NC",
+      "HW-01K77WPE6770BXCP2SW1Z2DTA2",
+      "HW-01K77WPE67RPHVJVH6A0PC0ZWD"
+    ]
   }
 ]
