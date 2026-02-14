@@ -2,7 +2,7 @@ import { state, MAX_CIRCUIT_POINTS, setSelectionMode, addPoiToCurrentCircuit, re
 import { DOM, openDetailsPanel, updateSelectionModeButton } from './ui.js';
 import { switchSidebarTab } from './ui-sidebar.js';
 import { getPoiId, getPoiName, applyFilters } from './data.js';
-import { drawLineOnMap, clearMapLines, getRealDistance, getOrthodromicDistance, map } from './map.js';
+import { drawLineOnMap, clearMapLines, getRealDistance, getOrthodromicDistance, map, focusOnCircuit } from './map.js';
 import { saveAndExportCircuit } from './gpx.js';
 import { getAppState, saveAppState, saveCircuit, batchSavePoiData } from './database.js';
 // import { saveUserData } from './fileManager.js'; // <--- RETRAIT (C'était la cause du bug de fenêtre)
@@ -458,18 +458,8 @@ export async function loadCircuitById(id) {
         }
         applyFilters();
 
-        // 5. Centrage Intelligent de la carte
-        if (map && (state.currentCircuit.length > 0 || circuitToLoad.realTrack)) {
-            // On priorise la trace réelle pour le centrage si elle existe
-            const pointsToFit = (circuitToLoad.realTrack && circuitToLoad.realTrack.length > 0)
-                ? circuitToLoad.realTrack
-                : state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
-
-            // On crée un groupe temporaire pour calculer les limites (bounds)
-            const bounds = L.latLngBounds(pointsToFit);
-            // Padding augmenté pour éviter que le circuit ne touche les bords (surtout avec la sidebar)
-            map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 16 });
-        }
+        // 5. Centrage Intelligent de la carte (Via API centralisée)
+        focusOnCircuit(circuitToLoad.realTrack, state.currentCircuit);
     }
 
     showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
@@ -687,11 +677,8 @@ export async function loadCircuitFromIds(inputString, importedName = null) {
         }
         applyFilters();
 
-        if (typeof map !== 'undefined' && map && state.currentCircuit.length > 0) {
-            const points = state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
-            const bounds = L.latLngBounds(points);
-            map.flyToBounds(bounds, { padding: [50, 50] });
-        }
+        // Centrage via API
+        focusOnCircuit(null, state.currentCircuit);
     }
 
     notifyCircuitChanged();

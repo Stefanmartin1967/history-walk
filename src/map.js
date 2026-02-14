@@ -361,7 +361,8 @@ export function refreshMapMarkers(visibleFeatures) {
     createIcons({ icons });
 }
 
-// --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT ---
+// --- API PUBLIQUE CENTRALISÉE POUR LA CARTE ---
+
 export function fitMapToContent() {
     // Si une vue utilisateur est restaurée, on ne touche à rien (priorité absolue)
     if (state.restoredUserView) {
@@ -385,5 +386,34 @@ export function fitMapToContent() {
              // On ajoute un peu de marge (5%) pour ne pas coller aux bords
              map.fitBounds(bounds.pad(0.05));
         }
+    }
+}
+
+// Redimensionner la carte (ex: ouverture sidebar)
+let resizeTimeout;
+export function resizeMap() {
+    if (!map) return;
+    // Debounce pour éviter les appels multiples lors d'animations
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
+}
+
+// Zoomer sur un circuit spécifique
+export function focusOnCircuit(realTrack, poiFeatures) {
+    if (!map) return;
+
+    let bounds;
+    if (realTrack && realTrack.length > 0) {
+        bounds = L.latLngBounds(realTrack);
+    } else if (poiFeatures && poiFeatures.length > 0) {
+        const points = poiFeatures.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+        bounds = L.latLngBounds(points);
+    }
+
+    if (bounds && bounds.isValid()) {
+        // Padding standardisé : [50, 50] pour éviter d'être caché par les panneaux
+        map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 16 });
     }
 }

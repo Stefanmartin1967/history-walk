@@ -2,19 +2,9 @@ import { DOM } from './ui.js';
 import { renderExplorerList } from './ui-circuit-list.js';
 import { state } from './state.js';
 import { getPoiId } from './data.js';
-import { openDetailsPanel } from './ui.js'; // Circular dependency risk?
 import { eventBus } from './events.js';
 import { stopDictation, isDictationActive } from './voice.js';
-
-// We need to be careful with circular dependencies.
-// ui.js exports openDetailsPanel, which is needed here?
-// switchSidebarTab is used by openDetailsPanel in ui.js.
-// If I move switchSidebarTab here, ui.js will import it.
-// openDetailsPanel is in ui.js.
-// It seems better to keep openDetailsPanel in ui.js for now or move it too.
-// openDetailsPanel uses buildHTML (templates) and setupDetailsEventListeners.
-
-// Let's start with just the tab switching logic.
+import { resizeMap } from './map.js';
 
 export function switchSidebarTab(tabName, isNavigating = false) {
     if (!isNavigating && window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
@@ -30,6 +20,10 @@ export function switchSidebarTab(tabName, isNavigating = false) {
             if(button) button.classList.toggle('active', button.dataset.tab === tabName);
         });
     }
+
+    // On notifie la carte que la taille du conteneur a peut-être changé (sidebar content size)
+    // Bien que la largeur de la sidebar soit fixe, le passage de display:none à flex peut jouer
+    resizeMap();
 }
 
 export function setupTabs() {
