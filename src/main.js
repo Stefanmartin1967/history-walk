@@ -626,14 +626,18 @@ function setupDesktopUIListeners() {
     });
 
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {
-        const isActive = e.currentTarget.classList.toggle('active');
+        const btn = e.currentTarget;
+        const isActive = btn.classList.toggle('active');
         state.activeFilters.vus = isActive;
+        btn.title = isActive ? "Masquer les visités" : "Afficher les visités";
         applyFilters();
     });
 
     document.getElementById('btn-filter-planifies')?.addEventListener('click', (e) => {
-        const isActive = e.currentTarget.classList.toggle('active');
+        const btn = e.currentTarget;
+        const isActive = btn.classList.toggle('active');
         state.activeFilters.planifies = isActive;
+        btn.title = isActive ? "Masquer les planifiés" : "Afficher les planifiés";
         applyFilters();
     });
 
