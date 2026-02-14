@@ -198,19 +198,17 @@ async function loadDefaultMap() {
             state.officialCircuitsStatus = await getAppState(`official_circuits_status_${activeMapId}`) || {};
             await loadOfficialCircuits(); // Chargement séparé
 
-            // --- NETTOYAGE AUTOMATIQUE DES FANTÔMES (Correction "Multiplication" & "0 POI") ---
-            // On supprime de la DB tout circuit qui est marqué "isOfficial" (doublon obsolète)
-            // ou qui est vide (bug de création).
+            // --- NETTOYAGE DOUX (Soft Cleanup) ---
+            // On ne supprime PLUS systématiquement les circuits "isOfficial".
+            // Pourquoi ? Car l'utilisateur peut avoir importé une trace réelle (GPX Studio)
+            // sur un circuit officiel, et nous l'avons sauvegardée localement (Shadow Copy).
+
             const validCircuits = [];
             for (const c of state.myCircuits) {
                 let toDelete = false;
 
-                if (c.isOfficial) {
-                    console.warn(`[Cleanup] Suppression du circuit officiel fantôme (DB) : ${c.name} (${c.id})`);
-                    toDelete = true;
-                } else if (!c.poiIds || c.poiIds.length === 0) {
-                     // On garde les brouillons temporaires non sauvegardés (ID temporaire ?)
-                     // Non, ici on vient de la DB, donc c'est persistant.
+                // On supprime SEULEMENT si c'est vide (Bug 0 POI)
+                if (!c.poiIds || c.poiIds.length === 0) {
                      console.warn(`[Cleanup] Suppression du circuit vide (0 POI) : ${c.name} (${c.id})`);
                      toDelete = true;
                 }
@@ -222,6 +220,33 @@ async function loadDefaultMap() {
                 }
             }
             state.myCircuits = validCircuits;
+
+            // --- FUSION INTELLIGENTE (Shadowing) ---
+            // Si un circuit officiel a une version locale améliorée (avec realTrack),
+            // on remplace l'objet officiel en mémoire par la version locale.
+            if (state.officialCircuits && state.officialCircuits.length > 0) {
+                state.officialCircuits = state.officialCircuits.map(off => {
+                    const localVersion = state.myCircuits.find(loc => String(loc.id) === String(off.id));
+
+                    if (localVersion) {
+                        console.log(`[Main] Version locale améliorée trouvée pour : ${off.name}`);
+                        // On fusionne : on garde les métadonnées officielles mais on prend la trace locale
+                        // et on s'assure que isOfficial reste true pour l'affichage (étoile)
+                        return {
+                            ...off,
+                            ...localVersion, // La version locale écrase (trace, transport, desc si modifiée)
+                            isOfficial: true // On force le flag officiel
+                        };
+                    }
+                    return off;
+                });
+
+                // Nettoyage visuel : On retire de la liste "Mes Circuits" ceux qui sont déjà affichés comme Officiels
+                // pour éviter les doublons visuels dans l'interface (mais on les garde en DB !)
+                state.myCircuits = state.myCircuits.filter(c =>
+                    !state.officialCircuits.some(off => String(off.id) === String(c.id))
+                );
+            }
 
         } catch (dbErr) {
             console.warn("Aucune donnée utilisateur antérieure ou erreur DB:", dbErr);
