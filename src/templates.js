@@ -80,22 +80,26 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
     `).join('');
 
     const currency = getCurrentCurrency();
+    const priceDisplay = priceValue === 0 || priceValue === '0' || priceValue === '' ? 'Gratuit' : priceValue;
+
     const practicalDetailsHtml = `
         <div class="detail-section">
             <h3>Détails Pratiques</h3>
             <div class="content structured-input-row">
                 <div class="input-group">
-                    <div class="time-editor">
-                        <button class="time-adjust-btn" id="time-decrement-btn" title="- 5 min">${ICONS.minus}</button>
-                        <span id="panel-time-display" class="duration-picker-trigger" data-hours="${hours}" data-minutes="${minutes}">${timeText}</span>
-                        <button class="time-adjust-btn" id="time-increment-btn" title="+ 5 min">${ICONS.plus}</button>
+                    <div class="stepper-control time-editor">
+                        <button class="stepper-btn" id="time-decrement-btn" title="- 5 min">${ICONS.minus}</button>
+                        <span id="panel-time-display" class="value-display" data-hours="${hours}" data-minutes="${minutes}">${timeText}</span>
+                        <button class="stepper-btn" id="time-increment-btn" title="+ 5 min">${ICONS.plus}</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <div class="price-wrapper">
-                        <input type="number" id="panel-price" class="price-input" min="0" placeholder="Prix" value="${priceValue}">
-                        <span class="currency-label">${currency}</span>
+                    <div class="stepper-control price-editor">
+                        <button class="stepper-btn" id="price-decrement-btn" title="- 0.5">${ICONS.minus}</button>
+                        <span id="panel-price-display" class="value-display" data-value="${priceValue || 0}">${priceDisplay}</span>
+                        <button class="stepper-btn" id="price-increment-btn" title="+ 0.5">${ICONS.plus}</button>
                     </div>
+                    <span class="currency-label">${currency}</span>
                 </div>
             </div>
         </div>`;
