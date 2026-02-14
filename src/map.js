@@ -47,8 +47,14 @@ export function initMap(initialCenter = [33.8076, 10.8451], initialZoom = 12.6) 
         zoomDelta: 0.1,
         wheelPxPerZoomLevel: 180,
         attributionControl: false,
-        preferCanvas: true
+        preferCanvas: true,
+        zoomControl: false // On désactive le zoom par défaut pour le repositionner/styler nous-même si besoin
     }).setView(initialCenter, initialZoom);
+
+    // Ajout explicite du contrôle de zoom en haut à gauche (position standard)
+    L.control.zoom({
+        position: 'topleft'
+    }).addTo(map);
 
     // 1. Couche "Plan" (OpenStreetMap) - Très léger
     const planLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
