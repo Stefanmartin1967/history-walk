@@ -362,3 +362,11 @@ export function fitMapToContent() {
         }
     }
 }
+
+export function invalidateMapSize() {
+    if (map) {
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 300); // Délai pour laisser l'animation CSS se terminer
+    }
+}

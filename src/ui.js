@@ -19,6 +19,7 @@ import { showConfirm, showAlert } from './modal.js';
 import { RichEditor } from './richEditor.js';
 import { switchSidebarTab } from './ui-sidebar.js'; // Imported for use inside ui.js functions
 import { exportFullBackupPC, exportDataForMobilePC, saveUserData } from './fileManager.js';
+import { invalidateMapSize } from './map.js';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
@@ -57,6 +58,8 @@ export function initializeDomReferences() {
             if (DOM.rightSidebar && DOM.rightSidebar.style.display === 'none') {
                 DOM.rightSidebar.style.display = 'flex';
                 document.body.classList.add('sidebar-open');
+                // FIX: On force le redessin de la carte (sinon elle peut être coupée)
+                invalidateMapSize();
             }
 
             renderExplorerList();

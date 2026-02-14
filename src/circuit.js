@@ -424,7 +424,20 @@ export async function loadCircuitById(id) {
 
                     // On sauvegarde pour persistance (IndexedDB)
                     await saveCircuit(circuitToLoad);
-                    console.log(`[Circuit] Trace chargée (${coordinates.length} points) et sauvegardée.`);
+
+                    // FIX: On ajoute le circuit aux "Locaux" (Shadow) pour qu'il soit inclus dans les backups (saveUserData)
+                    // Cela permet de restaurer la trace bleue même si le fichier GPX serveur est inaccessible (Offline/Clear DB)
+                    const shadowIndex = state.myCircuits.findIndex(c => String(c.id) === String(id));
+                    if (shadowIndex === -1) {
+                        // On s'assure que le flag isOfficial est présent pour que l'UI le masque (évite les doublons visuels)
+                        if (!circuitToLoad.isOfficial) circuitToLoad.isOfficial = true;
+                        state.myCircuits.push(circuitToLoad);
+                    } else {
+                        // Mise à jour du shadow existant
+                        state.myCircuits[shadowIndex].realTrack = coordinates;
+                    }
+
+                    console.log(`[Circuit] Trace chargée (${coordinates.length} points) et sauvegardée (Shadow).`);
                 }
             } else {
                 console.warn(`[Circuit] Fichier GPX introuvable : ${circuitToLoad.file}`);
