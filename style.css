@@ -2668,7 +2668,7 @@ input[type=range] {
 }
 
 
-/* --- LEAFLET CONTROLS HARMONIZATION --- */
+/* --- LEAFLET CONTROLS HARMONIZATION (THEMED) --- */
 .leaflet-bar a,
 .leaflet-control-layers-toggle {
     width: 44px !important;
@@ -2676,14 +2676,21 @@ input[type=range] {
     line-height: 44px !important;
     font-size: 24px !important;
     border-radius: 12px !important;
-    box-shadow: var(--shadow-soft) !important;
+    box-shadow: var(--shadow) !important;
     border: 1px solid var(--line) !important;
-    background-color: var(--surface) !important;
-    color: var(--ink) !important;
+    background-color: var(--bg) !important; /* THEME COLOR */
+    color: #fff !important; /* Always white for contrast on theme bg */
     display: flex !important;
     align-items: center;
     justify-content: center;
     margin-bottom: 8px !important; /* Space between buttons */
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.leaflet-bar a:hover,
+.leaflet-control-layers-toggle:hover {
+    background-color: var(--bg-2) !important; /* Darker theme color on hover */
+    transform: translateY(-1px);
 }
 
 /* Remove default Leaflet borders between grouped buttons */
@@ -2706,14 +2713,6 @@ input[type=range] {
 .leaflet-control-zoom-in,
 .leaflet-control-zoom-out {
     font-weight: bold !important;
-    color: var(--ink) !important;
-}
-
-.leaflet-control-zoom-in:hover,
-.leaflet-control-zoom-out:hover,
-.leaflet-control-layers-toggle:hover {
-    background-color: var(--surface-muted) !important;
-    color: var(--brand) !important;
 }
 
 /* Layers control specific adjustments */
@@ -2721,6 +2720,32 @@ input[type=range] {
     border: none !important;
     box-shadow: none !important;
     background: transparent !important;
+    border-radius: 12px !important;
+}
+
+/* EXPANDED LAYERS MENU (THEMED) */
+.leaflet-control-layers-expanded {
+    background-color: var(--surface) !important; /* Theme Surface (White/Paper) */
+    color: var(--ink) !important; /* Theme Ink */
+    padding: 12px 16px !important;
+    box-shadow: var(--shadow) !important;
+    border: 1px solid var(--line) !important;
+    min-width: 150px;
+}
+
+.leaflet-control-layers-selector {
+    accent-color: var(--brand); /* Checkbox color */
+    transform: scale(1.2);
+    margin-right: 8px;
+}
+
+.leaflet-control-layers-base label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    cursor: pointer;
 }
 
 .leaflet-control-layers-toggle {
@@ -2733,13 +2758,9 @@ input[type=range] {
     display: block;
     width: 24px;
     height: 24px;
-    background-color: var(--ink); /* Icon color */
+    background-color: #fff; /* Icon white on theme bg */
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 7 12 12 22 7 12 2'/%3E%3Cpolyline points='2 17 12 22 22 17'/%3E%3Cpolyline points='2 12 12 17 22 12'/%3E%3C/svg%3E") no-repeat center;
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 7 12 12 22 7 12 2'/%3E%3Cpolyline points='2 17 12 22 22 17'/%3E%3Cpolyline points='2 12 12 17 22 12'/%3E%3C/svg%3E") no-repeat center;
-}
-
-.leaflet-control-layers-toggle:hover::after {
-    background-color: var(--brand);
 }
 
 /* --- BACKUP MODAL STYLES --- */
