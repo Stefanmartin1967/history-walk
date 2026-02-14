@@ -3056,35 +3056,54 @@ input[type=range] {
 
 /* --- PATCH DETAILS PANEL V4 (Stepper Polish & Centering) --- */
 
-/* 1. Centrage Vertical des sections "Détails" et "Suivi" */
+/* 1. Centrage Vertical & Horizontal Absolu */
 .detail-section .content.structured-input-row,
 .detail-section .content.checkbox-group {
-    min-height: 70px !important; /* Hauteur augmentée pour confort */
-    padding-top: 0 !important;   /* Reset padding pour centrage pur */
-    padding-bottom: 0 !important;
+    min-height: 70px !important;
+    padding: 0 16px !important; /* Marge interne pour ne pas coller */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 40px !important;
+    gap: 20px !important; /* Gap réduit car les éléments sont plus larges */
+    width: 100% !important; /* Occupe toute la largeur du parent */
+}
+
+/* Force les enfants à ne pas dépasser et à rester centrés */
+.input-group, .checkbox-label {
+    flex-shrink: 0;
+    justify-content: center;
 }
 
 /* 2. Fixation de la largeur du Prix (pour éviter le saut Gratuit/10) */
 #panel-price-display {
-    min-width: 80px !important; /* Suffisant pour "Gratuit" (7 chars) */
+    min-width: 60px !important; /* Suffisant pour le nombre */
     text-align: center;
+    flex-grow: 1; /* Remplit l'espace */
 }
 
-/* 3. Devise intégrée dans le stepper */
+/* 3. Devise intégrée dans le stepper - FIX LARGEUR STABLE */
 .stepper-currency {
     font-size: 14px;
     font-weight: 600;
     color: var(--ink-soft);
-    padding: 0 8px 0 4px; /* Espace autour */
-    border-right: 1px solid var(--surface-muted); /* Séparateur léger avec le bouton + */
+    padding: 0 8px 0 4px;
+    border-right: 1px solid var(--surface-muted);
     height: 100%;
     display: flex;
     align-items: center;
-    background: var(--surface-muted); /* Légèrement grisé pour distinguer */
+    justify-content: center;
+    background: var(--surface-muted);
+    min-width: 50px; /* Largeur FIXE pour la devise */
+    text-align: center;
+}
+
+/* Si la devise est cachée (display:none via JS pour "Gratuit"), on garde l'espace ?
+   Non, l'utilisateur veut que "Prix" ait la MEME largeur.
+   Donc le conteneur global doit être fixe. */
+
+.stepper-control {
+    width: 160px; /* Largeur FIXE TOTALE pour empêcher tout mouvement */
+    justify-content: space-between; /* Répartit les boutons aux extrémités */
 }
 
 /* 4. Suppression de l'ancien label devise externe */
