@@ -56,20 +56,14 @@ function setSaveButtonsState(enabled) {
     const btnBackup = document.getElementById('btn-open-backup-modal');
     const btnRestore = document.getElementById('btn-restore-data');
 
-    // Le bouton de sauvegarde s'active si une carte est chargée
     if (btnBackup) btnBackup.disabled = !enabled;
-
-    // Le bouton Restaurer est TOUJOURS disponible sur PC
     if (btnRestore) btnRestore.disabled = false;
 }
 
 // --- PROTECTION CONTRE LA PERTE DE DONNÉES (WORKFLOW) ---
 function setupUnsavedChangesWarning() {
     window.addEventListener('beforeunload', (e) => {
-        // On vérifie si state.hasUnexportedChanges existe et est vrai
         if (state.hasUnexportedChanges) {
-            // Le message standard n'est plus affiché par les navigateurs modernes,
-            // mais setting returnValue déclenche la modale native.
             e.preventDefault();
             e.returnValue = '';
         }
@@ -88,7 +82,6 @@ function updateAppTitle(mapId) {
 }
 
 async function loadOfficialCircuits() {
-    // SÉCURITÉ : Chargement dynamique selon la carte active (ex: circuits/djerba.json)
     const mapId = state.currentMapId || 'djerba';
     const circuitsUrl = `./circuits/${mapId}.json`;
 
@@ -96,235 +89,179 @@ async function loadOfficialCircuits() {
         const response = await fetch(circuitsUrl);
         if (response.ok) {
             const officials = await response.json();
-
-            // CLEAN SLATE : On charge dans state.officialCircuits, PAS dans state.myCircuits
-            // Cela évite de polluer les sauvegardes utilisateur avec des données statiques.
             state.officialCircuits = officials.map(off => ({
                 ...off,
                 isOfficial: true,
-                // On s'assure d'avoir un ID unique s'il n'est pas fourni (bien que le générateur JSON le fasse déjà)
                 id: off.id || `official_${off.name.replace(/\s+/g, '_')}`
             }));
-
             console.log(`[Main] ${state.officialCircuits.length} circuits officiels chargés.`);
             import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
         } else {
-             console.log(`[Main] Pas de circuits officiels trouvés pour '${mapId}' (Fichier manquant ou 404).`);
              state.officialCircuits = [];
         }
     } catch (e) {
-        console.warn(`[Main] Erreur lors du chargement des circuits officiels pour ${mapId} :`, e);
+        console.warn(`[Main] Erreur circuits officiels ${mapId}:`, e);
         state.officialCircuits = [];
     }
 }
-
-// --- INITIALISATION ---
 
 async function loadDestinationsConfig() {
     const baseUrl = import.meta.env?.BASE_URL || './';
     const configUrl = baseUrl + 'destinations.json';
 
-    // NOTE: state.destinations est déjà initialisé dans state.js avec une structure par défaut.
-    // On ne fait que mettre à jour SI le chargement réussit.
-
     try {
         const response = await fetch(configUrl);
         if (response.ok) {
-            const json = await response.json();
-            // Mise à jour de l'état global
-            state.destinations = json;
-            console.log("[Config] destinations.json chargé avec succès.", state.destinations);
-        } else {
-            console.warn(`[Config] destinations.json introuvable (${response.status}). Utilisation de la configuration par défaut en mémoire.`);
+            state.destinations = await response.json();
+            console.log("[Config] destinations.json chargé.", state.destinations);
         }
     } catch (e) {
-        console.error("[Config] Erreur chargement destinations.json (Reseau/Parse). Conservation défaut.", e);
+        console.error("[Config] Erreur chargement destinations.json.", e);
     }
 }
 
-async function loadDefaultMap() {
-    // 0. Chargement de la config des destinations
+// --- NOUVEAU : Chargement et Initialisation Unifiés ---
+async function loadAndInitializeMap() {
+    // 0. Config (CRITIQUE : On attend la config avant tout)
     await loadDestinationsConfig();
 
     const baseUrl = import.meta.env?.BASE_URL || './';
 
-    // Détermination de la carte active
-    let activeMapId = 'djerba'; // Défaut
-    let startView = null;
+    // 1. Calcul de la stratégie de vue (Avant d'init la carte)
+    let activeMapId = 'djerba';
+    let initialView = { center: [33.77478, 10.94353], zoom: 11.5 }; // Fallback ultime
 
+    // A. Détermination Map ID
     if (state.destinations) {
-        // Priorité : URL Param > Config active > Djerba
         const urlParams = new URLSearchParams(window.location.search);
         const urlMapId = urlParams.get('map');
-
         if (urlMapId && state.destinations.maps[urlMapId]) {
             activeMapId = urlMapId;
-        } else if (state.destinations.activeMapId && state.destinations.maps[state.destinations.activeMapId]) {
+        } else if (state.destinations.activeMapId) {
             activeMapId = state.destinations.activeMapId;
         }
-
-        // Récupération de la vue de départ si dispo
+        // B. Config View (si dispo)
         if (state.destinations.maps[activeMapId] && state.destinations.maps[activeMapId].startView) {
-            startView = state.destinations.maps[activeMapId].startView;
+            initialView = state.destinations.maps[activeMapId].startView;
         }
     }
 
-    // Nom du fichier GeoJSON (supposé correspondre à l'ID ou défini dans la config)
+    // C. Restauration Vue Utilisateur (Priorité absolue)
+    try {
+        const lastMapView = await getAppState('lastMapView');
+        if (lastMapView && lastMapView.center && lastMapView.zoom) {
+            console.log("Vue utilisateur restaurée :", lastMapView);
+            initialView = lastMapView;
+            state.restoredUserView = true;
+        }
+    } catch (e) { console.warn("Pas de vue sauvegardée"); }
+
+    // 2. Chargement des données (GeoJSON)
+    let geojsonData = null;
     let fileName = `${activeMapId}.geojson`;
-    if (state.destinations && state.destinations.maps[activeMapId] && state.destinations.maps[activeMapId].file) {
+    if (state.destinations?.maps[activeMapId]?.file) {
         fileName = state.destinations.maps[activeMapId].file;
     }
-
-    const defaultMapUrl = baseUrl + fileName;
 
     if (DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'flex';
 
     try {
-        const response = await fetch(defaultMapUrl);
-        if (!response.ok) throw new Error(`Erreur réseau: ${response.statusText}`);
-
-        const geojsonData = await response.json();
-
-        // --- 1. IDENTITÉ DYNAMIQUE ---
-        state.currentMapId = activeMapId;
-        updateAppTitle(activeMapId);
-
-        await saveAppState('lastMapId', activeMapId);
-
-        // 2. Chargement Données Utilisateur & Circuits (UNIFIÉ)
-        try {
-            state.userData = await getAllPoiDataForMap(activeMapId) || {};
-            state.myCircuits = await getAllCircuitsForMap(activeMapId) || [];
-            state.officialCircuitsStatus = await getAppState(`official_circuits_status_${activeMapId}`) || {};
-            await loadOfficialCircuits(); // Chargement séparé
-
-            // --- NETTOYAGE DOUX (Soft Cleanup) ---
-            // On ne supprime PLUS systématiquement les circuits "isOfficial".
-            // Pourquoi ? Car l'utilisateur peut avoir importé une trace réelle (GPX Studio)
-            // sur un circuit officiel, et nous l'avons sauvegardée localement (Shadow Copy).
-
-            const validCircuits = [];
-            for (const c of state.myCircuits) {
-                let toDelete = false;
-
-                // On supprime SEULEMENT si c'est vide (Bug 0 POI)
-                if (!c.poiIds || c.poiIds.length === 0) {
-                     console.warn(`[Cleanup] Suppression du circuit vide (0 POI) : ${c.name} (${c.id})`);
-                     toDelete = true;
-                }
-
-                if (toDelete) {
-                    await deleteCircuitById(c.id);
-                } else {
-                    validCircuits.push(c);
-                }
-            }
-            state.myCircuits = validCircuits;
-
-            // --- FUSION INTELLIGENTE (Shadowing) ---
-            // Si un circuit officiel a une version locale améliorée (avec realTrack),
-            // on remplace l'objet officiel en mémoire par la version locale.
-            if (state.officialCircuits && state.officialCircuits.length > 0) {
-                state.officialCircuits = state.officialCircuits.map(off => {
-                    const localVersion = state.myCircuits.find(loc => String(loc.id) === String(off.id));
-
-                    if (localVersion) {
-                        console.log(`[Main] Version locale améliorée trouvée pour : ${off.name}`);
-                        // On fusionne : on garde les métadonnées officielles mais on prend la trace locale
-                        // et on s'assure que isOfficial reste true pour l'affichage (étoile)
-                        return {
-                            ...off,
-                            ...localVersion, // La version locale écrase (trace, transport, desc si modifiée)
-                            isOfficial: true // On force le flag officiel
-                        };
-                    }
-                    return off;
-                });
-
-                // Nettoyage visuel : On retire de la liste "Mes Circuits" ceux qui sont déjà affichés comme Officiels
-                // pour éviter les doublons visuels dans l'interface (mais on les garde en DB !)
-                state.myCircuits = state.myCircuits.filter(c =>
-                    !state.officialCircuits.some(off => String(off.id) === String(c.id))
-                );
-            }
-
-        } catch (dbErr) {
-            console.warn("Aucune donnée utilisateur antérieure ou erreur DB:", dbErr);
-            state.myCircuits = [];
-        }
-
-        // 3. AFFICHAGE / CHARGEMENT (Branchement Mobile vs Desktop)
-        if (isMobileView()) {
-            // MODE MOBILE : On charge les données en mémoire SANS afficher la carte
-            console.log("Mobile: Chargement données sans rendu carte.");
-            state.loadedFeatures = geojsonData.features || [];
-            // Sauvegarde pour persistance
-            await saveAppState('lastGeoJSON', geojsonData);
-
-            setSaveButtonsState(true);
-            switchMobileView('circuits'); // Force l'affichage immédiat
-
+        const resp = await fetch(baseUrl + fileName);
+        if(resp.ok) geojsonData = await resp.json();
+    } catch(e) {
+        // Fallback offline
+        const lastMapId = await getAppState('lastMapId');
+        const lastGeoJSON = await getAppState('lastGeoJSON');
+        if (lastMapId === activeMapId && lastGeoJSON) {
+            geojsonData = lastGeoJSON;
+            console.warn("Chargement hors-ligne (fallback)");
         } else {
-            // MODE DESKTOP : On affiche la carte Leaflet
-            await displayGeoJSON(geojsonData, activeMapId);
-
-            // Initialisation de la vue (Centre/Zoom) selon la config destinations.json
-            // Uniquement si on vient de charger une nouvelle carte (pas de restauration d'état précédente ici)
-            // Note: displayGeoJSON ne change pas la vue si la carte est déjà init.
-            // On force ici si startView est défini.
-            if (startView) {
-                // On importe map dynamiquement au cas où
-                import('./map.js').then(({ map }) => {
-                    if (map) {
-                        map.setView(startView.center, startView.zoom);
-                    }
-                });
-            }
-
-            // Rafraîchir la liste des circuits maintenant que les features sont chargées (pour calcul Visité/Distance)
-            import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
+            console.error("Erreur download map", e);
         }
+    }
 
+    if (!geojsonData) {
+        showToast("Impossible de charger la carte.", 'error');
+        if (DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'none';
+        return;
+    }
+
+    // 3. Mise à jour État
+    state.currentMapId = activeMapId;
+    updateAppTitle(activeMapId);
+    await saveAppState('lastMapId', activeMapId);
+    if (!isMobileView()) await saveAppState('lastGeoJSON', geojsonData);
+
+    // 4. Chargement User Data & Circuits (Smart Merge)
+    try {
+        state.userData = await getAllPoiDataForMap(activeMapId) || {};
+        state.myCircuits = await getAllCircuitsForMap(activeMapId) || [];
+        state.officialCircuitsStatus = await getAppState(`official_circuits_status_${activeMapId}`) || {};
+        await loadOfficialCircuits();
+
+        const validCircuits = [];
+        for (const c of state.myCircuits) {
+            let toDelete = false;
+            if (!c.poiIds || c.poiIds.length === 0) toDelete = true;
+            if (toDelete) await deleteCircuitById(c.id);
+            else validCircuits.push(c);
+        }
+        state.myCircuits = validCircuits;
+
+        if (state.officialCircuits) {
+            state.officialCircuits = state.officialCircuits.map(off => {
+                const loc = state.myCircuits.find(l => String(l.id) === String(off.id));
+                return loc ? { ...off, ...loc, isOfficial: true } : off;
+            });
+            state.myCircuits = state.myCircuits.filter(c =>
+                !state.officialCircuits.some(off => String(off.id) === String(c.id))
+            );
+        }
+    } catch (e) { console.warn("Erreur chargement user data", e); }
+
+    // 5. RENDU (La stabilisation est ici)
+    if (isMobileView()) {
+        state.loadedFeatures = geojsonData.features || [];
+        await saveAppState('lastGeoJSON', geojsonData); // Mobile cache specific
+        setSaveButtonsState(true);
+        switchMobileView('circuits');
+    } else {
+        // INIT MAP UNE SEULE FOIS AVEC LA BONNE VUE
+        // Plus de "Djerba default" puis "Jump"
+        initMap(initialView.center, initialView.zoom);
+
+        await displayGeoJSON(geojsonData, activeMapId);
+
+        // Pas de fitMapToContent() ici, on a déjà la vue parfaite.
+
+        try { await loadCircuitDraft(); } catch (e) {}
+        setSaveButtonsState(true);
         if (DOM.btnRestoreData) DOM.btnRestoreData.disabled = false;
 
-    } catch (error) {
-        console.error("Impossible de charger la carte par défaut:", error);
-        showToast("Impossible de charger la carte.", 'error');
-        setSaveButtonsState(false);
-    } finally {
-        if (DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'none';
+        import('./events.js').then(({ eventBus }) => eventBus.emit('circuit:list-updated'));
     }
+
+    if (DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'none';
 }
 
 async function initializeApp() {
-    // 0. Vérification Version (Cold Start Fix)
+    // 0. Vérification Version
     const storedVersion = localStorage.getItem('hw_app_version');
     if (storedVersion !== APP_VERSION) {
-        console.log(`[Version] Mise à jour détectée : ${storedVersion} -> ${APP_VERSION}`);
         localStorage.setItem('hw_app_version', APP_VERSION);
-        // Si ce n'est pas la première installation (donc storedVersion existe), on recharge pour purger
         if (storedVersion) {
-            console.log("[Version] Rechargement forcé pour appliquer le nouveau design.");
-            // Petit délai pour laisser le temps au localStorage de s'écrire
-            setTimeout(() => {
-                window.location.reload(true);
-            }, 100);
+            setTimeout(() => { window.location.reload(true); }, 100);
             return;
         }
-    } else {
-        // Au cas où storedVersion n'existe pas encore (premier lancement propre de cette version)
-        if (!storedVersion) {
-            localStorage.setItem('hw_app_version', APP_VERSION);
-        }
+    } else if (!storedVersion) {
+        localStorage.setItem('hw_app_version', APP_VERSION);
     }
 
-    // 0. Détection Mode Admin (God Mode)
+    // 0. Admin
     const urlParams = new URLSearchParams(window.location.search);
-    console.log("[Main] Checking Admin Mode. Params:", window.location.search);
     if (urlParams.get('mode') === 'admin' || urlParams.get('admin') === 'true') {
         state.isAdmin = true;
-        console.warn("🛡️ GOD MODE ACTIVATED (ADMIN) 🛡️");
-        document.body.classList.add('admin-mode'); // Pour usage CSS éventuel
+        document.body.classList.add('admin-mode');
         if (DOM.appTitle) DOM.appTitle.textContent += " (Admin)";
     }
 
@@ -332,14 +269,11 @@ async function initializeApp() {
     const versionEl = document.getElementById('app-version');
     if (versionEl) {
         versionEl.textContent = APP_VERSION;
-
-        // GOD MODE TRIGGER (7 Clicks)
         let clickCount = 0;
         let clickTimeout;
         versionEl.addEventListener('click', () => {
             clickCount++;
             clearTimeout(clickTimeout);
-
             if (clickCount >= 7) {
                 state.isAdmin = !state.isAdmin;
                 showToast(`Mode GOD : ${state.isAdmin ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`, state.isAdmin ? 'success' : 'info');
@@ -353,98 +287,52 @@ async function initializeApp() {
         versionEl.title = "Cliquez 7 fois pour le mode Admin";
     }
 
-    initAdminMode(); // Initialisation des écouteurs Admin (God Mode)
+    initAdminMode();
     initializeDomReferences();
     setupCircuitEventListeners();
-    setupEventBusListeners(); // <--- LISTENER EVENT BUS
-
+    setupEventBusListeners();
     createIcons({ icons });
 
-    if (typeof populateAddPoiModalCategories === 'function') {
-        populateAddPoiModalCategories();
-    }
-
+    if (typeof populateAddPoiModalCategories === 'function') populateAddPoiModalCategories();
     setupFileListeners();
 
-    // 2. Mode Mobile ou Desktop
+    // 2. Mode Mobile ou Desktop (UI SETUP ONLY)
     if (isMobileView()) {
         initMobileMode();
     } else {
-        initDesktopMode();
+        // UI Setup only (Map init is deferred to loadAndInitializeMap)
+        enableDesktopCreationMode();
+        setupDesktopTools();
+        setupSmartSearch();
+        setupDesktopUIListeners();
+        updateSelectionModeButton(state.isSelectionModeActive);
+        document.body.classList.add('sidebar-open');
     }
 
     try {
         await initDB();
-
-        // 0. Chargement de la configuration des destinations (CRITIQUE pour le centrage)
-        // On le fait ICI pour qu'il soit disponible lors de la restauration d'état
-        await loadDestinationsConfig();
-
         const savedTheme = await getAppState('currentTheme');
         if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
-        const lastMapId = await getAppState('lastMapId');
-        const lastGeoJSON = await getAppState('lastGeoJSON');
-
-        if (lastMapId && lastGeoJSON) {
-            state.currentMapId = lastMapId;
-            updateAppTitle(lastMapId);
-            setSaveButtonsState(true);
-
-            try {
-                state.userData = await getAllPoiDataForMap(lastMapId) || {};
-                state.myCircuits = await getAllCircuitsForMap(lastMapId) || [];
-                state.officialCircuitsStatus = await getAppState(`official_circuits_status_${lastMapId}`) || {};
-                await loadOfficialCircuits(); // Chargement séparé
-            } catch (e) { console.error("Erreur DB secondaire:", e); }
-
-            // 3. Affichage de la carte
-            if (isMobileView()) {
-                state.loadedFeatures = lastGeoJSON.features || [];
-                switchMobileView('circuits');
-            } else {
-                await displayGeoJSON(lastGeoJSON, lastMapId);
-
-                // On ajuste la vue selon la configuration (MÊME pour Djerba !)
-                import('./map.js').then(m => m.fitMapToContent());
-
-                // --- RESTAURATION SÉCURISÉE DU BROUILLON ---
-                try {
-                    await loadCircuitDraft();
-                } catch (err) {
-                    console.warn("Échec restauration brouillon:", err);
-                }
-            }
-
-        } else {
-            await loadDefaultMap();
-        }
+        // Lancement unique et propre de la carte
+        await loadAndInitializeMap();
 
     } catch (error) {
         console.error("Échec init global:", error);
     }
 
-    // --- 4. LA TOUR DE CONTRÔLE DES ÉVÉNEMENTS (C'est ICI que ça se place !) ---
+    // 4. Tour de contrôle
     function setupGlobalEventListeners() {
-        console.log("[Main] Branchement des boutons de la Tour de Contrôle...");
-
-        // Bouton "Créer un circuit" (Géré par desktopMode.js via btn-mode-selection)
-        // L'ancien btn-select-mode n'existe plus dans le DOM
-
-        // Bouton "Vider le circuit"
         const btnClear = document.getElementById('btn-clear-circuit');
-        if (btnClear) {
-            btnClear.addEventListener('click', () => clearCircuit(true));
-        }
+        if (btnClear) btnClear.addEventListener('click', () => clearCircuit(true));
 
-        // Bouton "Fermer le panneau"
         const btnClose = document.getElementById('close-circuit-panel-button');
         if (btnClose) {
             btnClose.addEventListener('click', async () => {
                 if (state.currentCircuit.length > 0) {
                     if (await showConfirm("Fermeture", "Voulez-vous vraiment fermer et effacer le brouillon du circuit ?", "Fermer", "Annuler", true)) {
                         await clearCircuit(false);
-                        toggleSelectionMode(false); // On force le mode OFF
+                        toggleSelectionMode(false);
                     }
                 } else {
                     toggleSelectionMode(false);
@@ -453,7 +341,6 @@ async function initializeApp() {
         }
     }
 
-    // Theme Selector (Always active)
     const themeSelector = document.getElementById('btn-theme-selector');
     if (themeSelector) {
         themeSelector.addEventListener('click', () => {
@@ -467,29 +354,18 @@ async function initializeApp() {
         });
     }
 
-    // On allume la tour de contrôle
     setupGlobalEventListeners();
-    setupUnsavedChangesWarning(); // <--- AJOUT DE LA PROTECTION
-
-    // 5. Relancer les icônes à la toute fin
+    setupUnsavedChangesWarning();
     createIcons({ icons });
 
-    // --- GESTION DE L'IMPORT URL (QR Code Universel) ---
-    // Note: urlParams est déjà déclaré au début de initializeApp
+    // Import URL
     const importIds = urlParams.get('import');
     const importName = urlParams.get('name');
-
     if (importIds) {
-        console.log("Import circuit détecté via URL:", importIds);
-
-        // Nettoyage de l'URL pour éviter le rechargement en boucle
         const newUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
-
-        // On attend un peu que tout soit chargé (Events, DB, Map/Mobile view)
         setTimeout(() => {
              import('./circuit.js').then(module => {
-                 // On passe directement les IDs bruts, la fonction gère le fallback
                  module.loadCircuitFromIds(importIds, importName);
              });
         }, 500);
@@ -497,25 +373,17 @@ async function initializeApp() {
 }
 
 function setupEventBusListeners() {
-    console.log("[Main] Écoute des événements de données...");
-
     eventBus.on('data:filtered', (visibleFeatures) => {
         if (isMobileView()) {
-            console.log(`[Main] Mise à jour Mobile : ${visibleFeatures.length} lieux.`);
             renderMobilePoiList(visibleFeatures);
         } else {
-            console.log(`[Main] Mise à jour Desktop : ${visibleFeatures.length} lieux.`);
             refreshMapMarkers(visibleFeatures);
             populateZonesMenu();
             populateCategoriesMenu();
         }
     });
 
-    // --- Circuit Events (Controller Logic) ---
-    eventBus.on('circuit:request-load', async (id) => {
-        await loadCircuitById(id);
-    });
-
+    eventBus.on('circuit:request-load', async (id) => await loadCircuitById(id));
     eventBus.on('circuit:request-delete', async (id) => {
         const result = await performCircuitDeletion(id);
         if (result.success) {
@@ -525,118 +393,18 @@ function setupEventBusListeners() {
             showToast(result.message, 'error');
         }
     });
-
     eventBus.on('circuit:request-import', (id) => {
         state.circuitIdToImportFor = id;
         if(DOM.gpxImporter) DOM.gpxImporter.click();
     });
-
     eventBus.on('circuit:request-toggle-visited', async ({ id, isChecked }) => {
         const result = await toggleCircuitVisitedStatus(id, isChecked);
-        if (result.success) {
-             eventBus.emit('circuit:list-updated');
-        }
+        if (result.success) eventBus.emit('circuit:list-updated');
     });
-
-    eventBus.on('circuit:list-updated', () => {
-        populateCircuitsMenu();
-    });
+    eventBus.on('circuit:list-updated', () => populateCircuitsMenu());
 }
 
-async function initDesktopMode() {
-    // --- STABILISATION DE L'AFFICHAGE ---
-    // On ouvre la sidebar AVANT d'initialiser la carte.
-    // Ainsi, le conteneur #map a déjà sa taille finale (réduite par la sidebar).
-    // Quand Leaflet s'initialise, il prend directement les bonnes dimensions
-    // et centre la carte correctement, sans "saut" ni rétrécissement.
-    document.body.classList.add('sidebar-open');
-
-    initMap(); // Leaflet
-    if (typeof map !== 'undefined') {
-        enableDesktopCreationMode();
-        setupDesktopTools();
-        setupSmartSearch();
-    }
-
-    setupDesktopUIListeners(); // Listeners spécifiques UI Desktop
-    updateSelectionModeButton(state.isSelectionModeActive);
-}
-
-// --- NOUVEAU : Listeners pour Fichiers (Actifs Mobile & Desktop) ---
-function setupFileListeners() {
-    // Restauration (Backup)
-    if (DOM.restoreLoader) {
-        // Nettoyage préalable pour éviter les doublons si appel multiple
-        DOM.restoreLoader.removeEventListener('change', handleRestoreFile);
-        DOM.restoreLoader.addEventListener('change', handleRestoreFile);
-    }
-
-    // Bouton Menu Restauration (Corbeille)
-    if (DOM.btnRestoreData) {
-        DOM.btnRestoreData.addEventListener('click', () => {
-            if (!DOM.btnRestoreData.disabled) openRestoreModal();
-        });
-    }
-
-    // Import GeoJSON (Carte)
-    if (DOM.geojsonLoader) {
-        DOM.geojsonLoader.removeEventListener('change', handleFileLoad);
-        DOM.geojsonLoader.addEventListener('change', handleFileLoad);
-    }
-    if (DOM.btnOpenGeojson) DOM.btnOpenGeojson.addEventListener('click', () => DOM.geojsonLoader.click());
-
-    // Sauvegarde Données (Données uniquement) - Ancien "Mobile"
-    const btnSaveMobile = document.getElementById('btn-save-mobile');
-    if (btnSaveMobile) {
-        // Mise à jour du texte si possible
-        // if (btnSaveMobile.querySelector('span')) btnSaveMobile.querySelector('span').textContent = "Sauvegarde Données";
-
-        btnSaveMobile.addEventListener('click', () => {
-            if (window.innerWidth > 768) {
-                // SUR PC : On veut le téléchargement direct
-                exportDataForMobilePC();
-            } else {
-                // SUR MOBILE : On garde le système de partage .txt
-                saveUserData(false);
-            }
-        });
-    }
-
-    // NOUVEAU : Sauvegarde Circuits (JSON Officiel)
-    const btnSaveCircuits = document.getElementById('btn-save-circuits');
-    if (btnSaveCircuits) {
-        btnSaveCircuits.addEventListener('click', () => {
-            exportOfficialCircuitsJSON();
-        });
-    }
-
-    // Sauvegarde Full (Données + Photos)
-    const btnSaveFull = document.getElementById('btn-save-full');
-    if (btnSaveFull) {
-        btnSaveFull.addEventListener('click', () => {
-            if (window.innerWidth > 768) {
-                // SUR PC : Fenêtre "Enregistrer sous" classique
-                exportFullBackupPC();
-            } else {
-                saveUserData(true);
-            }
-        });
-    }
-
-    // Import Photos (Desktop specific input but safe to leave here or check ID)
-    const photoLoader = document.getElementById('photo-gps-loader');
-    if (photoLoader) photoLoader.addEventListener('change', handlePhotoImport);
-
-    // Import GPX
-    if (DOM.gpxImporter) DOM.gpxImporter.addEventListener('change', handleGpxFileImport);
-}
-
-// --- Listeners spécifiques Desktop (Carte, Tabs, Filtres visuels) ---
 function setupDesktopUIListeners() {
-    // Note: btnModeSelection est géré par setupDesktopTools pour le Wizard
-    // if (DOM.btnMyCircuits) DOM.btnMyCircuits.addEventListener('click', openCircuitsModal); // REMPLACÉ PAR MENU DÉROULANT (ui.js)
-
-    // Filtres : Gestion du bouton Catégories
     document.getElementById('btn-categories')?.addEventListener('click', (e) => {
         e.stopPropagation();
         const cMenu = document.getElementById('categoriesMenu');
@@ -647,13 +415,9 @@ function setupDesktopUIListeners() {
         }
     });
 
-    // Initialisation du menu
     populateCategoriesMenu();
 
-    // Légende
-    document.getElementById('btn-legend')?.addEventListener('click', () => {
-        showLegendModal();
-    });
+    document.getElementById('btn-legend')?.addEventListener('click', () => showLegendModal());
 
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {
         const btn = e.currentTarget;
@@ -682,29 +446,24 @@ function setupDesktopUIListeners() {
     });
 
     document.addEventListener('click', (e) => {
-        // Fermeture Zones
         if (!e.target.closest('#btn-filter-zones') && !e.target.closest('#zonesMenu')) {
             const zonesMenu = document.getElementById('zonesMenu');
             if (zonesMenu) zonesMenu.style.display = 'none';
         }
-        // Fermeture Catégories
         if (!e.target.closest('#btn-categories') && !e.target.closest('#categoriesMenu')) {
             const cMenu = document.getElementById('categoriesMenu');
             if (cMenu) cMenu.style.display = 'none';
         }
-        // Fermeture Tools Menu
         if (!e.target.closest('#btn-tools-menu') && !e.target.closest('#tools-menu-content')) {
             const tMenu = document.getElementById('tools-menu-content');
             if (tMenu) tMenu.classList.remove('active');
         }
-        // Fermeture Admin Menu
         if (!e.target.closest('#btn-admin-menu') && !e.target.closest('#admin-menu-content')) {
             const aMenu = document.getElementById('admin-menu-content');
             if (aMenu) aMenu.classList.remove('active');
         }
     });
 
-    // Search Desktop
     if (DOM.searchInput) DOM.searchInput.addEventListener('input', setupSearch);
     document.addEventListener('click', (e) => {
         if (DOM.searchResults && !e.target.closest('.search-container')) {
@@ -714,17 +473,12 @@ function setupDesktopUIListeners() {
 
     setupTabs();
 
-    // LISTENER REMOVED - handled by ui-circuit-list.js
-
-    // Import Photos bouton Desktop
     const btnImportPhotos = document.getElementById('btn-import-photos');
     const photoLoader = document.getElementById('photo-gps-loader');
     if (btnImportPhotos && photoLoader) {
         btnImportPhotos.addEventListener('click', () => photoLoader.click());
     }
 
-    // --- SYNC / SCANNER (Desktop) ---
-    // SUPPRESSION DEMANDÉE : On retire les boutons Scanner et Sync Share du Desktop
     const btnSyncScan = document.getElementById('btn-sync-scan');
     if (btnSyncScan) btnSyncScan.style.display = 'none';
 
@@ -732,15 +486,61 @@ function setupDesktopUIListeners() {
     if (btnSyncShare) btnSyncShare.style.display = 'none';
 }
 
+function setupFileListeners() {
+    if (DOM.restoreLoader) {
+        DOM.restoreLoader.removeEventListener('change', handleRestoreFile);
+        DOM.restoreLoader.addEventListener('change', handleRestoreFile);
+    }
+    if (DOM.btnRestoreData) {
+        DOM.btnRestoreData.addEventListener('click', () => {
+            if (!DOM.btnRestoreData.disabled) openRestoreModal();
+        });
+    }
+    if (DOM.geojsonLoader) {
+        DOM.geojsonLoader.removeEventListener('change', handleFileLoad);
+        DOM.geojsonLoader.addEventListener('change', handleFileLoad);
+    }
+    if (DOM.btnOpenGeojson) DOM.btnOpenGeojson.addEventListener('click', () => DOM.geojsonLoader.click());
+
+    const btnSaveMobile = document.getElementById('btn-save-mobile');
+    if (btnSaveMobile) {
+        btnSaveMobile.addEventListener('click', () => {
+            if (window.innerWidth > 768) {
+                exportDataForMobilePC();
+            } else {
+                saveUserData(false);
+            }
+        });
+    }
+
+    const btnSaveCircuits = document.getElementById('btn-save-circuits');
+    if (btnSaveCircuits) {
+        btnSaveCircuits.addEventListener('click', () => exportOfficialCircuitsJSON());
+    }
+
+    const btnSaveFull = document.getElementById('btn-save-full');
+    if (btnSaveFull) {
+        btnSaveFull.addEventListener('click', () => {
+            if (window.innerWidth > 768) {
+                exportFullBackupPC();
+            } else {
+                saveUserData(true);
+            }
+        });
+    }
+
+    const photoLoader = document.getElementById('photo-gps-loader');
+    if (photoLoader) photoLoader.addEventListener('change', handlePhotoImport);
+
+    if (DOM.gpxImporter) DOM.gpxImporter.addEventListener('change', handleGpxFileImport);
+}
+
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 import { registerSW } from 'virtual:pwa-register';
 
-// SW Registration (Géré par Vite PWA)
 const updateSW = registerSW({
     onNeedRefresh() {
-        console.log("Nouvelle version disponible ! Mise à jour en cours...");
-        // Force la mise à jour sans demander à l'utilisateur
         updateSW(true);
     },
     onOfflineReady() {

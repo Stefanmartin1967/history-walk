@@ -254,7 +254,15 @@ export function renderExplorerList() {
         : processedCircuits.map(c => {
             const displayName = c.name.split(' via ')[0];
             const distDisplay = (c.distVal / 1000).toFixed(1) + ' km';
-            const iconName = c.realTrack ? 'footprints' : 'bird';
+
+            // PRIORITÉ ICÔNE :
+            // 1. Si on a des données de trace chargées (realTrack) -> FOOT
+            // 2. Si on a un flag dans le JSON disant qu'il y a une trace (hasRealTrack) -> FOOT
+            // 3. Sinon -> BIRD
+            let iconName = 'bird';
+            if (c.realTrack || c.hasRealTrack) {
+                iconName = 'footprints';
+            }
 
             // Indicateur POI
             const metaInfo = `${c.poiCount} POI`;
