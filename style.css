@@ -3096,3 +3096,30 @@ input[type=range] {
 #panel-time-display {
     min-width: 80px !important;
 }
+
+/* --- PATCH REGRESSION FIX (Polylines & Zoom) --- */
+
+/* Force re-declaration of Polyline styles to ensure they apply over any accidental breakage */
+.circuit-polyline {
+    stroke: #EF4444 !important; /* Rouge (Vol d'oiseau) - var(--danger) fallback */
+    stroke-width: 4px !important;
+    stroke-dasharray: 8, 8 !important; /* Pointillé plus visible */
+    opacity: 0.9 !important;
+    fill: none !important;
+}
+
+.real-track-polyline {
+    stroke: #3B82F6 !important; /* Bleu (Tracé réel) - var(--brand) fallback */
+    stroke-width: 5px !important; /* Un peu plus épais */
+    opacity: 0.8 !important;
+    stroke-dasharray: none !important;
+    fill: none !important;
+}
+
+.real-track-polyline-done {
+    stroke: #10B981 !important; /* Vert (Fait) - var(--ok) fallback */
+    stroke-width: 5px !important;
+    opacity: 0.9 !important;
+    stroke-dasharray: none !important;
+    fill: none !important;
+}

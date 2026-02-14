@@ -459,7 +459,8 @@ export async function loadCircuitById(id) {
 
             // On crée un groupe temporaire pour calculer les limites (bounds)
             const bounds = L.latLngBounds(pointsToFit);
-            map.flyToBounds(bounds, { padding: [20, 20] });
+            // Padding augmenté pour éviter que le circuit ne touche les bords (surtout avec la sidebar)
+            map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 16 });
         }
     }
 
