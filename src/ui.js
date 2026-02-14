@@ -294,6 +294,10 @@ if (chkInc) {
     document.getElementById('time-increment-btn')?.addEventListener('click', () => adjustTime(5));
     document.getElementById('time-decrement-btn')?.addEventListener('click', () => adjustTime(-5));
 
+    // Ajustement du prix (Stepper)
+    document.getElementById('price-increment-btn')?.addEventListener('click', () => adjustPrice(0.5));
+    document.getElementById('price-decrement-btn')?.addEventListener('click', () => adjustPrice(-0.5));
+
     // Navigation Mobile vs Desktop
     if (isMobileView()) {
         const moveBtn = document.getElementById('mobile-move-poi-btn');
@@ -469,6 +473,24 @@ export function adjustTime(minutesToAdd) {
     trigger.textContent = `${String(newTime.h).padStart(2, '0')}h${String(newTime.m).padStart(2, '0')}`;
     trigger.dataset.hours = newTime.h;
     trigger.dataset.minutes = newTime.m;
+}
+
+export function adjustPrice(delta) {
+    if (state.currentFeatureId === null) return;
+    const trigger = document.getElementById('panel-price-display');
+    if (!trigger) return;
+
+    let currentVal = parseFloat(trigger.dataset.value) || 0;
+    let newVal = Math.max(0, currentVal + delta); // Pas de prix négatif
+
+    // Arrondi pour éviter 10.50000001
+    newVal = Math.round(newVal * 100) / 100;
+
+    const poiId = getPoiId(state.loadedFeatures[state.currentFeatureId]);
+    updatePoiData(poiId, 'price', newVal);
+
+    trigger.textContent = newVal === 0 ? 'Gratuit' : newVal;
+    trigger.dataset.value = newVal;
 }
 
 export function populateZonesMenu() {

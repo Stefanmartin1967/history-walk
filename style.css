@@ -2981,3 +2981,75 @@ input[type=range] {
     align-items: center;
     margin: 0; /* Nettoyage */
 }
+
+/* --- PATCH DETAILS PANEL V3 (Stepper Harmonization) --- */
+
+/* 1. Conteneur Stepper (Temps & Prix Identiques) */
+.stepper-control {
+    display: flex;
+    align-items: center;
+    gap: 0; /* Boutons collés ou léger gap géré par marges */
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    height: 40px; /* Hauteur fixe Harmonisée */
+    overflow: hidden;
+}
+
+/* 2. Boutons +/- (Carrés parfaits) */
+.stepper-btn {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.2s;
+    padding: 0;
+}
+
+.stepper-btn:hover {
+    background: var(--surface-muted);
+    color: var(--ink);
+}
+
+/* 3. Affichage Valeur (Central) */
+.value-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px; /* Largeur suffisante pour "Gratuit" */
+    height: 100%;
+    padding: 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    border-left: 1px solid var(--surface-muted);
+    border-right: 1px solid var(--surface-muted);
+    white-space: nowrap;
+    user-select: none;
+}
+
+/* 4. Label Devise (À droite du stepper) */
+.currency-label {
+    margin-left: 8px; /* Petit espace avec le stepper */
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    height: 40px;
+}
+
+/* 5. Nettoyage des anciens styles conflictuels */
+.time-adjust-btn, .duration-picker-trigger, .price-wrapper, .price-input {
+    display: none !important; /* Désactivation brutale des vieux styles */
+}
+
+/* 6. Force Alignement Container */
+.input-group {
+    display: flex;
+    align-items: center;
+}
