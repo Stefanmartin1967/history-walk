@@ -13,42 +13,5 @@
       "HW-01K77WPE6770BXCP2SW1Z2DTA2",
       "HW-01K77WPE67RPHVJVH6A0PC0ZWD"
     ]
-  },
-  {
-    "id": "HW-1771098299373",
-    "name": "Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued",
-    "file": "circuit_de_mosqu_e_ben_maazouzine_mosqu_e_medrajen_via_mosqu_e_ben_daoued.gpx",
-    "description": "\n\n(Créé par History Walk)",
-    "distance": "7.5 km",
-    "isOfficial": true,
-    "poiIds": [
-      "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
-      "HW-01K77WPE6AS77NE3CRGHPYHJSE",
-      "HW-01K77WPE6BE6FFWWHJH6DSSZQ6",
-      "HW-01K77WPE6BAJG9QADZMRDXPWTB",
-      "HW-01K77WPE6B49HSRPBACEWDY95T",
-      "HW-01K77WPE6BE2HDNBY0FSWSNRTH",
-      "HW-01K77WPE6A7EGYFGG7XNYT8AYC"
-    ]
-  },
-  {
-    "id": "HW-1771099379863",
-    "name": "Boucle autour de Mosquée Ben Maazouzine via Mosquée Mrabet Belgassem",
-    "file": "boucle_autour_de_mosqu_e_ben_maazouzine_via_mosqu_e_mrabet_belgassem.gpx",
-    "description": "\n\n(Créé par History Walk)",
-    "distance": "7.8 km",
-    "isOfficial": true,
-    "poiIds": [
-      "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
-      "HW-01K77WPE6AS77NE3CRGHPYHJSE",
-      "HW-01K77WPE6BE6FFWWHJH6DSSZQ6",
-      "HW-01K77WPE6BAJG9QADZMRDXPWTB",
-      "HW-01K77WPE6B49HSRPBACEWDY95T",
-      "HW-01K77WPE6BE2HDNBY0FSWSNRTH",
-      "HW-01K77WPE6A7EGYFGG7XNYT8AYC",
-      "HW-01K77WPE6RCC0S7XMA08ES9BDD",
-      "HW-01K77WPE69KD9K0SES4DYYWZQA",
-      "HW-01K77WPE6AFSTY1DA2XVPB3MVC"
-    ]
-  }
+  }  
 ]
