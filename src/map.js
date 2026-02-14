@@ -36,18 +36,9 @@ export const iconMap = {
 // Valeurs par défaut alignées sur destinations.json (Djerba)
 export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7) {
 
-    // --- ADAPTATION MOBILE (Responsive Zoom) ---
-    // Si on est sur un petit écran (< 768px), on dézoome légèrement pour voir une zone géographique similaire
-    // car l'écran est physiquement plus petit.
-    let adjustedZoom = initialZoom;
-    if (window.innerWidth < 768) {
-        adjustedZoom = Math.max(initialZoom - 1, 1); // On dézoome de 1 niveau, sans aller sous 1
-        console.log(`[Map] Adaptation Mobile : Zoom ajusté de ${initialZoom} à ${adjustedZoom}`);
-    }
-
     // Si la carte existe déjà, on met juste à jour la vue
     if (map) {
-        map.setView(initialCenter, adjustedZoom);
+        map.setView(initialCenter, initialZoom);
         return;
     }
 
@@ -59,7 +50,7 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
         attributionControl: false,
         preferCanvas: true,
         zoomControl: false // On désactive le zoom par défaut pour le repositionner/styler nous-même si besoin
-    }).setView(initialCenter, adjustedZoom);
+    }).setView(initialCenter, initialZoom);
 
     // Ajout explicite du contrôle de zoom en haut à gauche (position standard)
     L.control.zoom({
