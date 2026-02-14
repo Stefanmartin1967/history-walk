@@ -306,7 +306,8 @@ async function prepareExportData(includePhotos = false) {
         baseGeoJSON: geojson,
         userData: state.userData || {},
         myCircuits: state.myCircuits || [],
-        hiddenPoiIds: state.hiddenPoiIds || []
+        hiddenPoiIds: state.hiddenPoiIds || [],
+        officialCircuitsStatus: state.officialCircuitsStatus || {}
     };
 }
 

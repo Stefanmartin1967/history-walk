@@ -1,5 +1,25 @@
 [
   {
+    "id": "HW-1771099379863",
+    "name": "Boucle autour de Mosquée Ben Maazouzine via Mosquée Mrabet Belgassem",
+    "file": "djerba/Autour de Mosquée Ben Maazouzine via Mosquée Mrabet Belgassem.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "10.6 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
+      "HW-01K77WPE6AS77NE3CRGHPYHJSE",
+      "HW-01K77WPE6BE6FFWWHJH6DSSZQ6",
+      "HW-01K77WPE6BAJG9QADZMRDXPWTB",
+      "HW-01K77WPE6B49HSRPBACEWDY95T",
+      "HW-01K77WPE6BE2HDNBY0FSWSNRTH",
+      "HW-01K77WPE6A7EGYFGG7XNYT8AYC",
+      "HW-01K77WPE6RCC0S7XMA08ES9BDD",
+      "HW-01K77WPE69KD9K0SES4DYYWZQA",
+      "HW-01K77WPE6AFSTY1DA2XVPB3MVC"
+    ]
+  },
+  {
     "id": "HW-1771013662763",
     "name": "Boucle autour de Rym Beach via Mosquée Ibn Abass",
     "file": "djerba/Boucle autour de Rym Beach via Mosquée Ibn Abass.gpx",
@@ -12,6 +32,23 @@
       "HW-01K77WPE671G6V27VYYNMJV2NC",
       "HW-01K77WPE6770BXCP2SW1Z2DTA2",
       "HW-01K77WPE67RPHVJVH6A0PC0ZWD"
+    ]
+  },
+  {
+    "id": "HW-1771098299373",
+    "name": "Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued",
+    "file": "djerba/Circuit de Mosquée Ben Maazouzine à Mosquée Medrajen via Mosquée Ben Daoued.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "7.5 km",
+    "isOfficial": true,
+    "poiIds": [
+      "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
+      "HW-01K77WPE6AS77NE3CRGHPYHJSE",
+      "HW-01K77WPE6BE6FFWWHJH6DSSZQ6",
+      "HW-01K77WPE6BAJG9QADZMRDXPWTB",
+      "HW-01K77WPE6B49HSRPBACEWDY95T",
+      "HW-01K77WPE6BE2HDNBY0FSWSNRTH",
+      "HW-01K77WPE6A7EGYFGG7XNYT8AYC"
     ]
   }
 ]

@@ -471,11 +471,20 @@ export async function processImportedGpx(file, circuitId) {
                         targetCircuit.realTrack = coordinates;
                         if (shouldUpdatePois) targetCircuit.poiIds = detectedFeatures.map(getPoiId);
 
-                        // --- SYNCHRONISATION DU SHADOW (SI EXISTANT) ---
-                        if (localCircuit && localCircuit !== targetCircuit) {
+                        // --- SYNCHRONISATION DU SHADOW (CREATION FORCEE SI OFFICIEL) ---
+                        // Si c'est un circuit officiel, on force la création d'un shadow local pour inclure la trace dans les backups
+                        if (isOfficial && !localCircuit) {
+                            localCircuit = { ...targetCircuit };
+                            // On s'assure qu'il est marqué officiel pour l'UI
+                            if (!localCircuit.isOfficial) localCircuit.isOfficial = true;
+                            state.myCircuits.push(localCircuit);
+                        }
+
+                        if (localCircuit) {
+                            // On met à jour le shadow (existant ou nouveau)
                             localCircuit.realTrack = coordinates;
                             if (shouldUpdatePois) localCircuit.poiIds = detectedFeatures.map(getPoiId);
-                            await saveCircuit(localCircuit); // On sauve le shadow
+                            await saveCircuit(localCircuit);
                         }
 
                         // --- FEEDBACK USER ---
