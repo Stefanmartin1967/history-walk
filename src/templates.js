@@ -1,7 +1,7 @@
 // templates.js
 import { getPoiName } from './data.js';
 import { escapeXml } from './utils.js';
-import { POI_CATEGORIES, state } from './state.js';
+import { POI_CATEGORIES, state, getCurrentCurrency } from './state.js';
 import { isMobileView } from './mobile.js';
 
 export const ICONS = {
@@ -79,12 +79,12 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
         </div>
     `).join('');
 
+    const currency = getCurrentCurrency();
     const practicalDetailsHtml = `
         <div class="detail-section">
             <h3>Détails Pratiques</h3>
             <div class="content structured-input-row">
                 <div class="input-group">
-                    ${ICONS.clock}
                     <div class="time-editor">
                         <button class="time-adjust-btn" id="time-decrement-btn" title="- 5 min">${ICONS.minus}</button>
                         <span id="panel-time-display" class="duration-picker-trigger" data-hours="${hours}" data-minutes="${minutes}">${timeText}</span>
@@ -92,9 +92,9 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                     </div>
                 </div>
                 <div class="input-group">
-                    ${ICONS.ticket}
-                    <div class="price-editor fields">
-                        <input type="number" id="panel-price" min="0" placeholder="0" value="${priceValue}"><span class="currency">TND</span>
+                    <div class="price-wrapper">
+                        <input type="number" id="panel-price" class="price-input" min="0" placeholder="Prix" value="${priceValue}">
+                        <span class="currency-label">${currency}</span>
                     </div>
                 </div>
             </div>
