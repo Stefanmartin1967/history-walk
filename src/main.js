@@ -405,8 +405,25 @@ async function initializeApp() {
             } else {
                 await displayGeoJSON(lastGeoJSON, lastMapId);
 
-                // On ajuste la vue selon la configuration (MÊME pour Djerba !)
-                import('./map.js').then(m => m.fitMapToContent());
+                // --- RESTAURATION DE LA DERNIÈRE VUE (Position & Zoom) ---
+                try {
+                    const lastMapView = await getAppState('lastMapView');
+                    if (lastMapView && lastMapView.center && lastMapView.zoom) {
+                        import('./map.js').then(({ map }) => {
+                            if (map) {
+                                map.setView(lastMapView.center, lastMapView.zoom);
+                                state.restoredUserView = true; // Flag pour bloquer l'auto-fit
+                                console.log("Dernière vue restaurée :", lastMapView);
+                            }
+                        });
+                    } else {
+                        // Sinon, on applique la config par défaut
+                        import('./map.js').then(m => m.fitMapToContent());
+                    }
+                } catch (e) {
+                    console.warn("Erreur restauration vue :", e);
+                    import('./map.js').then(m => m.fitMapToContent());
+                }
 
                 // --- RESTAURATION SÉCURISÉE DU BROUILLON ---
                 try {

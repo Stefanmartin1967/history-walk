@@ -5,6 +5,7 @@ import { openDetailsPanel } from './ui.js';
 import { showToast } from './toast.js';
 import { getPoiId } from './data.js';
 import { createIcons, icons } from 'lucide';
+import { saveAppState } from './database.js';
 
 export let map;
 let svgRenderer; // Renderer SVG spécifique pour les tracés (permet le CSS styling)
@@ -95,6 +96,24 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
  */
 export function initMapListeners() {
     console.log("📍 La carte est maintenant à l'écoute des changements de circuit...");
+
+    // --- SAUVEGARDE POSITION CARTE (DEBOUNCE) ---
+    let moveTimeout;
+    map.on('moveend zoomend', () => {
+        clearTimeout(moveTimeout);
+        moveTimeout = setTimeout(() => {
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+            // On sauvegarde si la carte est valide
+            if (center && zoom) {
+                saveAppState('lastMapView', {
+                    center: [center.lat, center.lng],
+                    zoom: zoom
+                });
+                // console.log("Vue carte sauvegardée:", center, zoom);
+            }
+        }, 1000); // Délai de 1s après la fin du mouvement
+    });
 
     window.addEventListener('circuit:updated', (e) => {
         const { points, activeId } = e.detail;
@@ -344,7 +363,13 @@ export function refreshMapMarkers(visibleFeatures) {
 
 // --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT ---
 export function fitMapToContent() {
-    // Si on a une configuration fixe pour la carte actuelle, on l'utilise PRIORITAIREMENT
+    // Si une vue utilisateur est restaurée, on ne touche à rien (priorité absolue)
+    if (state.restoredUserView) {
+        console.log("Vue utilisateur restaurée : Auto-centrage désactivé.");
+        return;
+    }
+
+    // Si on a une configuration fixe pour la carte actuelle, on l'utilise
     if (state.currentMapId && state.destinations && state.destinations.maps && state.destinations.maps[state.currentMapId]) {
         const config = state.destinations.maps[state.currentMapId];
         if (config.startView) {
