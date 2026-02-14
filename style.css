@@ -2882,3 +2882,8 @@ input[type=range] {
 .leaflet-top.leaflet-left {
     padding-top: 10px !important;
 }
+
+/* STEP 1: Remove vertical separators in panel footer */
+.panel-footer .separator-vertical {
+    display: none !important;
+}
