@@ -11,6 +11,18 @@
         ],
         "zoom": 12.7
       }
+    },
+    "hammamet": {
+      "name": "Hammamet",
+      "file": "hammamet.geojson",
+      "circuitsFile": "circuits/hammamet.json",
+      "startView": {
+        "center": [
+          36.4,
+          10.6
+        ],
+        "zoom": 13.0
+      }
     }
   }
 }
