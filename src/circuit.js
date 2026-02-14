@@ -414,6 +414,14 @@ export async function loadCircuitById(id) {
 
                 if (coordinates.length > 0) {
                     circuitToLoad.realTrack = coordinates;
+
+                    // FIX: On met à jour la source de vérité en mémoire (state.officialCircuits)
+                    // Sinon, la carte (qui relit le state) ne verra pas la trace tout de suite
+                    const originalOfficial = state.officialCircuits.find(c => c.id === id);
+                    if (originalOfficial) {
+                        originalOfficial.realTrack = coordinates;
+                    }
+
                     // On sauvegarde pour persistance (IndexedDB)
                     await saveCircuit(circuitToLoad);
                     console.log(`[Circuit] Trace chargée (${coordinates.length} points) et sauvegardée.`);
