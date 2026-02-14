@@ -2721,15 +2721,22 @@ input[type=range] {
     box-shadow: none !important;
     background: transparent !important;
     border-radius: 12px !important;
+    margin-top: 8px !important; /* Harmonized spacing (was auto/large) */
 }
 
-/* EXPANDED LAYERS MENU (THEMED) */
+/* Ajustement spécifique pour réduire l'écart si le zoom est juste au-dessus */
+.leaflet-top .leaflet-control {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+}
+
+/* EXPANDED LAYERS MENU (THEMED INVERTED) */
 .leaflet-control-layers-expanded {
-    background-color: var(--surface) !important; /* Theme Surface (White/Paper) */
-    color: var(--ink) !important; /* Theme Ink */
+    background-color: var(--bg) !important; /* Theme Background (Dark Blue) */
+    color: #fff !important; /* White Text */
     padding: 12px 16px !important;
     box-shadow: var(--shadow) !important;
-    border: 1px solid var(--line) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     min-width: 150px;
 }
 
@@ -2835,4 +2842,43 @@ input[type=range] {
     padding: 4px 8px;
     border-radius: 6px;
     white-space: nowrap;
+}
+
+/* FORCE REDUCED GAP BETWEEN CONTROLS */
+.leaflet-top .leaflet-control {
+    margin-top: 8px !important;
+}
+
+/* BUT: Remove margin for the VERY FIRST control to avoid pushing it down from the header */
+.leaflet-top .leaflet-control:first-child {
+    margin-top: 0 !important;
+}
+
+/* RESET MARGINS FOR TOP-LEFT CONTROLS */
+.leaflet-top.leaflet-left .leaflet-control {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* ADD GAP ONLY BETWEEN CONTROLS */
+.leaflet-top.leaflet-left .leaflet-control + .leaflet-control {
+    margin-top: 8px !important;
+}
+
+/* RADICAL RESET FOR LEAFLET CONTROL SPACING */
+.leaflet-left .leaflet-control {
+    margin-left: 10px !important; /* Standard Leaflet margin left */
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Add spacing specifically between consecutive controls */
+.leaflet-top.leaflet-left .leaflet-control + .leaflet-control {
+    margin-top: 8px !important;
+}
+
+/* Ensure the first control has some top margin from the header */
+.leaflet-top.leaflet-left {
+    padding-top: 10px !important;
 }
