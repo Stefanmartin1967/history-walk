@@ -2909,3 +2909,28 @@ input[type=range] {
 .action-btn:active {
     transform: translateY(1px);
 }
+
+/* --- PATCH DETAILS PANEL (Design Refinement) --- */
+
+/* 1. Agrandir légèrement les icônes en dessous du titre */
+.panel-header .action-button svg {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+/* 2. Doubler la taille de la fenêtre description */
+.description-section .description-content {
+    min-height: 120px !important; /* ~ double de la hauteur standard */
+}
+
+/* 3. Centrer Détails Pratiques */
+.structured-input-row {
+    justify-content: center !important;
+    gap: 40px !important; /* Espacement confortable */
+}
+
+/* 4. Centrer Mon Suivi */
+.checkbox-group {
+    justify-content: center !important;
+    gap: 40px !important; /* Espacement unifié avec Détails Pratiques */
+}
