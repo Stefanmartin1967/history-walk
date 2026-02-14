@@ -351,6 +351,10 @@ async function initializeApp() {
     try {
         await initDB();
 
+        // 0. Chargement de la configuration des destinations (CRITIQUE pour le centrage)
+        // On le fait ICI pour qu'il soit disponible lors de la restauration d'état
+        await loadDestinationsConfig();
+
         const savedTheme = await getAppState('currentTheme');
         if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
@@ -376,10 +380,8 @@ async function initializeApp() {
             } else {
                 await displayGeoJSON(lastGeoJSON, lastMapId);
 
-                // Si on recharge une carte autre que Djerba, on ajuste la vue
-                if (lastMapId !== 'djerba') {
-                     import('./map.js').then(m => m.fitMapToContent());
-                }
+                // On ajuste la vue selon la configuration (MÊME pour Djerba !)
+                import('./map.js').then(m => m.fitMapToContent());
 
                 // --- RESTAURATION SÉCURISÉE DU BROUILLON ---
                 try {
