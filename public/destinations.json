@@ -4,6 +4,7 @@
     "djerba": {
       "name": "Djerba",
       "file": "djerba.geojson",
+      "currency": "TND",
       "startView": {
         "center": [
           33.77478,
@@ -16,6 +17,7 @@
       "name": "Hammamet",
       "file": "hammamet.geojson",
       "circuitsFile": "circuits/hammamet.json",
+      "currency": "TND",
       "startView": {
         "center": [
           36.4,

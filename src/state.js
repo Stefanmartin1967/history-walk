@@ -81,3 +81,11 @@ export function addPoiToCurrentCircuit(feature) {
     const poiName = getPoiName(feature);
     console.log(`[State] +1 Point ajouté au circuit : ${poiName}. (Total : ${state.currentCircuit.length})`);
 }
+
+// --- NOUVEAU : Helper pour la devise ---
+export function getCurrentCurrency() {
+    if (!state.currentMapId || !state.destinations || !state.destinations.maps[state.currentMapId]) {
+        return ''; // Pas de devise par défaut si non configuré
+    }
+    return state.destinations.maps[state.currentMapId].currency || '';
+}
