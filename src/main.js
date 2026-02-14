@@ -519,14 +519,19 @@ function setupEventBusListeners() {
 }
 
 async function initDesktopMode() {
+    // --- STABILISATION DE L'AFFICHAGE ---
+    // On ouvre la sidebar AVANT d'initialiser la carte.
+    // Ainsi, le conteneur #map a déjà sa taille finale (réduite par la sidebar).
+    // Quand Leaflet s'initialise, il prend directement les bonnes dimensions
+    // et centre la carte correctement, sans "saut" ni rétrécissement.
+    document.body.classList.add('sidebar-open');
+
     initMap(); // Leaflet
     if (typeof map !== 'undefined') {
         enableDesktopCreationMode();
         setupDesktopTools();
         setupSmartSearch();
     }
-    // La sidebar est visible par défaut sur Desktop (Explorer)
-    document.body.classList.add('sidebar-open');
 
     setupDesktopUIListeners(); // Listeners spécifiques UI Desktop
     updateSelectionModeButton(state.isSelectionModeActive);
