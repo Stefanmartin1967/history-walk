@@ -33,7 +33,8 @@ export const iconMap = {
 
 // --- INITIALISATION CARTE ---
 
-export function initMap(initialCenter = [33.8076, 10.8451], initialZoom = 12.6) {
+// Valeurs par défaut alignées sur destinations.json (Djerba)
+export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7) {
 
     // Si la carte existe déjà, on met juste à jour la vue
     if (map) {
