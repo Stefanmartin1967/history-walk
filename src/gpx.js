@@ -217,6 +217,19 @@ export async function saveAndExportCircuit() {
             state.myCircuits[index].poiIds = poiIds;
             state.myCircuits[index].transport = transportData;
             circuitToSave = state.myCircuits[index];
+        } else {
+             // Recherche dans les circuits officiels (si on est en train d'éditer une version officielle)
+             const offIndex = state.officialCircuits ? state.officialCircuits.findIndex(c => c.id === state.activeCircuitId) : -1;
+             if (offIndex > -1) {
+                 // On met à jour l'objet en mémoire
+                 const offCircuit = state.officialCircuits[offIndex];
+                 offCircuit.name = circuitName;
+                 offCircuit.description = description;
+                 offCircuit.poiIds = poiIds;
+                 offCircuit.transport = transportData;
+                 // On prépare l'objet pour la sauvegarde DB
+                 circuitToSave = offCircuit;
+             }
         }
     }
     
@@ -476,13 +489,11 @@ export async function processImportedGpx(file, circuitId) {
                             }
                         }
 
-                        if (!isOfficial) {
-                            // Sauvegarde normale pour les circuits locaux
-                            await saveCircuit(targetCircuit);
-                        } else {
-                            // Pour les officiels, la modif est en RAM seulement
-                            console.log("Mise à jour en mémoire du circuit officiel.");
-                        }
+                        // Sauvegarde SYSTEMATIQUE (Locaux et Officiels modifiés)
+                        // On force la sauvegarde DB pour que la modification persiste
+                        // main.js se chargera de fusionner au prochain démarrage
+                        await saveCircuit(targetCircuit);
+                        console.log("Circuit sauvegardé (Local ou Officiel modifié).");
 
                         // RAFFRAÎCHISSEMENT UI COMPLET (ESSENTIEL)
                         if (state.activeCircuitId === circuitId) {
