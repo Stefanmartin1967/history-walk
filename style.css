@@ -3053,3 +3053,46 @@ input[type=range] {
     display: flex;
     align-items: center;
 }
+
+/* --- PATCH DETAILS PANEL V4 (Stepper Polish & Centering) --- */
+
+/* 1. Centrage Vertical des sections "Détails" et "Suivi" */
+.detail-section .content.structured-input-row,
+.detail-section .content.checkbox-group {
+    min-height: 70px !important; /* Hauteur augmentée pour confort */
+    padding-top: 0 !important;   /* Reset padding pour centrage pur */
+    padding-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 40px !important;
+}
+
+/* 2. Fixation de la largeur du Prix (pour éviter le saut Gratuit/10) */
+#panel-price-display {
+    min-width: 80px !important; /* Suffisant pour "Gratuit" (7 chars) */
+    text-align: center;
+}
+
+/* 3. Devise intégrée dans le stepper */
+.stepper-currency {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 0 8px 0 4px; /* Espace autour */
+    border-right: 1px solid var(--surface-muted); /* Séparateur léger avec le bouton + */
+    height: 100%;
+    display: flex;
+    align-items: center;
+    background: var(--surface-muted); /* Légèrement grisé pour distinguer */
+}
+
+/* 4. Suppression de l'ancien label devise externe */
+.currency-label {
+    display: none !important;
+}
+
+/* 5. Harmonisation de la largeur du stepper Temps pour matcher */
+#panel-time-display {
+    min-width: 80px !important;
+}

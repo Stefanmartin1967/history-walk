@@ -491,6 +491,11 @@ export function adjustPrice(delta) {
 
     trigger.textContent = newVal === 0 ? 'Gratuit' : newVal;
     trigger.dataset.value = newVal;
+
+    const currencySpan = document.getElementById('panel-price-currency');
+    if (currencySpan) {
+        currencySpan.style.display = newVal > 0 ? '' : 'none';
+    }
 }
 
 export function populateZonesMenu() {

@@ -97,9 +97,9 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                     <div class="stepper-control price-editor">
                         <button class="stepper-btn" id="price-decrement-btn" title="- 0.5">${ICONS.minus}</button>
                         <span id="panel-price-display" class="value-display" data-value="${priceValue || 0}">${priceDisplay}</span>
+                        <span class="stepper-currency" id="panel-price-currency" style="${priceValue > 0 ? '' : 'display:none;'}">${currency}</span>
                         <button class="stepper-btn" id="price-increment-btn" title="+ 0.5">${ICONS.plus}</button>
                     </div>
-                    <span class="currency-label">${currency}</span>
                 </div>
             </div>
         </div>`;
