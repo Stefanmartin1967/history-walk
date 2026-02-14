@@ -413,6 +413,14 @@ export async function exportOfficialCircuitsJSON() {
                 fileName = `${safeName}.gpx`;
             }
 
+            // Détection de la présence d'une trace réelle (Flag pour l'icône Bird/Foot)
+            // Si c'est un officiel existant, il a déjà 'realTrack' en mémoire s'il a été chargé
+            // Ou s'il vient d'être importé comme trace réelle.
+            // Note: Les officiels non chargés n'ont pas realTrack, mais on suppose ici qu'on exporte
+            // ce qu'on vient de travailler (donc chargé) ou ce qui était déjà là.
+            // Pour garantir la cohérence, on ajoute ce flag si realTrack existe.
+            const hasRealTrack = (c.realTrack && c.realTrack.length > 0);
+
             return {
                 id: c.id, // On garde l'ID original (HW-...) pour la robustesse
                 name: c.name,
@@ -420,6 +428,7 @@ export async function exportOfficialCircuitsJSON() {
                 description: c.description || "Pas de description.",
                 distance: distDisplay,
                 isOfficial: true,
+                hasRealTrack: hasRealTrack, // NOUVEAU FLAG POUR L'ICÔNE
                 poiIds: c.poiIds // On garde les IDs pour la reconstruction
             };
         });
