@@ -382,7 +382,13 @@ function setupDesktopUIListeners() {
         if (state.isSelectionModeActive) {
             state.selectionModeFilters.hideVisited = isActive;
         }
-        btn.title = isActive ? "Masquer les visités" : "Afficher les visités";
+
+        // Logique Icônes : Inactive=eye (Voir), Active=eye-off (Caché)
+        btn.innerHTML = `<i data-lucide="${isActive ? 'eye-off' : 'eye'}"></i>`;
+        // Logique Tooltip : Active=Caché -> "Afficher", Inactive=Visible -> "Masquer"
+        btn.title = isActive ? "Afficher les visités" : "Masquer les visités";
+
+        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
         applyFilters();
     });
 
@@ -393,7 +399,13 @@ function setupDesktopUIListeners() {
         if (state.isSelectionModeActive) {
             state.selectionModeFilters.hidePlanned = isActive;
         }
-        btn.title = isActive ? "Masquer les planifiés" : "Afficher les planifiés";
+
+        // Logique Icônes : Inactive=calendar (Voir), Active=calendar-off (Caché)
+        btn.innerHTML = `<i data-lucide="${isActive ? 'calendar-off' : 'calendar'}"></i>`;
+        // Logique Tooltip : Active=Caché -> "Afficher", Inactive=Visible -> "Masquer"
+        btn.title = isActive ? "Afficher les planifiés" : "Masquer les planifiés";
+
+        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
         applyFilters();
     });
 

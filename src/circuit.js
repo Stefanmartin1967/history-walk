@@ -179,15 +179,21 @@ export function toggleSelectionMode(forceValue) {
 
             const btnVus = document.getElementById('btn-filter-vus');
             if (btnVus) {
-                console.log("[Circuit] Updating btn-filter-vus to", state.activeFilters.vus);
-                btnVus.classList.toggle('active', state.activeFilters.vus);
-                btnVus.title = state.activeFilters.vus ? "Masquer les visités" : "Afficher les visités";
+                const isActive = state.activeFilters.vus;
+                console.log("[Circuit] Updating btn-filter-vus to", isActive);
+                btnVus.classList.toggle('active', isActive);
+                btnVus.innerHTML = `<i data-lucide="${isActive ? 'eye-off' : 'eye'}"></i>`;
+                btnVus.title = isActive ? "Afficher les visités" : "Masquer les visités";
+                createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btnVus });
             }
 
             const btnPlanifies = document.getElementById('btn-filter-planifies');
             if (btnPlanifies) {
-                btnPlanifies.classList.toggle('active', state.activeFilters.planifies);
-                btnPlanifies.title = state.activeFilters.planifies ? "Masquer les planifiés" : "Afficher les planifiés";
+                const isActive = state.activeFilters.planifies;
+                btnPlanifies.classList.toggle('active', isActive);
+                btnPlanifies.innerHTML = `<i data-lucide="${isActive ? 'calendar-off' : 'calendar'}"></i>`;
+                btnPlanifies.title = isActive ? "Afficher les planifiés" : "Masquer les planifiés";
+                createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btnPlanifies });
             }
         }
 
