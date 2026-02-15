@@ -2,13 +2,12 @@
 import { state } from './state.js';
 import { addPoiToCircuit, isCircuitCompleted } from './circuit.js';
 import { openDetailsPanel } from './ui.js';
-import { showToast } from './toast.js';
 import { getPoiId } from './data.js';
 import { createIcons, icons } from 'lucide';
 import { saveAppState } from './database.js';
 
 export let map;
-let svgRenderer; // Renderer SVG spécifique pour les tracés (permet le CSS styling)
+let svgRenderer;
 
 // --- DÉFINITION DES ICÔNES ---
 const ICON_BINOCULARS_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-binoculars-icon lucide-binoculars"><path d="M10 10h4"/><path d="M19 7V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3"/><path d="M20 21a2 2 0 0 0 2-2v-3.851c0-1.39-2-2.962-2-4.829V8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2z"/><path d="M 22 16 L 2 16"/><path d="M4 21a2 2 0 0 1-2-2v-3.851c0-1.39 2-2.962 2-4.829V8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2z"/><path d="M9 7V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v3"/></svg>';
@@ -32,98 +31,67 @@ export const iconMap = {
     'Taxi': 'car-taxi-front'
 };
 
-// --- INITIALISATION CARTE ---
-
-// Valeurs par défaut alignées sur destinations.json (Djerba)
+// --- INITIALISATION CARTE SIMPLIFIÉE ---
 export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7) {
-
-    // Si la carte existe déjà, on met juste à jour la vue
     if (map) {
         map.setView(initialCenter, initialZoom);
         return;
     }
 
-    // Initialisation de la carte
     map = L.map('map', {
         zoomSnap: 0.1,
         zoomDelta: 0.1,
         wheelPxPerZoomLevel: 180,
         attributionControl: false,
         preferCanvas: true,
-        zoomControl: false // On désactive le zoom par défaut pour le repositionner/styler nous-même si besoin
+        zoomControl: false // Positionné manuellement
     }).setView(initialCenter, initialZoom);
 
-    // Ajout explicite du contrôle de zoom en haut à gauche (position standard)
-    L.control.zoom({
-        position: 'topleft'
-    }).addTo(map);
+    L.control.zoom({ position: 'topleft' }).addTo(map);
 
-    // 1. Couche "Plan" (OpenStreetMap) - Très léger
     const planLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
     });
 
-    // 2. Couche "Satellite Hybride" (Google Maps) - Le meilleur compromis
     const googleHybridLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
         maxZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
         attribution: '&copy; Google Maps'
     });
 
-    // Ajout de la couche par défaut (Plan)
     planLayer.addTo(map);
 
-    // Initialisation du rendu SVG pour les lignes (contourne preferCanvas: true)
     svgRenderer = L.svg({ padding: 0.5 });
     svgRenderer.addTo(map);
 
-    // Création du contrôleur de couches
-    const baseMaps = {
-        "Plan": planLayer,
-        "Satellite": googleHybridLayer
-    };
-
+    const baseMaps = { "Plan": planLayer, "Satellite": googleHybridLayer };
     L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
 
     initMapListeners();
-
 }
 
-/**
- * Initialise les écouteurs d'événements pour la carte
- */
 export function initMapListeners() {
-    console.log("📍 La carte est maintenant à l'écoute des changements de circuit...");
-
-    // --- SAUVEGARDE POSITION CARTE (DEBOUNCE) ---
+    // Persistence basique de la vue (pour le confort utilisateur uniquement)
     let moveTimeout;
     map.on('moveend zoomend', () => {
         clearTimeout(moveTimeout);
         moveTimeout = setTimeout(() => {
             const center = map.getCenter();
             const zoom = map.getZoom();
-            // On sauvegarde si la carte est valide
             if (center && zoom) {
-                saveAppState('lastMapView', {
-                    center: [center.lat, center.lng],
-                    zoom: zoom
-                });
-                // console.log("Vue carte sauvegardée:", center, zoom);
+                saveAppState('lastMapView', { center: [center.lat, center.lng], zoom: zoom });
             }
-        }, 1000); // Délai de 1s après la fin du mouvement
+        }, 1000);
     });
 
+    // Dessin automatique des circuits (Sans Zoom Automatique)
     window.addEventListener('circuit:updated', (e) => {
         const { points, activeId } = e.detail;
-
-        // 1. On nettoie tout
         clearMapLines();
-
         if (points.length < 2) return;
 
-        // 2. On récupère les infos fraîches depuis le state (Locaux OU Officiels)
         let activeCircuit = state.myCircuits.find(c => c.id === activeId);
         if (!activeCircuit && state.officialCircuits) {
             activeCircuit = state.officialCircuits.find(c => c.id === activeId);
@@ -131,38 +99,25 @@ export function initMapListeners() {
 
         const isCompleted = isCircuitCompleted(activeCircuit);
         
-        // 3. Choix du tracé (Réel prioritaire sur Vol d'oiseau)
         if (activeCircuit?.realTrack) {
             drawLineOnMap(activeCircuit.realTrack, true, isCompleted);
         } else {
-            const coords = points.map(f => [
-                f.geometry.coordinates[1], 
-                f.geometry.coordinates[0]
-            ]);
+            const coords = points.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
             drawLineOnMap(coords, false, isCompleted);
         }
     });
 }
 
-/**
- * Génère le code HTML de l'icône pour une catégorie donnée
- */
+// --- UTILITAIRES ---
 export function getIconHtml(category) {
     const defaultIcon = 'map-pin';
     const iconContent = iconMap[category] || defaultIcon;
-
-    if (iconContent.startsWith('<svg')) {
-        return iconContent;
-    } else {
-        return `<i data-lucide="${iconContent}"></i>`;
-    }
+    return iconContent.startsWith('<svg') ? iconContent : `<i data-lucide="${iconContent}"></i>`;
 }
 
 export function createHistoryWalkIcon(category) {
-    const iconHtml = getIconHtml(category);
-
     return L.divIcon({
-        html: `<div class="hw-icon-wrapper">${iconHtml}</div>`,
+        html: `<div class="hw-icon-wrapper">${getIconHtml(category)}</div>`,
         className: 'hw-icon',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
@@ -171,70 +126,39 @@ export function createHistoryWalkIcon(category) {
 }
 
 export function getIconForFeature(feature) {
-    const category = feature.properties.Catégorie;
-    return getIconHtml(category);
+    return getIconHtml(feature.properties.Catégorie);
 }
 
 export function handleMarkerClick(feature) {
     clearMarkerHighlights();
     if (state.isSelectionModeActive) {
-        // --- MODE SELECTION (ON) ---
-        // On délègue toute la logique (ajout, bouclage, limitation) à addPoiToCircuit
-        // Cela permet de :
-        // 1. Ignorer le dernier point (déjà géré dans addPoiToCircuit)
-        // 2. Boucler sur le premier point (déjà géré)
-        // 3. Ajouter des points intermédiaires (forme de 8)
-
         addPoiToCircuit(feature);
     } else {
-        // --- MODE CONSULTATION (OFF) ---
         const globalIndex = state.loadedFeatures.findIndex(f => f.properties.HW_ID === feature.properties.HW_ID);
         openDetailsPanel(globalIndex, null);
     }
 }
 
-// --- LE NOUVEAU PEINTRE ---
+// --- RENDU GRAPHIQUE ---
 let currentDrawnLine = null; 
 
 export function clearMarkerHighlights() {
     if (state.geojsonLayer) {
         state.geojsonLayer.eachLayer(layer => {
-            if (layer.getElement()) {
-                layer.getElement().classList.remove('marker-highlight');
-            }
+            if (layer.getElement()) layer.getElement().classList.remove('marker-highlight');
         });
     }
 }
 
 export function clearMapLines() {
-    if (currentDrawnLine) {
-        currentDrawnLine.remove();
-        currentDrawnLine = null;
-    }
-
-    if (state.orthodromicPolyline) {
-        state.orthodromicPolyline.remove();
-        state.orthodromicPolyline = null;
-    }
-    
-    if (state.realTrackPolyline) {
-        state.realTrackPolyline.remove();
-        state.realTrackPolyline = null;
-    }
+    if (currentDrawnLine) { currentDrawnLine.remove(); currentDrawnLine = null; }
+    if (state.orthodromicPolyline) { state.orthodromicPolyline.remove(); state.orthodromicPolyline = null; }
+    if (state.realTrackPolyline) { state.realTrackPolyline.remove(); state.realTrackPolyline = null; }
 }
 
 export function drawLineOnMap(coordinates, isRealTrack = false, isCompleted = false) {
     clearMapLines();
-
-    let className = 'circuit-polyline'; // Default (Bird flight - Red)
-
-    if (isRealTrack) {
-        if (isCompleted) {
-            className = 'real-track-polyline-done'; // Real Done (Green)
-        } else {
-            className = 'real-track-polyline'; // Real Not Done (Blue)
-        }
-    }
+    let className = isRealTrack ? (isCompleted ? 'real-track-polyline-done' : 'real-track-polyline') : 'circuit-polyline';
 
     const polyline = L.polyline(coordinates, {
         className: className,
@@ -243,31 +167,14 @@ export function drawLineOnMap(coordinates, isRealTrack = false, isCompleted = fa
     }).addTo(map);
 
     currentDrawnLine = polyline;
-    
-    if (isRealTrack) {
-        state.realTrackPolyline = polyline;
-    } else {
-        state.orthodromicPolyline = polyline;
-    }
-}
-
-// --- GESTION DES DISTANCES ET TRACÉS ---
-
-function calculateRealDistance(latLngs) {
-    let totalDistance = 0;
-    for (let i = 0; i < latLngs.length - 1; i++) {
-        totalDistance += L.latLng(latLngs[i]).distanceTo(L.latLng(latLngs[i + 1]));
-    }
-    return totalDistance;
+    if (isRealTrack) state.realTrackPolyline = polyline; else state.orthodromicPolyline = polyline;
 }
 
 export function updatePolylines() {
     if (state.orthodromicPolyline) state.orthodromicPolyline.remove();
     if (state.realTrackPolyline) state.realTrackPolyline.remove();
-
     if (!state.currentCircuit || state.currentCircuit.length < 2) return;
 
-    // Récupération du circuit (Local ou Officiel)
     let activeCircuitData = state.myCircuits.find(c => c.id === state.activeCircuitId);
     if (!activeCircuitData && state.officialCircuits) {
         activeCircuitData = state.officialCircuits.find(c => c.id === state.activeCircuitId);
@@ -277,26 +184,20 @@ export function updatePolylines() {
 
     if (activeCircuitData && activeCircuitData.realTrack) {
         const className = isCompleted ? 'real-track-polyline-done' : 'real-track-polyline';
-        state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, {
-            className: className,
-            renderer: svgRenderer
-        }).addTo(map);
-    }
-    else {
-        const latLngs = state.currentCircuit.map(feature => {
-            const [lon, lat] = feature.geometry.coordinates;
-            return [lat, lon];
-        });
-        state.orthodromicPolyline = L.polyline(latLngs, {
-            className: 'circuit-polyline',
-            renderer: svgRenderer
-        }).addTo(map);
+        state.realTrackPolyline = L.polyline(activeCircuitData.realTrack, { className: className, renderer: svgRenderer }).addTo(map);
+    } else {
+        const latLngs = state.currentCircuit.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+        state.orthodromicPolyline = L.polyline(latLngs, { className: 'circuit-polyline', renderer: svgRenderer }).addTo(map);
     }
 }
 
 export function getRealDistance(circuitData) {
     if (!circuitData || !circuitData.realTrack) return 0;
-    return calculateRealDistance(circuitData.realTrack);
+    let totalDistance = 0;
+    for (let i = 0; i < circuitData.realTrack.length - 1; i++) {
+        totalDistance += L.latLng(circuitData.realTrack[i]).distanceTo(L.latLng(circuitData.realTrack[i + 1]));
+    }
+    return totalDistance;
 }
 
 export function getOrthodromicDistance(circuit) {
@@ -310,88 +211,35 @@ export function getOrthodromicDistance(circuit) {
     return totalDistance;
 }
 
-// --- LE PEINTRE DE POINTS (Reçoit les données déjà filtrées) ---
 export function refreshMapMarkers(visibleFeatures) {
     if (!map) return;
-
-    if (!state.geojsonLayer) {
-        state.geojsonLayer = L.featureGroup().addTo(map); 
-    } else {
-        state.geojsonLayer.clearLayers();
-    }
-
+    if (!state.geojsonLayer) state.geojsonLayer = L.featureGroup().addTo(map); else state.geojsonLayer.clearLayers();
     if (visibleFeatures.length === 0) return;
 
     const tempLayer = L.geoJSON(visibleFeatures, {
         pointToLayer: (feature, latlng) => {
-            const category = feature.properties.Catégorie || 'default'; 
-            const icon = createHistoryWalkIcon(category);
-
+            const icon = createHistoryWalkIcon(feature.properties.Catégorie || 'default');
             const props = feature.properties.userData || {};
-
-            if (props.incontournable === true) {
-                icon.options.className += ' marker-vip'; 
-            }
-
-            if (props.vu === true) {
-                icon.options.className += ' marker-visited';
-            }
-
-            if ((props.planifieCounter || 0) > 0) {
-                icon.options.className += ' marker-planned';
-            }
+            if (props.incontournable) icon.options.className += ' marker-vip';
+            if (props.vu) icon.options.className += ' marker-visited';
+            if ((props.planifieCounter || 0) > 0) icon.options.className += ' marker-planned';
 
             const marker = L.marker(latlng, { icon: icon });
-            
-            marker.on('click', (e) => {
-                L.DomEvent.stop(e); 
-                handleMarkerClick(feature); 
-            });
+            marker.on('click', (e) => { L.DomEvent.stop(e); handleMarkerClick(feature); });
             return marker;
         }
     });
-    
     tempLayer.eachLayer(layer => state.geojsonLayer.addLayer(layer));
-
-    if (state.activeFilters.zone && state.geojsonLayer.getLayers().length > 0) {
-        const bounds = state.geojsonLayer.getBounds();
-        if (bounds.isValid()) map.flyToBounds(bounds.pad(0.1));
-    }
-
     createIcons({ icons });
 }
 
-// --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT ---
-export function fitMapToContent() {
-    // Si une vue utilisateur est restaurée, on ne touche à rien (priorité absolue)
-    if (state.restoredUserView) {
-        console.log("Vue utilisateur restaurée : Auto-centrage désactivé.");
-        return;
-    }
-
-    // Si on a une configuration fixe pour la carte actuelle, on l'utilise
-    if (state.currentMapId && state.destinations && state.destinations.maps && state.destinations.maps[state.currentMapId]) {
-        const config = state.destinations.maps[state.currentMapId];
-        if (config.startView) {
-            map.setView(config.startView.center, config.startView.zoom);
-            return;
-        }
-    }
-
-    // Sinon, comportement par défaut (Fit Bounds)
-    if (map && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
-        const bounds = state.geojsonLayer.getBounds();
-        if (bounds.isValid()) {
-             // On ajoute un peu de marge (5%) pour ne pas coller aux bords
-             map.fitBounds(bounds.pad(0.05));
-        }
-    }
-}
-
+// --- API PUBLIQUE MINIMALISTE ---
+// La seule fonction conservée est celle nécessaire pour le layout UI
+let resizeTimeout;
 export function invalidateMapSize() {
-    if (map) {
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 300); // Délai pour laisser l'animation CSS se terminer
-    }
+    if (!map) return;
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => { map.invalidateSize(); }, 100);
 }
+
+// Fonctions supprimées : fitMapToContent, focusOnCircuit -> Plus de zoom auto !

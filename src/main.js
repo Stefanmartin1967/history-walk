@@ -51,7 +51,6 @@ import { initAdminMode } from './admin.js';
 import { generateSyncQR, startGenericScanner } from './sync.js';
 import { setupTabs } from './ui-sidebar.js';
 
-// --- FONCTION UTILITAIRE : Gestion des boutons de sauvegarde ---
 function setSaveButtonsState(enabled) {
     const btnBackup = document.getElementById('btn-open-backup-modal');
     const btnRestore = document.getElementById('btn-restore-data');
@@ -60,7 +59,6 @@ function setSaveButtonsState(enabled) {
     if (btnRestore) btnRestore.disabled = false;
 }
 
-// --- PROTECTION CONTRE LA PERTE DE DONNÉES (WORKFLOW) ---
 function setupUnsavedChangesWarning() {
     window.addEventListener('beforeunload', (e) => {
         if (state.hasUnexportedChanges) {
@@ -77,14 +75,12 @@ function updateAppTitle(mapId) {
     document.title = title;
     const appTitle = document.getElementById('app-title');
     if (appTitle) appTitle.textContent = title;
-
     updateExportButtonLabel(mapId);
 }
 
 async function loadOfficialCircuits() {
     const mapId = state.currentMapId || 'djerba';
     const circuitsUrl = `./circuits/${mapId}.json`;
-
     try {
         const response = await fetch(circuitsUrl);
         if (response.ok) {
@@ -108,30 +104,25 @@ async function loadOfficialCircuits() {
 async function loadDestinationsConfig() {
     const baseUrl = import.meta.env?.BASE_URL || './';
     const configUrl = baseUrl + 'destinations.json';
-
     try {
         const response = await fetch(configUrl);
         if (response.ok) {
             state.destinations = await response.json();
-            console.log("[Config] destinations.json chargé.", state.destinations);
         }
     } catch (e) {
         console.error("[Config] Erreur chargement destinations.json.", e);
     }
 }
 
-// --- NOUVEAU : Chargement et Initialisation Unifiés ---
+// --- INITIALISATION PRAGMATIQUE (CLEAN SLATE) ---
 async function loadAndInitializeMap() {
-    // 0. Config (CRITIQUE : On attend la config avant tout)
+    // 1. Config & Paramètres
     await loadDestinationsConfig();
 
-    const baseUrl = import.meta.env?.BASE_URL || './';
-
-    // 1. Calcul de la stratégie de vue (Avant d'init la carte)
     let activeMapId = 'djerba';
-    let initialView = { center: [33.77478, 10.94353], zoom: 11.5 }; // Fallback ultime
+    // Fallback ultime si la config est vide
+    let initialView = { center: [33.77478, 10.94353], zoom: 11.5 };
 
-    // A. Détermination Map ID
     if (state.destinations) {
         const urlParams = new URLSearchParams(window.location.search);
         const urlMapId = urlParams.get('map');
@@ -140,28 +131,31 @@ async function loadAndInitializeMap() {
         } else if (state.destinations.activeMapId) {
             activeMapId = state.destinations.activeMapId;
         }
-        // B. Config View (si dispo)
+
+        // On prend STRICTEMENT ce qui est dans le fichier JSON. Pas de calcul savant.
         if (state.destinations.maps[activeMapId] && state.destinations.maps[activeMapId].startView) {
             initialView = state.destinations.maps[activeMapId].startView;
         }
     }
 
-    // C. Restauration Vue Utilisateur (Priorité absolue)
+    // --- CORRECTION : RESTAURATION IMMÉDIATE DE LA VUE ---
     try {
-        const lastMapView = await getAppState('lastMapView');
-        if (lastMapView && lastMapView.center && lastMapView.zoom) {
-            console.log("Vue utilisateur restaurée :", lastMapView);
-            initialView = lastMapView;
-            state.restoredUserView = true;
+        const lastView = await getAppState('lastMapView');
+        if (lastView && lastView.center && lastView.zoom) {
+            // On vérifie juste que c'est une vue valide (pas undefined)
+            // Idéalement, on pourrait vérifier si c'est sur la même carte, mais pour l'instant on fait confiance
+            initialView = lastView;
+            console.log("[Main] Vue restaurée depuis la sauvegarde :", initialView);
         }
-    } catch (e) { console.warn("Pas de vue sauvegardée"); }
-
-    // 2. Chargement des données (GeoJSON)
-    let geojsonData = null;
-    let fileName = `${activeMapId}.geojson`;
-    if (state.destinations?.maps[activeMapId]?.file) {
-        fileName = state.destinations.maps[activeMapId].file;
+    } catch (e) {
+        console.warn("[Main] Impossible de restaurer la dernière vue", e);
     }
+    // -----------------------------------------------------
+
+    // 2. Chargement Data
+    let geojsonData = null;
+    let fileName = state.destinations?.maps[activeMapId]?.file || `${activeMapId}.geojson`;
+    const baseUrl = import.meta.env?.BASE_URL || './';
 
     if (DOM.loaderOverlay) DOM.loaderOverlay.style.display = 'flex';
 
@@ -169,15 +163,10 @@ async function loadAndInitializeMap() {
         const resp = await fetch(baseUrl + fileName);
         if(resp.ok) geojsonData = await resp.json();
     } catch(e) {
-        // Fallback offline
-        const lastMapId = await getAppState('lastMapId');
+        console.warn("Mode hors-ligne ou erreur fetch", e);
+        // Fallback simple
         const lastGeoJSON = await getAppState('lastGeoJSON');
-        if (lastMapId === activeMapId && lastGeoJSON) {
-            geojsonData = lastGeoJSON;
-            console.warn("Chargement hors-ligne (fallback)");
-        } else {
-            console.error("Erreur download map", e);
-        }
+        if (lastGeoJSON) geojsonData = lastGeoJSON;
     }
 
     if (!geojsonData) {
@@ -186,13 +175,10 @@ async function loadAndInitializeMap() {
         return;
     }
 
-    // 3. Mise à jour État
     state.currentMapId = activeMapId;
     updateAppTitle(activeMapId);
-    await saveAppState('lastMapId', activeMapId);
-    if (!isMobileView()) await saveAppState('lastGeoJSON', geojsonData);
 
-    // 4. Chargement User Data & Circuits (Smart Merge)
+    // 3. User Data (Merge Logic conservée car elle fonctionne)
     try {
         state.userData = await getAllPoiDataForMap(activeMapId) || {};
         state.myCircuits = await getAllCircuitsForMap(activeMapId) || [];
@@ -201,9 +187,7 @@ async function loadAndInitializeMap() {
 
         const validCircuits = [];
         for (const c of state.myCircuits) {
-            let toDelete = false;
-            if (!c.poiIds || c.poiIds.length === 0) toDelete = true;
-            if (toDelete) await deleteCircuitById(c.id);
+            if (!c.poiIds || c.poiIds.length === 0) await deleteCircuitById(c.id);
             else validCircuits.push(c);
         }
         state.myCircuits = validCircuits;
@@ -217,22 +201,18 @@ async function loadAndInitializeMap() {
                 !state.officialCircuits.some(off => String(off.id) === String(c.id))
             );
         }
-    } catch (e) { console.warn("Erreur chargement user data", e); }
+    } catch (e) { console.warn("Erreur UserData", e); }
 
-    // 5. RENDU (La stabilisation est ici)
+    // 4. RENDU
     if (isMobileView()) {
         state.loadedFeatures = geojsonData.features || [];
-        await saveAppState('lastGeoJSON', geojsonData); // Mobile cache specific
         setSaveButtonsState(true);
         switchMobileView('circuits');
     } else {
-        // INIT MAP UNE SEULE FOIS AVEC LA BONNE VUE
-        // Plus de "Djerba default" puis "Jump"
+        // INIT BASIQUE : On lance la carte avec la vue JSON (ou restaurée). Point.
         initMap(initialView.center, initialView.zoom);
 
         await displayGeoJSON(geojsonData, activeMapId);
-
-        // Pas de fitMapToContent() ici, on a déjà la vue parfaite.
 
         try { await loadCircuitDraft(); } catch (e) {}
         setSaveButtonsState(true);
@@ -245,7 +225,6 @@ async function loadAndInitializeMap() {
 }
 
 async function initializeApp() {
-    // 0. Vérification Version
     const storedVersion = localStorage.getItem('hw_app_version');
     if (storedVersion !== APP_VERSION) {
         localStorage.setItem('hw_app_version', APP_VERSION);
@@ -253,11 +232,8 @@ async function initializeApp() {
             setTimeout(() => { window.location.reload(true); }, 100);
             return;
         }
-    } else if (!storedVersion) {
-        localStorage.setItem('hw_app_version', APP_VERSION);
     }
 
-    // 0. Admin
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'admin' || urlParams.get('admin') === 'true') {
         state.isAdmin = true;
@@ -265,7 +241,7 @@ async function initializeApp() {
         if (DOM.appTitle) DOM.appTitle.textContent += " (Admin)";
     }
 
-    // 1. Initialisation de base
+    // Gestion version & God Mode click
     const versionEl = document.getElementById('app-version');
     if (versionEl) {
         versionEl.textContent = APP_VERSION;
@@ -283,8 +259,6 @@ async function initializeApp() {
                 clickTimeout = setTimeout(() => { clickCount = 0; }, 2000);
             }
         });
-        versionEl.style.cursor = 'pointer';
-        versionEl.title = "Cliquez 7 fois pour le mode Admin";
     }
 
     initAdminMode();
@@ -296,11 +270,9 @@ async function initializeApp() {
     if (typeof populateAddPoiModalCategories === 'function') populateAddPoiModalCategories();
     setupFileListeners();
 
-    // 2. Mode Mobile ou Desktop (UI SETUP ONLY)
     if (isMobileView()) {
         initMobileMode();
     } else {
-        // UI Setup only (Map init is deferred to loadAndInitializeMap)
         enableDesktopCreationMode();
         setupDesktopTools();
         setupSmartSearch();
@@ -314,14 +286,12 @@ async function initializeApp() {
         const savedTheme = await getAppState('currentTheme');
         if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
-        // Lancement unique et propre de la carte
         await loadAndInitializeMap();
 
     } catch (error) {
         console.error("Échec init global:", error);
     }
 
-    // 4. Tour de contrôle
     function setupGlobalEventListeners() {
         const btnClear = document.getElementById('btn-clear-circuit');
         if (btnClear) btnClear.addEventListener('click', () => clearCircuit(true));
@@ -478,12 +448,6 @@ function setupDesktopUIListeners() {
     if (btnImportPhotos && photoLoader) {
         btnImportPhotos.addEventListener('click', () => photoLoader.click());
     }
-
-    const btnSyncScan = document.getElementById('btn-sync-scan');
-    if (btnSyncScan) btnSyncScan.style.display = 'none';
-
-    const btnSyncShare = document.getElementById('btn-sync-share');
-    if (btnSyncShare) btnSyncShare.style.display = 'none';
 }
 
 function setupFileListeners() {

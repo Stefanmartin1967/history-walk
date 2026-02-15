@@ -36,8 +36,15 @@ export function handleFileLoad(event) {
                     // Desktop: Rendu Carte
                     await displayGeoJSON(json, mapName);
                     updateExportButtonLabel(mapName);
-                    // On cadre la vue sur la nouvelle carte
-                    import('./map.js').then(m => m.fitMapToContent());
+
+                    // On cadre la vue sur la nouvelle carte (Si possible)
+                    import('./map.js').then(m => {
+                        if (m.map && state.geojsonLayer) {
+                             try {
+                                 m.map.fitBounds(state.geojsonLayer.getBounds());
+                             } catch(e) { console.warn("Impossible de centrer sur le GeoJSON", e); }
+                        }
+                    });
                 }
             } 
             // Cas 2 : Backup
