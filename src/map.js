@@ -98,6 +98,15 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
 
 export function initMapListeners() {
     // Dessin automatique des circuits (Sans Zoom Automatique)
+    // --- CLIC DROIT CARTE (Création de POI Admin) ---
+    map.on('contextmenu', async (e) => {
+        if (!state.isAdmin) return;
+
+        // Import dynamique pour éviter les dépendances circulaires
+        const { RichEditor } = await import('./richEditor.js');
+        RichEditor.openForCreate(e.latlng.lat, e.latlng.lng);
+    });
+
     window.addEventListener('circuit:updated', (e) => {
         const { points, activeId } = e.detail;
         clearMapLines();

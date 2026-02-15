@@ -242,6 +242,11 @@ export function addPoiToCircuit(feature) {
 export function renderCircuitPanel() {
     const points = state.currentCircuit;
 
+    // FIX: On s'assure que DOM.circuitStepsList est bien référencé
+    if (!DOM.circuitStepsList) {
+        DOM.circuitStepsList = document.getElementById('circuit-steps-list');
+    }
+
     View.renderCircuitList(points, {
         onAction: (action, index) => handleCircuitAction(action, index),
         onDetails: (feature, index) => {
