@@ -138,6 +138,20 @@ async function loadAndInitializeMap() {
         }
     }
 
+    // --- CORRECTION : RESTAURATION IMMÉDIATE DE LA VUE ---
+    try {
+        const lastView = await getAppState('lastMapView');
+        if (lastView && lastView.center && lastView.zoom) {
+            // On vérifie juste que c'est une vue valide (pas undefined)
+            // Idéalement, on pourrait vérifier si c'est sur la même carte, mais pour l'instant on fait confiance
+            initialView = lastView;
+            console.log("[Main] Vue restaurée depuis la sauvegarde :", initialView);
+        }
+    } catch (e) {
+        console.warn("[Main] Impossible de restaurer la dernière vue", e);
+    }
+    // -----------------------------------------------------
+
     // 2. Chargement Data
     let geojsonData = null;
     let fileName = state.destinations?.maps[activeMapId]?.file || `${activeMapId}.geojson`;
@@ -195,7 +209,7 @@ async function loadAndInitializeMap() {
         setSaveButtonsState(true);
         switchMobileView('circuits');
     } else {
-        // INIT BASIQUE : On lance la carte avec la vue JSON. Point.
+        // INIT BASIQUE : On lance la carte avec la vue JSON (ou restaurée). Point.
         initMap(initialView.center, initialView.zoom);
 
         await displayGeoJSON(geojsonData, activeMapId);
