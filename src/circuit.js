@@ -170,6 +170,27 @@ export function toggleSelectionMode(forceValue) {
             DOM.rightSidebar.style.display = 'flex';
             document.body.classList.add('sidebar-open');
         }
+
+        // SYNC BOUTONS FILTRES AVEC DEFAUTS MODE CREATION
+        console.log("[Circuit] Syncing buttons. Filters:", state.selectionModeFilters);
+        if (state.selectionModeFilters) {
+            state.activeFilters.vus = state.selectionModeFilters.hideVisited;
+            state.activeFilters.planifies = state.selectionModeFilters.hidePlanned;
+
+            const btnVus = document.getElementById('btn-filter-vus');
+            if (btnVus) {
+                console.log("[Circuit] Updating btn-filter-vus to", state.activeFilters.vus);
+                btnVus.classList.toggle('active', state.activeFilters.vus);
+                btnVus.title = state.activeFilters.vus ? "Masquer les visités" : "Afficher les visités";
+            }
+
+            const btnPlanifies = document.getElementById('btn-filter-planifies');
+            if (btnPlanifies) {
+                btnPlanifies.classList.toggle('active', state.activeFilters.planifies);
+                btnPlanifies.title = state.activeFilters.planifies ? "Masquer les planifiés" : "Afficher les planifiés";
+            }
+        }
+
         switchSidebarTab('circuit');
         renderCircuitPanel();
     } else {

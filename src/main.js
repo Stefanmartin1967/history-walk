@@ -379,6 +379,9 @@ function setupDesktopUIListeners() {
         const btn = e.currentTarget;
         const isActive = btn.classList.toggle('active');
         state.activeFilters.vus = isActive;
+        if (state.isSelectionModeActive) {
+            state.selectionModeFilters.hideVisited = isActive;
+        }
         btn.title = isActive ? "Masquer les visités" : "Afficher les visités";
         applyFilters();
     });
@@ -387,6 +390,9 @@ function setupDesktopUIListeners() {
         const btn = e.currentTarget;
         const isActive = btn.classList.toggle('active');
         state.activeFilters.planifies = isActive;
+        if (state.isSelectionModeActive) {
+            state.selectionModeFilters.hidePlanned = isActive;
+        }
         btn.title = isActive ? "Masquer les planifiés" : "Afficher les planifiés";
         applyFilters();
     });
