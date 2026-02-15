@@ -73,19 +73,6 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
 }
 
 export function initMapListeners() {
-    // Persistence basique de la vue (pour le confort utilisateur uniquement)
-    let moveTimeout;
-    map.on('moveend zoomend', () => {
-        clearTimeout(moveTimeout);
-        moveTimeout = setTimeout(() => {
-            const center = map.getCenter();
-            const zoom = map.getZoom();
-            if (center && zoom) {
-                saveAppState('lastMapView', { center: [center.lat, center.lng], zoom: zoom });
-            }
-        }, 1000);
-    });
-
     // Dessin automatique des circuits (Sans Zoom Automatique)
     window.addEventListener('circuit:updated', (e) => {
         const { points, activeId } = e.detail;

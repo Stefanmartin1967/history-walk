@@ -19,7 +19,6 @@ import { showConfirm, showAlert } from './modal.js';
 import { RichEditor } from './richEditor.js';
 import { switchSidebarTab } from './ui-sidebar.js'; // Imported for use inside ui.js functions
 import { exportFullBackupPC, exportDataForMobilePC, saveUserData } from './fileManager.js';
-import { invalidateMapSize } from './map.js';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
