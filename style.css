@@ -2669,8 +2669,10 @@ input[type=range] {
 
 
 /* --- LEAFLET CONTROLS HARMONIZATION (THEMED) --- */
+/* Target Zoom In, Zoom Out, Layers Toggle, and Custom Buttons */
 .leaflet-bar a,
-.leaflet-control-layers-toggle {
+.leaflet-control-layers-toggle,
+.leaflet-control-custom {
     width: 44px !important;
     height: 44px !important;
     line-height: 44px !important;
@@ -2683,30 +2685,31 @@ input[type=range] {
     display: flex !important;
     align-items: center;
     justify-content: center;
-    margin-bottom: 8px !important; /* Space between buttons */
+    margin-bottom: 8px !important; /* Uniform gap between ALL controls */
     transition: background-color 0.2s, transform 0.1s;
+    cursor: pointer !important;
+    text-decoration: none !important;
 }
 
 .leaflet-bar a:hover,
-.leaflet-control-layers-toggle:hover {
-    background-color: var(--bg-2) !important; /* Darker theme color on hover */
+.leaflet-control-layers-toggle:hover,
+.leaflet-control-custom:hover {
+    background-color: var(--bg-2) !important;
     transform: translateY(-1px);
 }
 
-/* Remove default Leaflet borders between grouped buttons */
+/* BREAK THE LEAFLET BAR GROUPING */
 .leaflet-bar {
     box-shadow: none !important;
     border: none !important;
 }
 
-.leaflet-bar a:first-child {
-    border-bottom-left-radius: 12px !important;
-    border-bottom-right-radius: 12px !important;
-}
-
-.leaflet-bar a:last-child {
-    border-top-left-radius: 12px !important;
-    border-top-right-radius: 12px !important;
+/* Force rounded corners on EVERY button even if grouped */
+.leaflet-bar a:first-child,
+.leaflet-bar a:last-child,
+.leaflet-bar a {
+    border-radius: 12px !important;
+    border-bottom: 1px solid var(--line) !important; /* Restore border removed by Leaflet group */
 }
 
 /* Zoom icons specific styling */
