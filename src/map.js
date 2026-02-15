@@ -69,6 +69,39 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
     L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
 
+    // --- BOUTON RESET VUE ---
+    const resetControl = L.Control.extend({
+        options: { position: 'topleft' },
+        onAdd: function() {
+            const btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control leaflet-control-custom');
+            btn.type = 'button';
+            btn.title = "Réinitialiser la vue";
+            btn.style.backgroundColor = 'var(--bg)';
+            btn.style.width = '44px';
+            btn.style.height = '44px';
+            btn.style.border = '1px solid var(--line)';
+            btn.style.borderRadius = '12px';
+            btn.style.cursor = 'pointer';
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.padding = '0';
+
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/></svg>`;
+
+            // Style de survol géré via CSS ou inline si nécessaire
+            btn.onmouseover = () => { btn.style.backgroundColor = 'var(--bg-2)'; };
+            btn.onmouseout = () => { btn.style.backgroundColor = 'var(--bg)'; };
+
+            btn.onclick = (e) => {
+                L.DomEvent.stopPropagation(e);
+                map.setView(initialCenter, initialZoom);
+            };
+            return btn;
+        }
+    });
+    map.addControl(new resetControl());
+
     initMapListeners();
 }
 
