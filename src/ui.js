@@ -595,24 +595,51 @@ export function populateCategoriesMenu() {
         categories = POI_CATEGORIES;
     }
 
-    // 2. Vérifier si on doit reconstruire le DOM
-    // On regarde les labels existants pour éviter les rebuilds inutiles (clignotements, scroll reset)
-    const existingLabels = Array.from(menu.querySelectorAll('label')).map(l => l.innerText.trim());
-    const needsRebuild = existingLabels.length !== categories.length ||
-                         !existingLabels.every((l, i) => l === categories[i]);
-
-    if (!needsRebuild) {
-        // MAJ des checkboxes uniquement (Sync avec activeFilters)
-        const checkboxes = menu.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(cb => {
-            cb.checked = state.activeFilters.categories.includes(cb.value);
-        });
-        return;
-    }
-
-    // 3. Reconstruction (Si nécessaire)
+    // 2. Reconstruction Complète (Simplifié pour gérer "Tout voir")
     menu.innerHTML = '';
 
+    // A. Option "Tout voir"
+    const allWrapper = document.createElement('label');
+    allWrapper.style.display = 'flex';
+    allWrapper.style.alignItems = 'center';
+    allWrapper.style.padding = '8px 16px';
+    allWrapper.style.cursor = 'pointer';
+    allWrapper.style.userSelect = 'none';
+    allWrapper.style.borderBottom = '1px solid var(--line)';
+    allWrapper.style.fontWeight = '600';
+
+    const allCb = document.createElement('input');
+    allCb.type = 'checkbox';
+    allCb.value = 'ALL';
+    allCb.style.marginRight = '10px';
+
+    // Coché si aucune catégorie n'est filtrée
+    const isAllSelected = state.activeFilters.categories.length === 0;
+    allCb.checked = isAllSelected;
+
+    allCb.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            // Si on coche "Tout voir", on vide le filtre (donc on voit tout)
+            state.activeFilters.categories = [];
+            // On reconstruit pour mettre à jour les autres cases
+            populateCategoriesMenu();
+            applyFilters();
+        } else {
+            // Interdit de décocher manuellement si c'est la seule option
+            // (L'utilisateur doit cocher une autre catégorie pour décocher "Tout voir")
+            e.target.checked = true;
+        }
+    });
+
+    allWrapper.appendChild(allCb);
+    allWrapper.appendChild(document.createTextNode("Tout voir"));
+
+    allWrapper.addEventListener('mouseenter', () => allWrapper.style.backgroundColor = 'var(--surface-muted)');
+    allWrapper.addEventListener('mouseleave', () => allWrapper.style.backgroundColor = 'transparent');
+
+    menu.appendChild(allWrapper);
+
+    // B. Les Catégories
     categories.forEach(cat => {
         const wrapper = document.createElement('label');
         wrapper.style.display = 'flex';
@@ -626,6 +653,7 @@ export function populateCategoriesMenu() {
         cb.value = cat;
         cb.style.marginRight = '10px';
 
+        // État initial
         if (state.activeFilters.categories.includes(cat)) {
             cb.checked = true;
         }
@@ -636,6 +664,15 @@ export function populateCategoriesMenu() {
             } else {
                 state.activeFilters.categories = state.activeFilters.categories.filter(c => c !== cat);
             }
+
+            // Si on décoche la dernière, on repasse en "Tout voir"
+            if (state.activeFilters.categories.length === 0) {
+                // Pas d'action explicite, le prochain populate gérera ça
+            }
+
+            // On reconstruit le menu pour mettre à jour "Tout voir" et les autres
+            // (Optimisation possible : ne mettre à jour que les inputs, mais rebuild est plus sûr pour "Tout voir")
+            populateCategoriesMenu();
             applyFilters();
         });
 
