@@ -385,8 +385,8 @@ function setupDesktopUIListeners() {
 
         // Logique Icônes : Inactive=eye (Voir), Active=eye-off (Caché)
         btn.innerHTML = `<i data-lucide="${isActive ? 'eye-off' : 'eye'}"></i>`;
-        // Logique Tooltip : Active=Caché -> "Afficher", Inactive=Visible -> "Masquer"
-        btn.title = isActive ? "Afficher les visités" : "Masquer les visités";
+        // Logique Tooltip : Active=Caché -> "Tout afficher", Inactive=Visible -> "Masquer"
+        btn.title = isActive ? "Tout afficher" : "Masquer les visités";
 
         createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
         applyFilters();
@@ -402,8 +402,8 @@ function setupDesktopUIListeners() {
 
         // Logique Icônes : Inactive=calendar (Voir), Active=calendar-off (Caché)
         btn.innerHTML = `<i data-lucide="${isActive ? 'calendar-off' : 'calendar'}"></i>`;
-        // Logique Tooltip : Active=Caché -> "Afficher", Inactive=Visible -> "Masquer"
-        btn.title = isActive ? "Afficher les planifiés" : "Masquer les planifiés";
+        // Logique Tooltip : Active=Caché -> "Tout afficher", Inactive=Visible -> "Masquer"
+        btn.title = isActive ? "Tout afficher" : "Masquer les planifiés";
 
         createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
         applyFilters();

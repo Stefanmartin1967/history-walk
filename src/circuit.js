@@ -183,7 +183,7 @@ export function toggleSelectionMode(forceValue) {
                 console.log("[Circuit] Updating btn-filter-vus to", isActive);
                 btnVus.classList.toggle('active', isActive);
                 btnVus.innerHTML = `<i data-lucide="${isActive ? 'eye-off' : 'eye'}"></i>`;
-                btnVus.title = isActive ? "Afficher les visités" : "Masquer les visités";
+                btnVus.title = isActive ? "Tout afficher" : "Masquer les visités";
                 createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btnVus });
             }
 
@@ -192,7 +192,7 @@ export function toggleSelectionMode(forceValue) {
                 const isActive = state.activeFilters.planifies;
                 btnPlanifies.classList.toggle('active', isActive);
                 btnPlanifies.innerHTML = `<i data-lucide="${isActive ? 'calendar-off' : 'calendar'}"></i>`;
-                btnPlanifies.title = isActive ? "Afficher les planifiés" : "Masquer les planifiés";
+                btnPlanifies.title = isActive ? "Tout afficher" : "Masquer les planifiés";
                 createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btnPlanifies });
             }
         }
