@@ -48,7 +48,6 @@ import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
 import { initAdminMode } from './admin.js';
-import { generateSyncQR, startGenericScanner } from './sync.js';
 import { setupTabs } from './ui-sidebar.js';
 
 function setSaveButtonsState(enabled) {
