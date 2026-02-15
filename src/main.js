@@ -48,6 +48,7 @@ import { setupSearch, setupSmartSearch } from './searchManager.js';
 import { enableDesktopCreationMode, setupDesktopTools } from './desktopMode.js';
 import { showConfirm } from './modal.js';
 import { initAdminMode } from './admin.js';
+import { generateSyncQR, startGenericScanner } from './sync.js';
 import { setupTabs } from './ui-sidebar.js';
 
 function setSaveButtonsState(enabled) {
@@ -136,6 +137,20 @@ async function loadAndInitializeMap() {
             initialView = state.destinations.maps[activeMapId].startView;
         }
     }
+
+    // --- CORRECTION : RESTAURATION IMMÉDIATE DE LA VUE ---
+    try {
+        const lastView = await getAppState('lastMapView');
+        if (lastView && lastView.center && lastView.zoom) {
+            // On vérifie juste que c'est une vue valide (pas undefined)
+            // Idéalement, on pourrait vérifier si c'est sur la même carte, mais pour l'instant on fait confiance
+            initialView = lastView;
+            console.log("[Main] Vue restaurée depuis la sauvegarde :", initialView);
+        }
+    } catch (e) {
+        console.warn("[Main] Impossible de restaurer la dernière vue", e);
+    }
+    // -----------------------------------------------------
 
     // 2. Chargement Data
     let geojsonData = null;
@@ -378,16 +393,7 @@ function setupDesktopUIListeners() {
         const btn = e.currentTarget;
         const isActive = btn.classList.toggle('active');
         state.activeFilters.vus = isActive;
-        if (state.isSelectionModeActive) {
-            state.selectionModeFilters.hideVisited = isActive;
-        }
-
-        // Logique Icônes : Inactive=eye (Voir), Active=eye-off (Caché)
-        btn.innerHTML = `<i data-lucide="${isActive ? 'eye-off' : 'eye'}"></i>`;
-        // Logique Tooltip : Active=Caché -> "Tout afficher", Inactive=Visible -> "Masquer"
-        btn.title = isActive ? "Tout afficher" : "Masquer les visités";
-
-        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
+        btn.title = isActive ? "Masquer les visités" : "Afficher les visités";
         applyFilters();
     });
 
@@ -395,16 +401,7 @@ function setupDesktopUIListeners() {
         const btn = e.currentTarget;
         const isActive = btn.classList.toggle('active');
         state.activeFilters.planifies = isActive;
-        if (state.isSelectionModeActive) {
-            state.selectionModeFilters.hidePlanned = isActive;
-        }
-
-        // Logique Icônes : Inactive=calendar (Voir), Active=calendar-off (Caché)
-        btn.innerHTML = `<i data-lucide="${isActive ? 'calendar-off' : 'calendar'}"></i>`;
-        // Logique Tooltip : Active=Caché -> "Tout afficher", Inactive=Visible -> "Masquer"
-        btn.title = isActive ? "Tout afficher" : "Masquer les planifiés";
-
-        createIcons({ icons, nameAttr: 'data-lucide', attrs: {class: "lucide"}, root: btn });
+        btn.title = isActive ? "Masquer les planifiés" : "Afficher les planifiés";
         applyFilters();
     });
 
