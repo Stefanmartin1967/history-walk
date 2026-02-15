@@ -6,7 +6,7 @@ import { escapeXml } from './utils.js';
 import { eventBus } from './events.js';
 import { stopDictation, isDictationActive } from './voice.js';
 import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';
-import { map, clearMarkerHighlights, resizeMap } from './map.js';
+import { map, clearMarkerHighlights, invalidateMapSize } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList, switchMobileView } from './mobile.js';
 import { createIcons, icons } from 'lucide';
 import { showToast } from './toast.js';
@@ -19,7 +19,6 @@ import { showConfirm, showAlert } from './modal.js';
 import { RichEditor } from './richEditor.js';
 import { switchSidebarTab } from './ui-sidebar.js'; // Imported for use inside ui.js functions
 import { exportFullBackupPC, exportDataForMobilePC, saveUserData } from './fileManager.js';
-import { invalidateMapSize } from './map.js';
 
 export const DOM = {};
 let currentEditor = { fieldId: null, poiId: null, callback: null };
@@ -368,7 +367,7 @@ export function openDetailsPanel(featureId, circuitIndex = null) {
         DOM.rightSidebar.style.display = 'flex';
         document.body.classList.add('sidebar-open');
         switchSidebarTab('details', true);
-        resizeMap(); // Force le redimensionnement pour éviter le gris
+        invalidateMapSize(); // Force le redimensionnement pour éviter le gris
     }
 }
 

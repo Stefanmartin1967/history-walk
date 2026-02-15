@@ -391,7 +391,7 @@ export function fitMapToContent() {
 
 // Redimensionner la carte (ex: ouverture sidebar)
 let resizeTimeout;
-export function resizeMap() {
+export function invalidateMapSize() {
     if (!map) return;
     // Debounce pour éviter les appels multiples lors d'animations
     clearTimeout(resizeTimeout);

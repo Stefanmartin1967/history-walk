@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { getPoiId } from './data.js';
 import { eventBus } from './events.js';
 import { stopDictation, isDictationActive } from './voice.js';
-import { resizeMap } from './map.js';
+import { invalidateMapSize } from './map.js';
 
 export function switchSidebarTab(tabName, isNavigating = false) {
     if (!isNavigating && window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
@@ -23,7 +23,7 @@ export function switchSidebarTab(tabName, isNavigating = false) {
 
     // On notifie la carte que la taille du conteneur a peut-être changé (sidebar content size)
     // Bien que la largeur de la sidebar soit fixe, le passage de display:none à flex peut jouer
-    resizeMap();
+    invalidateMapSize();
 }
 
 export function setupTabs() {
