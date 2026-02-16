@@ -27,6 +27,7 @@
     "description": "Circuit généré par History Walk.",
     "distance": "6.2 km",
     "isOfficial": true,
+    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE6FYGYG0HW2BTHPGFF6",
       "HW-01K77WPE6FCK1V446SXD2V5NNK",
