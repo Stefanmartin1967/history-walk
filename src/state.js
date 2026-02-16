@@ -1,5 +1,5 @@
 // state.js
-export const APP_VERSION = '3.5.5'; // Version en mode propre !
+export const APP_VERSION = '3.5.6'; // Version incrémentée avec logs
 export const MAX_CIRCUIT_POINTS = 15;
 
 export const POI_CATEGORIES = [

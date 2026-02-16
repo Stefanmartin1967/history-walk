@@ -241,6 +241,8 @@ async function loadAndInitializeMap() {
 }
 
 async function initializeApp() {
+    console.log("🚀 Version chargée :", APP_VERSION);
+
     // 0. Vérification Version
     const storedVersion = localStorage.getItem('hw_app_version');
     if (storedVersion !== APP_VERSION) {
