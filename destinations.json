@@ -5,20 +5,14 @@
             "name": "Djerba",
             "file": "djerba.geojson",
             "circuitsFile": "djerba.json",
-            "startView": {
-                "center": [33.77478, 10.94353],
-                "zoom": 12.0
-            },
+            "bounds": [[33.65, 10.72], [33.91, 11.06]],
             "currency": "TND"
         },
         "hammamet": {
             "name": "Hammamet",
             "file": "hammamet.geojson",
             "circuitsFile": "hammamet.json",
-            "startView": {
-                "center": [36.4, 10.6167],
-                "zoom": 13.0
-            },
+            "bounds": [[36.35, 10.55], [36.45, 10.67]],
             "currency": "TND"
         }
     }
