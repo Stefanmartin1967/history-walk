@@ -40,8 +40,11 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
     // Si la carte existe déjà, on met juste à jour la vue
     if (map) {
         map.setView(initialCenter, initialZoom);
+        console.log(`🔎 ZOOM APPLIQUÉ : ${initialZoom}`);
         return;
     }
+
+    console.log(`🔎 ZOOM INITIAL : ${initialZoom}`);
 
     // Initialisation de la carte
     map = L.map('map', {
@@ -86,6 +89,45 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
 
     L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
     L.control.attribution({ position: 'bottomleft' }).addTo(map);
+
+    // --- BOUTON DE RÉINITIALISATION DE LA VUE ---
+    const ResetViewControl = L.Control.extend({
+        options: {
+            position: 'topleft'
+        },
+        onAdd: function(mapInstance) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            const link = L.DomUtil.create('a', 'leaflet-control-custom', container);
+
+            // Style de base pour ressembler aux boutons Leaflet
+            link.href = '#';
+            link.title = "Réinitialiser la vue";
+            link.role = "button";
+            link.style.width = '44px';
+            link.style.height = '44px';
+            link.style.backgroundColor = 'var(--bg)';
+            link.style.color = '#fff';
+            link.style.display = 'flex';
+            link.style.alignItems = 'center';
+            link.style.justifyContent = 'center';
+            link.style.cursor = 'pointer';
+
+            // Icône Lucide "Rotate CCW"
+            link.innerHTML = `<i data-lucide="rotate-ccw"></i>`;
+
+            link.onclick = function(e) {
+                e.preventDefault();
+                fitMapToContent(); // Retourne à la vue définie dans destinations.json
+            };
+
+            return container;
+        }
+    });
+
+    map.addControl(new ResetViewControl());
+
+    // Initialisation des icônes après ajout
+    createIcons({ icons });
 
     initMapListeners();
 
