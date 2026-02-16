@@ -193,7 +193,4 @@ export async function addPoiFeature(feature) {
 
     // 3. Rafraîchissement de la carte pour afficher le nouveau point
     applyFilters();
-    
-    // Notification utilisateur
-    showToast("Lieu ajouté avec succès", "success");
 }

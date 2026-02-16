@@ -309,7 +309,6 @@ if (chkInc) {
                 if (await showConfirm("Mise à jour GPS", "Mettre à jour avec votre position GPS actuelle ?", "Mettre à jour", "Annuler")) {
                     // On délègue la mise à jour et on affiche le toast
                     await updatePoiPosition(poiId);
-                    showToast("Position mise à jour", "success");
                 }
             });
         }
@@ -809,7 +808,6 @@ export function openRestoreModal() {
             const c = state.myCircuits.find(cir => cir.id === id);
             if(c) c.isDeleted = false;
 
-            showToast("Circuit restauré", "success");
             modal.classList.remove('active');
             eventBus.emit('circuit:list-updated');
         };

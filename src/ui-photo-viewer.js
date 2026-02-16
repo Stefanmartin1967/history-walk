@@ -54,7 +54,6 @@ export function setupPhotoPanelListeners(poiId) {
 
             const success = await handleAllPhotosDeletion(poiId);
             if (success) {
-                showToast("Toutes les photos ont été supprimées", "success");
                 openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
             } else {
                 showToast("Erreur lors de la suppression", "error");
@@ -116,7 +115,6 @@ export function setupPhotoPanelListeners(poiId) {
             const success = await handlePhotoDeletion(poiId, index);
 
             if (success) {
-                showToast("Photo supprimée", "success");
                 openDetailsPanel(state.currentFeatureId, state.currentCircuitIndex);
             } else {
                 showToast("Erreur lors de la suppression", "error");
