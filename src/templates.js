@@ -26,7 +26,8 @@ export const ICONS = {
     trash: `<i data-lucide="trash-2" style="width:18px;height:18px;"></i>`,
     googleMaps: `<i data-lucide="map-pin" style="width:18px;height:18px;"></i>`,
     globe: `<i data-lucide="globe" style="width:18px;height:18px;"></i>`,
-    languages: `<i data-lucide="languages" style="width:18px;height:18px;"></i>`
+    languages: `<i data-lucide="languages" style="width:18px;height:18px;"></i>`,
+    fileText: `<i data-lucide="file-text" style="width:18px;height:18px;"></i>`
 };
 
 export function renderSource(allProps) {
@@ -131,6 +132,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 <!-- Left: Tools -->
                 <div style="display:flex; gap:5px; align-items:center;">
                      <button class="action-button" id="btn-toggle-lang" title="Afficher le titre arabe" ${hasAr ? '' : 'disabled'} style="${hasAr ? '' : 'opacity:0.5; cursor:not-allowed;'}">${ICONS.languages}</button>
+                     <button class="action-button" id="btn-toggle-gpx-desc" title="Afficher/Masquer Description GPX">${ICONS.fileText}</button>
                      <button class="action-button btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
                      ${gmapsButtonHtml}
                      <button class="action-button" id="btn-global-edit" title="Modifier le lieu">${ICONS.pen}</button>
@@ -149,7 +151,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
         </div>
 
         <div class="panel-content">
-            <div class="detail-section editable-field" data-field-id="short_desc">
+            <div class="detail-section editable-field" id="section-gpx-desc" data-field-id="short_desc" style="display:none;">
                 <h3>Description GPX</h3>
                 <div class="content">
                     <p id="panel-short-desc-display" class="editable-text short-text" style="height:auto; min-height:auto; max-height:none; overflow:visible; display:block; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
@@ -233,6 +235,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                          <!-- Left: Tools -->
                          <div style="display:flex; gap:6px; align-items:center;">
                              <button class="action-button" id="mobile-btn-toggle-lang" title="Arabe" ${hasAr ? '' : 'disabled'} style="${mobileBtnStyle} ${hasAr ? '' : 'opacity:0.5;'}">${ICONS.languages}</button>
+                             <button class="action-button" id="mobile-btn-toggle-gpx-desc" title="GPX Desc" style="${mobileBtnStyle}">${ICONS.fileText}</button>
                              <button class="action-button btn-web-search" id="btn-web-search" title="Google" style="${mobileBtnStyle}">${ICONS.globe}</button>
                              ${mobileGmapsBtn}
                              <button class="action-button" id="btn-global-edit" title="Editer" style="${mobileBtnStyle}">${ICONS.pen}</button>
@@ -252,7 +255,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
 
-            <div class="detail-section editable-field" data-field-id="short_desc">
+            <div class="detail-section editable-field" id="mobile-section-gpx-desc" data-field-id="short_desc" style="display:none;">
                 <h3>Description GPX</h3>
                 <div class="content">
                     <p class="editable-text short-text" style="height:auto; min-height:auto; max-height:none; overflow:visible; display:block; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>

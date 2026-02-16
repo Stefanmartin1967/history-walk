@@ -79,6 +79,44 @@ export function initializeDomReferences() {
         });
     }
 
+    // --- TOGGLE DESCRIPTION GPX (INTELLIGENT) ---
+    const toggleGpxBtn = document.getElementById('btn-toggle-gpx-desc') || document.getElementById('mobile-btn-toggle-gpx-desc');
+    const gpxSection = document.getElementById('section-gpx-desc') || document.getElementById('mobile-section-gpx-desc');
+
+    // Détection du contenu (PC/Mobile)
+    const shortDescText = document.getElementById('panel-short-desc-display')?.textContent ||
+                          gpxSection?.querySelector('.short-text')?.textContent || "";
+
+    const hasGpxDesc = shortDescText && shortDescText.trim() !== "";
+
+    if (toggleGpxBtn && gpxSection) {
+        // État Initial Intelligent
+        if (hasGpxDesc) {
+            // Si rempli : Bouton Bleu, Section Visible
+            toggleGpxBtn.style.color = "var(--brand)";
+            toggleGpxBtn.style.opacity = "1";
+            gpxSection.style.display = "flex"; // Flex car .detail-section est flex
+        } else {
+            // Si vide : Bouton Gris/Transparent, Section Masquée
+            toggleGpxBtn.style.color = "var(--ink-soft)";
+            toggleGpxBtn.style.opacity = "0.5";
+            gpxSection.style.display = "none";
+        }
+
+        toggleGpxBtn.addEventListener('click', () => {
+            const isVisible = gpxSection.style.display !== 'none';
+            if (isVisible) {
+                gpxSection.style.display = 'none';
+                // Si on masque alors que c'était rempli, on grise légèrement pour dire "c'est caché"
+                // Mais pour rester cohérent avec la demande "bleu = rempli", on garde la couleur si rempli.
+                // On change juste l'état visuel pour dire "fermé" ?
+                // Non, restons simple : Le bouton indique la présence de contenu.
+            } else {
+                gpxSection.style.display = 'flex';
+            }
+        });
+    }
+
     // --- LOGIQUE SAUVEGARDE UNIFIÉE ---
     if (DOM.btnOpenBackupModal) {
         DOM.btnOpenBackupModal.addEventListener('click', () => {
