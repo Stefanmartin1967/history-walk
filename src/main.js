@@ -416,17 +416,41 @@ function setupDesktopUIListeners() {
 
     document.getElementById('btn-filter-vus')?.addEventListener('click', (e) => {
         const btn = e.currentTarget;
-        const isActive = btn.classList.toggle('active');
-        state.activeFilters.vus = isActive;
-        btn.title = isActive ? "Masquer les visités" : "Afficher les visités";
+        // On inverse l'état logique : Actif = Masqué
+        const isHidden = btn.classList.toggle('active');
+        state.activeFilters.vus = isHidden;
+
+        // Mise à jour de l'icône et du titre pour l'ACTION FUTURE
+        if (isHidden) {
+            // État actuel : Masqué -> Action : Tout afficher
+            btn.innerHTML = `<i data-lucide="eye-off"></i><span>Visités</span>`;
+            btn.title = "Tout afficher";
+        } else {
+            // État actuel : Visible -> Action : Masquer les visités
+            btn.innerHTML = `<i data-lucide="eye"></i><span>Visités</span>`;
+            btn.title = "Masquer les visités";
+        }
+        createIcons({ icons, nameAttr: 'data-lucide', attrs: { 'class': "lucide" }, root: btn });
         applyFilters();
     });
 
     document.getElementById('btn-filter-planifies')?.addEventListener('click', (e) => {
         const btn = e.currentTarget;
-        const isActive = btn.classList.toggle('active');
-        state.activeFilters.planifies = isActive;
-        btn.title = isActive ? "Masquer les planifiés" : "Afficher les planifiés";
+        // On inverse l'état logique : Actif = Masqué
+        const isHidden = btn.classList.toggle('active');
+        state.activeFilters.planifies = isHidden;
+
+        // Mise à jour de l'icône et du titre pour l'ACTION FUTURE
+        if (isHidden) {
+            // État actuel : Masqué -> Action : Tout afficher
+            btn.innerHTML = `<i data-lucide="calendar-off"></i><span>Planifiés</span>`;
+            btn.title = "Tout afficher";
+        } else {
+            // État actuel : Visible -> Action : Masquer les planifiés
+            btn.innerHTML = `<i data-lucide="calendar-check"></i><span>Planifiés</span>`;
+            btn.title = "Masquer les planifiés";
+        }
+        createIcons({ icons, nameAttr: 'data-lucide', attrs: { 'class': "lucide" }, root: btn });
         applyFilters();
     });
 

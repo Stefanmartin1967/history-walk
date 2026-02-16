@@ -613,6 +613,46 @@ export function populateCategoriesMenu() {
     // 3. Reconstruction (Si nécessaire)
     menu.innerHTML = '';
 
+    // --- "TOUT VOIR" (Option par défaut) ---
+    const allWrapper = document.createElement('label');
+    allWrapper.style.display = 'flex';
+    allWrapper.style.alignItems = 'center';
+    allWrapper.style.padding = '8px 16px';
+    allWrapper.style.cursor = 'pointer';
+    allWrapper.style.userSelect = 'none';
+    allWrapper.style.borderBottom = '1px solid var(--surface-muted)';
+
+    const allCb = document.createElement('input');
+    allCb.type = 'checkbox';
+    allCb.value = 'ALL';
+    allCb.style.marginRight = '10px';
+    // Coché si aucun filtre n'est actif
+    allCb.checked = state.activeFilters.categories.length === 0;
+
+    allCb.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            // Si on coche "Tout voir", on vide la liste des filtres
+            state.activeFilters.categories = [];
+            // Et on décoche visuellement les autres
+            menu.querySelectorAll('input[type="checkbox"]:not([value="ALL"])').forEach(c => c.checked = false);
+        } else {
+            // On empêche de décocher "Tout voir" si c'est la seule option active (pour éviter état vide)
+            // Sauf si une autre catégorie est cochée (géré par la logique inverse)
+            if (state.activeFilters.categories.length === 0) {
+                e.target.checked = true;
+                return;
+            }
+        }
+        applyFilters();
+    });
+
+    allWrapper.appendChild(allCb);
+    allWrapper.appendChild(document.createTextNode("Tout voir"));
+    allWrapper.addEventListener('mouseenter', () => allWrapper.style.backgroundColor = 'var(--surface-muted)');
+    allWrapper.addEventListener('mouseleave', () => allWrapper.style.backgroundColor = 'transparent');
+    menu.appendChild(allWrapper);
+
+    // --- LISTE DES CATÉGORIES ---
     categories.forEach(cat => {
         const wrapper = document.createElement('label');
         wrapper.style.display = 'flex';
@@ -633,8 +673,14 @@ export function populateCategoriesMenu() {
         cb.addEventListener('change', (e) => {
             if (e.target.checked) {
                 state.activeFilters.categories.push(cat);
+                // Si on coche une catégorie, on décoche "Tout voir"
+                allCb.checked = false;
             } else {
                 state.activeFilters.categories = state.activeFilters.categories.filter(c => c !== cat);
+                // Si plus aucune catégorie n'est cochée, on recoche "Tout voir"
+                if (state.activeFilters.categories.length === 0) {
+                    allCb.checked = true;
+                }
             }
             applyFilters();
         });
