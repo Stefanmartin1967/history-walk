@@ -58,6 +58,10 @@
     "description": "Circuit généré par History Walk.",
     "distance": "8.2 km",
     "isOfficial": true,
-    "poiIds": []
+    "poiIds": [
+      "HW-01K77WPE6B2CT1A4B58N917MXQ",
+      "HW-PC-1769616224738",
+      "HW-01K77WPE6A3AYDG7D68R9A0JBT"
+    ]
   }
 ]

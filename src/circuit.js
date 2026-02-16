@@ -399,7 +399,9 @@ export async function loadCircuitById(id) {
     if (circuitToLoad.file && (!circuitToLoad.realTrack || circuitToLoad.realTrack.length === 0)) {
         try {
             console.log(`[Circuit] Chargement de la trace depuis ${circuitToLoad.file}...`);
-            const response = await fetch(`./circuits/${circuitToLoad.file}`);
+            // Correction URL : encodage pour gérer les espaces et apostrophes
+            const safeUrl = `./circuits/${circuitToLoad.file.split('/').map(encodeURIComponent).join('/')}`;
+            const response = await fetch(safeUrl);
             if (response.ok) {
                 const text = await response.text();
                 const parser = new DOMParser();
