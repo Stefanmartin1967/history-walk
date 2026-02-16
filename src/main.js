@@ -1,7 +1,7 @@
 // main.js
 import { initDB, getAppState, saveAppState, getAllPoiDataForMap, getAllCircuitsForMap, deleteCircuitById } from './database.js';
 import { APP_VERSION, state } from './state.js';
-import { initMap, map, refreshMapMarkers } from './map.js';
+import { initMap, map, refreshMapMarkers, fitMapToContent } from './map.js';
 import { eventBus } from './events.js';
 import { createIcons, icons } from 'lucide';
 import {
@@ -228,7 +228,8 @@ async function loadAndInitializeMap() {
 
         await displayGeoJSON(geojsonData, activeMapId);
 
-        // Pas de fitMapToContent() ici, on a déjà la vue parfaite.
+        // Rétablissement du centrage intelligent
+        fitMapToContent();
 
         try { await loadCircuitDraft(); } catch (e) {}
         setSaveButtonsState(true);
