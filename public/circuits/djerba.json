@@ -50,5 +50,14 @@
       "HW-01K77WPE6BE2HDNBY0FSWSNRTH",
       "HW-01K77WPE6A7EGYFGG7XNYT8AYC"
     ]
+  },
+  {
+    "id": "HW-1771241261279",
+    "name": "Circuit de Mosquée Wadran à Restaurant Port D&apos;Aghir via Mosquée Chbêbia",
+    "file": "djerba/Circuit de Mosquée Wadran à Restaurant Port D'Aghir via Mosquée Chbêbia.gpx",
+    "description": "Circuit généré par History Walk.",
+    "distance": "8.2 km",
+    "isOfficial": true,
+    "poiIds": []
   }
 ]
