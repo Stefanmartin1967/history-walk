@@ -154,7 +154,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
             <div class="detail-section editable-field" id="section-gpx-desc" data-field-id="short_desc" style="display:none;">
                 <h3>Description GPX</h3>
                 <div class="content">
-                    <p id="panel-short-desc-display" class="editable-text short-text" style="height:auto; min-height:auto; max-height:none; overflow:visible; display:block; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
+                    <p id="panel-short-desc-display" class="editable-text short-text" style="height:auto; min-height:24px; max-height:none; overflow:visible; display:block; white-space:normal !important; text-overflow:clip; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
                 </div>
             </div>
             <div class="detail-section editable-field description-section" data-field-id="description">
@@ -258,7 +258,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
             <div class="detail-section editable-field" id="mobile-section-gpx-desc" data-field-id="short_desc" style="display:none;">
                 <h3>Description GPX</h3>
                 <div class="content">
-                    <p class="editable-text short-text" style="height:auto; min-height:auto; max-height:none; overflow:visible; display:block; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
+                    <p class="editable-text short-text" style="height:auto; min-height:24px; max-height:none; overflow:visible; display:block; white-space:normal !important; text-overflow:clip; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
                 </div>
             </div>
             <div class="detail-section editable-field description-section" data-field-id="description">
