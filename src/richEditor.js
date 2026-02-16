@@ -304,7 +304,7 @@ function updateSaveButtonState() {
     let error = null;
     if (!name) error = "Le nom est obligatoire";
     else if (!cat || cat === "A définir") error = "Veuillez sélectionner une catégorie";
-    else if (desc && !source) error = "Source non remplie (obligatoire avec description)";
+    // else if (desc && !source) error = "Source non remplie (obligatoire avec description)"; // Désactivé pour assouplir la validation
 
     if (error) {
         saveBtn.disabled = true;
