@@ -106,13 +106,9 @@ export function initializeDomReferences() {
         toggleGpxBtn.addEventListener('click', () => {
             const isVisible = gpxSection.style.display !== 'none';
             if (isVisible) {
-                gpxSection.style.display = 'none';
-                // Si on masque alors que c'était rempli, on grise légèrement pour dire "c'est caché"
-                // Mais pour rester cohérent avec la demande "bleu = rempli", on garde la couleur si rempli.
-                // On change juste l'état visuel pour dire "fermé" ?
-                // Non, restons simple : Le bouton indique la présence de contenu.
+                gpxSection.style.setProperty('display', 'none', 'important');
             } else {
-                gpxSection.style.display = 'flex';
+                gpxSection.style.setProperty('display', 'flex', 'important');
             }
         });
     }
