@@ -37,14 +37,10 @@ export const iconMap = {
 // Valeurs par défaut alignées sur destinations.json (Djerba)
 export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7) {
 
-    // Si la carte existe déjà, on met juste à jour la vue
+    // Si la carte existe déjà, on ignore (mais on pourrait repositionner si on le souhaitait)
     if (map) {
-        map.setView(initialCenter, initialZoom);
-        console.log(`🔎 ZOOM APPLIQUÉ : ${initialZoom}`);
         return;
     }
-
-    console.log(`🔎 ZOOM INITIAL : ${initialZoom}`);
 
     // Initialisation de la carte
     map = L.map('map', {
@@ -54,7 +50,9 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
         attributionControl: false,
         preferCanvas: true,
         zoomControl: false // On désactive le zoom par défaut pour le repositionner/styler nous-même si besoin
-    }).setView(initialCenter, initialZoom);
+    });
+
+    // NOTE: On ne fait plus setView ici, car fitMapToContent va s'en charger intelligemment
 
     // Ajout explicite du contrôle de zoom en haut à gauche (position standard)
     L.control.zoom({
@@ -388,18 +386,32 @@ export function refreshMapMarkers(visibleFeatures) {
     createIcons({ icons });
 }
 
-// --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT ---
+// --- NOUVEAU : AUTO-CENTRAGE INTELLIGENT (FITBOUNDS) ---
 export function fitMapToContent() {
     // Si on a une configuration fixe pour la carte actuelle, on l'utilise
     if (state.currentMapId && state.destinations && state.destinations.maps && state.destinations.maps[state.currentMapId]) {
         const config = state.destinations.maps[state.currentMapId];
+
+        // NOUVEAU : Gestion par BOUNDS (Prioritaire)
+        if (config.bounds) {
+            const sidebarWidth = document.body.classList.contains('sidebar-open') ? document.getElementById('right-sidebar').offsetWidth : 0;
+            // paddingBottomRight permet de décaler le centre "utile" vers la gauche pour éviter la sidebar
+            map.fitBounds(config.bounds, {
+                paddingBottomRight: [sidebarWidth, 0],
+                maxZoom: 18 // Sécurité
+            });
+            console.log(`🔎 FIT BOUNDS APPLIQUÉ avec padding droite: ${sidebarWidth}px`);
+            return;
+        }
+
+        // ANCIEN : Gestion par startView (Fallback)
         if (config.startView) {
             map.setView(config.startView.center, config.startView.zoom);
             return;
         }
     }
 
-    // Sinon, comportement par défaut (Fit Bounds)
+    // Sinon, comportement par défaut (Fit Bounds sur les données)
     if (map && state.geojsonLayer && state.geojsonLayer.getLayers().length > 0) {
         const bounds = state.geojsonLayer.getBounds();
         if (bounds.isValid()) {
