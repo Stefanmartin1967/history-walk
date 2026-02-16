@@ -1,5 +1,5 @@
 // database.js
-const DB_NAME = 'HistoryWalkDB';
+const DB_NAME = 'HistoryWalkDB_v2';
 import { showAlert } from './modal.js';
 
 const DB_VERSION = 5;
