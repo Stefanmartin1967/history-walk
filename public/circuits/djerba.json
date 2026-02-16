@@ -6,7 +6,6 @@
     "description": "Circuit généré par History Walk.",
     "distance": "10.6 km",
     "isOfficial": true,
-    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
       "HW-01K77WPE6AS77NE3CRGHPYHJSE",
@@ -27,7 +26,6 @@
     "description": "Circuit généré par History Walk.",
     "distance": "7.2 km",
     "isOfficial": true,
-    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE67RPHVJVH6A0PC0ZWD",
       "HW-01K77WPE6722XTDVPGCQTPPBXR",
@@ -43,7 +41,6 @@
     "description": "Circuit généré par History Walk.",
     "distance": "7.5 km",
     "isOfficial": true,
-    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
       "HW-01K77WPE6AS77NE3CRGHPYHJSE",
@@ -56,16 +53,15 @@
   },
   {
     "id": "HW-1771241261279",
-    "name": "Circuit de Mosquée Wadran à Restaurant Port D'Aghir via Mosquée Chbêbia",
+    "name": "Circuit de Mosquée Wadran à Restaurant Port D&apos;Aghir via Mosquée Chbêbia",
     "file": "djerba/Circuit de Mosquée Wadran à Restaurant Port D'Aghir via Mosquée Chbêbia.gpx",
     "description": "Circuit généré par History Walk.",
     "distance": "8.2 km",
     "isOfficial": true,
-    "hasRealTrack": true,
     "poiIds": [
-        "HW-01K77WPE6B2CT1A4B58N917MXQ",
-        "HW-PC-1769616224738",
-        "HW-01K77WPE6A3AYDG7D68R9A0JBT"
+      "HW-01K77WPE6B2CT1A4B58N917MXQ",
+      "HW-PC-1769616224738",
+      "HW-01K77WPE6A3AYDG7D68R9A0JBT"
     ]
   }
 ]
