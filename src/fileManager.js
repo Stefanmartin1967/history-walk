@@ -417,10 +417,12 @@ export async function exportOfficialCircuitsJSON() {
             // Détection de la présence d'une trace réelle (Flag pour l'icône Bird/Foot)
             // Si c'est un officiel existant, il a déjà 'realTrack' en mémoire s'il a été chargé
             // Ou s'il vient d'être importé comme trace réelle.
-            // Note: Les officiels non chargés n'ont pas realTrack, mais on suppose ici qu'on exporte
-            // ce qu'on vient de travailler (donc chargé) ou ce qui était déjà là.
-            // Pour garantir la cohérence, on ajoute ce flag si realTrack existe.
-            const hasRealTrack = (c.realTrack && c.realTrack.length > 0);
+            // Si on a simplement chargé la liste depuis le JSON, on peut avoir l'ancien flag.
+            // Le but est d'être le plus précis possible.
+            // Si un fichier GPX est défini ('file'), il y a probablement une trace.
+            // Si realTrack est chargé et non vide, c'est sûr.
+            // Si hasRealTrack était déjà là (importé du JSON), on le garde sauf preuve du contraire.
+            const hasRealTrack = (c.realTrack && c.realTrack.length > 0) || c.hasRealTrack || !!c.file;
 
             return {
                 id: c.id, // On garde l'ID original (HW-...) pour la robustesse
