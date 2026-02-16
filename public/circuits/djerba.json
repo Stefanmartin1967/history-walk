@@ -6,6 +6,7 @@
     "description": "Circuit généré par History Walk.",
     "distance": "10.6 km",
     "isOfficial": true,
+    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
       "HW-01K77WPE6AS77NE3CRGHPYHJSE",
@@ -26,6 +27,7 @@
     "description": "Circuit généré par History Walk.",
     "distance": "7.2 km",
     "isOfficial": true,
+    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE67RPHVJVH6A0PC0ZWD",
       "HW-01K77WPE6722XTDVPGCQTPPBXR",
@@ -41,6 +43,7 @@
     "description": "Circuit généré par History Walk.",
     "distance": "7.5 km",
     "isOfficial": true,
+    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE6AFSTY1DA2XVPB3MVC",
       "HW-01K77WPE6AS77NE3CRGHPYHJSE",
@@ -58,10 +61,26 @@
     "description": "Circuit généré par History Walk.",
     "distance": "8.2 km",
     "isOfficial": true,
+    "hasRealTrack": true,
     "poiIds": [
       "HW-01K77WPE6B2CT1A4B58N917MXQ",
       "HW-PC-1769616224738",
       "HW-01K77WPE6A3AYDG7D68R9A0JBT"
+    ]
+  },
+  {
+    "id": "HW-1771255752342",
+    "name": "Boucle autour de Mosquée Houmet El Krashoua via Mosquée Jeddi Issa",
+    "file": "boucle_autour_de_mosqu_e_houmet_el_krashoua_via_mosqu_e_jeddi_issa.gpx",
+    "description": "\n\n(Créé par History Walk)",
+    "distance": "4.3 km",
+    "isOfficial": true,
+    "hasRealTrack": false,
+    "poiIds": [
+      "HW-01K77WPE6FYGYG0HW2BTHPGFF6",
+      "HW-01K77WPE6FCK1V446SXD2V5NNK",
+      "HW-01K77WPE6EZ7K06GM4HAWDESAE",
+      "HW-01K77WPE6FYGYG0HW2BTHPGFF6"
     ]
   }
 ]
