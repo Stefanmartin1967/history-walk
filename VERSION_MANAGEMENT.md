@@ -1,54 +1,70 @@
 # Gestion des Versions : V1.0 (Stable) vs V2.0 (Développement)
 
-Félicitations pour le passage à la version 2.0 !
-
 ## 1. État Actuel
 
 *   **Version 1.0 (Stable) :**
-    *   Le code est archivé sous le tag Git `v1.0-final`.
-    *   La base de données s'appelle `HistoryWalkDB`.
-    *   C'est la version actuellement en ligne (si vous l'avez déployée).
+    *   Tag : `v1.0-final`
+    *   Base de données : `HistoryWalkDB`
+    *   URL : `.../history-walk/` (Votre site actuel)
 
 *   **Version 2.0 (Développement) :**
-    *   C'est la version active sur votre ordinateur.
-    *   Le code est marqué `2.0.0-alpha`.
-    *   La base de données s'appelle `HistoryWalkDB_v2` (totalement isolée de la V1).
-    *   Vous pouvez travailler dessus sans risque de casser vos données locales V1.
+    *   Version du code : `2.0.0-alpha`
+    *   Base de données : `HistoryWalkDB_v2` (Isolée)
+    *   **Objectif :** Être hébergé sur un *nouveau* site pour ne pas écraser la V1.
 
-## 2. Attention : Le Déploiement en Ligne
+---
 
-⚠️ **IMPORTANT : L'adresse URL (GitHub Pages)**
+## 2. Guide Pratique : Mise en place de l'Option B (Deux Sites)
 
-Par défaut, GitHub Pages n'héberge qu'une seule version à la fois sur votre adresse `https://<votre-pseudo>.github.io/history-walk/`.
+Vous avez choisi d'avoir deux sites distincts. Voici la procédure exacte à suivre.
 
-*   **Si vous lancez `npm run deploy` maintenant :**
-    *   Vous allez **ÉCRASER** la version 1.0 en ligne avec la version 2.0 (encore en développement).
-    *   Les utilisateurs perdront l'accès à la V1 stable.
+### Étape 1 : Créer le réservoir pour la V2
+1.  Allez sur [GitHub.com](https://github.com) et connectez-vous.
+2.  Créez un **nouveau dépôt** (New Repository).
+3.  Nommez-le : `history-walk-v2`.
+4.  Laissez-le vide (ne cochez pas "Add README", etc.).
+5.  Copiez l'URL du dépôt (ex: `https://github.com/VOTRE_PSEUDO/history-walk-v2.git`).
 
-### Comment garder la V1 en ligne et travailler sur la V2 ?
+### Étape 2 : Changer la destination (Dans votre terminal)
+Nous allons dire à votre projet que "l'origine" n'est plus le vieux site V1, mais le nouveau site V2.
 
-**Option A (Recommandée - Simple) :**
-1.  Ne touchez pas au déploiement (`npm run deploy`) pour l'instant. Laissez la V1 en ligne.
-2.  Travaillez sur la V2 uniquement en **local** sur votre ordinateur avec :
-    ```bash
-    npm run dev
-    ```
-    Cela ouvre une adresse locale (ex: `http://localhost:5173`) qui est votre "V2 de test".
+Ouvrez le terminal dans ce dossier et lancez ces commandes une par une :
 
-**Option B (Avancée - Deux Sites) :**
-Si vous voulez absolument que la V2 soit accessible en ligne pour des tests (par exemple sur mobile) sans écraser la V1 :
-1.  Créez un **nouveau dépôt GitHub** (ex: `history-walk-v2`).
-2.  Envoyez le code V2 sur ce nouveau dépôt.
-3.  Activez GitHub Pages sur ce nouveau dépôt.
-    *   Vous aurez alors deux adresses :
-        *   V1 : `.../history-walk/`
-        *   V2 : `.../history-walk-v2/`
+```bash
+# 1. On renomme le lien vers l'ancien site (V1) pour ne pas le perdre
+git remote rename origin v1-archive
 
-## 3. Revenir à la V1 (Si besoin)
+# 2. On ajoute le lien vers le NOUVEAU site (V2)
+# REMPLACEZ L'ADRESSE CI-DESSOUS PAR CELLE DE VOTRE NOUVEAU DÉPÔT CRÉÉ À L'ÉTAPE 1
+git remote add origin https://github.com/VOTRE_PSEUDO/history-walk-v2.git
 
-Si vous devez corriger un bug urgent sur la V1 :
-1.  Validez vos changements V2 (`git commit`).
-2.  Revenez au tag V1 : `git checkout v1.0-final`.
-3.  Créez une branche de correctif : `git checkout -b fix/v1-bug`.
-4.  Corrigez, testez, et déployez.
-5.  Revenez à la V2 : `git checkout master`.
+# 3. On envoie le code V2 vers le nouveau dépôt
+git push -u origin master
+```
+
+### Étape 3 : Mettre en ligne la V2
+Maintenant que le projet est relié au nouveau dépôt, vous pouvez déployer comme d'habitude :
+
+```bash
+npm run deploy
+```
+
+### Résultat Final
+*   **Site V1 :** Toujours accessible sur votre ancienne adresse (`.../history-walk/`).
+*   **Site V2 :** Sera accessible sur la nouvelle adresse (`.../history-walk-v2/`) après avoir activé GitHub Pages dans les paramètres du nouveau dépôt (Settings > Pages > Source: gh-pages branch).
+
+---
+
+## 3. Revenir travailler sur la V1 (Cas rare)
+
+Si un jour vous devez absolument corriger la V1 :
+```bash
+# Récupérer l'ancien code
+git fetch v1-archive
+git checkout v1-archive/master
+
+# ... faire les corrections ...
+
+# Pousser les corrections sur l'ancien site
+git push v1-archive HEAD:master
+```
