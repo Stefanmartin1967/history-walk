@@ -146,15 +146,8 @@ async function loadAndInitializeMap() {
         }
     }
 
-    // C. Restauration Vue Utilisateur (Priorité absolue)
-    try {
-        const lastMapView = await getAppState('lastMapView');
-        if (lastMapView && lastMapView.center && lastMapView.zoom) {
-            console.log("Vue utilisateur restaurée :", lastMapView);
-            initialView = lastMapView;
-            state.restoredUserView = true;
-        }
-    } catch (e) { console.warn("Pas de vue sauvegardée"); }
+    // C. Restauration Vue Utilisateur (SUPPRIMÉE)
+    // On force la vue par défaut pour éviter les conflits d'initialisation
 
     // 2. Chargement des données (GeoJSON)
     let geojsonData = null;
@@ -230,6 +223,9 @@ async function loadAndInitializeMap() {
         // Plus de "Djerba default" puis "Jump"
         initMap(initialView.center, initialView.zoom);
 
+        // NOUVEAU : On active la création desktop après que la map soit prête
+        enableDesktopCreationMode();
+
         await displayGeoJSON(geojsonData, activeMapId);
 
         // Pas de fitMapToContent() ici, on a déjà la vue parfaite.
@@ -301,7 +297,6 @@ async function initializeApp() {
         initMobileMode();
     } else {
         // UI Setup only (Map init is deferred to loadAndInitializeMap)
-        enableDesktopCreationMode();
         setupDesktopTools();
         setupSmartSearch();
         setupDesktopUIListeners();

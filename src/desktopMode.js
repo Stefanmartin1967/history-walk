@@ -335,10 +335,14 @@ export function createDraftMarker(lat, lng, mapInstance, photos = []) {
 
     const popupContent = document.createElement('div');
     popupContent.style.textAlign = 'center';
+    popupContent.style.display = 'flex';
+    popupContent.style.flexDirection = 'column';
+    popupContent.style.alignItems = 'center';
+    popupContent.style.justifyContent = 'center';
     popupContent.innerHTML = `
         <div style="font-weight:bold; margin-bottom:5px;">Nouveau Lieu ?</div>
         <div style="font-size:12px; color:#666; margin-bottom:8px;">Glissez pour ajuster.</div>
-        <button id="btn-validate-desktop-poi" class="action-btn" style="background:var(--brand); color:white; padding:4px 8px; font-size:12px; cursor:pointer;">
+        <button id="btn-validate-desktop-poi" class="action-btn" style="background:var(--brand); color:white; padding:4px 8px; font-size:12px; cursor:pointer; margin: 0 auto;">
             Valider cette position
         </button>
     `;
