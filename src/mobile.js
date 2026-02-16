@@ -341,7 +341,16 @@ export function renderMobileCircuitsList() {
                 : '';
 
         // Icone Bird/Foot
-        const iconName = circuit.realTrack ? 'footprints' : 'bird';
+        // PRIORITÉ ICÔNE :
+        // 1. Si on a des données de trace chargées (realTrack) -> FOOT
+        // 2. Si on a un flag dans le JSON disant qu'il y a une trace (hasRealTrack) -> FOOT
+        // 3. Sinon -> BIRD
+        let iconName = 'bird';
+        if (circuit.realTrack && circuit.realTrack.length > 0) {
+            iconName = 'footprints';
+        } else if (circuit.hasRealTrack) {
+            iconName = 'footprints';
+        }
 
         // Style du nom (Gras pour Officiel, Normal pour User)
         const nameStyle = circuit.isOfficial ? 'font-weight:700;' : 'font-weight:400;';
