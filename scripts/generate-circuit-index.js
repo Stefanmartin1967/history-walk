@@ -168,6 +168,7 @@ function processDirectory(mapId) {
             description: description,
             distance: distanceStr, // Updated with calculated distance
             isOfficial: true,
+            hasRealTrack: true,
             poiIds: existingEntry ? existingEntry.poiIds : [],
             transport: existingEntry && existingEntry.transport ? existingEntry.transport : undefined
         };
