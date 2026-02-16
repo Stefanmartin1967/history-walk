@@ -220,6 +220,40 @@ function setupGlobalEditButton(poiId) {
 function setupDetailsEventListeners(poiId) {
     // Note : Comme le HTML est écrasé à chaque ouverture, pas de risque de double-binding ici
     // tant qu'on cible des éléments à l'intérieur du panneau.
+
+    // --- TOGGLE DESCRIPTION GPX (PRIORITAIRE) ---
+    const toggleGpxBtn = document.getElementById('btn-toggle-gpx-desc') || document.getElementById('mobile-btn-toggle-gpx-desc');
+    const gpxSection = document.getElementById('section-gpx-desc') || document.getElementById('mobile-section-gpx-desc');
+
+    if (toggleGpxBtn && gpxSection) {
+        // Détection du contenu
+        const shortDescText = document.getElementById('panel-short-desc-display')?.textContent ||
+                              gpxSection.querySelector('.short-text')?.textContent || "";
+        const hasGpxDesc = shortDescText && shortDescText.trim() !== "";
+
+        // État Initial
+        if (hasGpxDesc) {
+            toggleGpxBtn.style.color = "var(--brand)";
+            toggleGpxBtn.style.opacity = "1";
+            gpxSection.style.setProperty('display', 'flex', 'important');
+        } else {
+            toggleGpxBtn.style.color = "var(--ink-soft)";
+            toggleGpxBtn.style.opacity = "0.5";
+            gpxSection.style.setProperty('display', 'none', 'important');
+        }
+
+        // Click Listener (Robuste et simple)
+        toggleGpxBtn.onclick = (e) => {
+            e.stopPropagation(); // Évite propagation parasite
+            const currentDisplay = window.getComputedStyle(gpxSection).display;
+
+            if (currentDisplay === 'none') {
+                gpxSection.style.setProperty('display', 'flex', 'important');
+            } else {
+                gpxSection.style.setProperty('display', 'none', 'important');
+            }
+        };
+    }
     
     const inputPrice = document.getElementById('panel-price');
     if (inputPrice) {
