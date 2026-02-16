@@ -3142,3 +3142,53 @@ input[type=range] {
     stroke-dasharray: none !important;
     fill: none !important;
 }
+
+/* ==========================================================================
+   MOBILE MODAL HARMONIZATION (PATCH)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    /* 1. Generic Modal Content Adaptation */
+    .modal-content {
+        width: 95% !important;
+        max-width: 95vw !important;
+        max-height: 90dvh !important; /* Dynamic Viewport Height */
+        display: flex;
+        flex-direction: column;
+        margin: auto; /* Center vertically/horizontally */
+        border-radius: 16px !important;
+    }
+
+    .modal-body {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding: 16px !important; /* Reduced padding */
+    }
+
+    /* 2. System Modal (Custom Modal Box) */
+    .custom-modal-box {
+        width: 90% !important;
+        max-width: 350px !important; /* Cap width for very small screens */
+        padding: 20px !important;
+    }
+
+    /* 3. Rich Editor Specific Fixes */
+    #rich-poi-modal {
+        padding-top: 0 !important; /* Override inline style */
+        align-items: center !important; /* Center vertically */
+        justify-content: center !important;
+    }
+
+    #rich-poi-modal .modal-content {
+        margin-bottom: 0 !important; /* Remove bottom margin */
+        height: auto;
+        max-height: 95dvh !important; /* Maximize space */
+    }
+
+    /* Input Fields in Modals */
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+        font-size: 16px !important; /* Prevent iOS zoom */
+    }
+}
