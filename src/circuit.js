@@ -485,8 +485,6 @@ export async function loadCircuitById(id) {
         }
     }
 
-    showToast(`Circuit "${circuitToLoad.name}" chargé.`, "success");
-
     // On force un dernier rafraîchissement des lignes pour être sûr
     notifyCircuitChanged();;
 }
@@ -786,7 +784,6 @@ export function setupCircuitEventListeners() {
                  if (state.activeCircuitId) {
                      const result = await performCircuitDeletion(state.activeCircuitId);
                      if (result.success) {
-                         showToast(result.message, 'success');
                          await clearCircuit(false);
                          eventBus.emit('circuit:list-updated');
                      } else {
