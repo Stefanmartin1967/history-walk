@@ -150,19 +150,18 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
 
         <div class="panel-content">
             <div class="detail-section editable-field" data-field-id="short_desc">
-                <h3>Description du circuit</h3>
+                <h3>Description GPX</h3>
                 <div class="content">
-                    <p id="panel-short-desc-display" class="editable-text short-text">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
+                    <p id="panel-short-desc-display" class="editable-text short-text" style="height:auto; min-height:auto; max-height:none; overflow:visible; display:block; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
                 </div>
             </div>
             <div class="detail-section editable-field description-section" data-field-id="description">
-                <h3>Description
-                    <div class="edit-controls section-controls">
-                        <button class="action-button speak-btn">${ICONS.volume}</button>
-                    </div>
+                <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Description</span>
+                    <button class="action-button speak-btn" title="Lire la description" style="margin:0;">${ICONS.volume}</button>
                 </h3>
                 <div class="content">
-                    <div id="panel-description-display" class="description-content editable-text">${(allProps.description || allProps.Description || '').replace(/\n/g, '<br>')}</div>
+                    <div id="panel-description-display" class="description-content editable-text" style="max-height:200px; overflow-y:auto;">${(allProps.description || allProps.Description || '').replace(/\n/g, '<br>')}</div>
                     ${renderSource(allProps)}
                 </div>
             </div>
@@ -254,19 +253,18 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
             </div>
 
             <div class="detail-section editable-field" data-field-id="short_desc">
-                <h3>Description du circuit</h3>
+                <h3>Description GPX</h3>
                 <div class="content">
-                    <p class="editable-text short-text">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
+                    <p class="editable-text short-text" style="height:auto; min-height:auto; max-height:none; overflow:visible; display:block; -webkit-line-clamp:unset;">${escapeXml(allProps.Description_courte || allProps.Desc_wpt || '')}</p>
                 </div>
             </div>
             <div class="detail-section editable-field description-section" data-field-id="description">
-                <h3>Description
-                    <div class="edit-controls section-controls">
-                        <button class="action-button speak-btn" title="Lire la description">${ICONS.volume}</button>
-                    </div>
+                <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Description</span>
+                    <button class="action-button speak-btn" title="Lire la description" style="margin:0;">${ICONS.volume}</button>
                 </h3>
                 <div class="content">
-                    <div class="description-content editable-text">${(allProps.description || allProps.Description || '').replace(/\n/g, '<br>')}</div>
+                    <div class="description-content editable-text" style="max-height:200px; overflow-y:auto;">${(allProps.description || allProps.Description || '').replace(/\n/g, '<br>')}</div>
                     ${renderSource(allProps)}
                 </div>
             </div>

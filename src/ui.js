@@ -4,7 +4,7 @@ import { getPoiId, getPoiName, applyFilters, updatePoiData } from './data.js';
 import { restoreCircuit, saveAppState } from './database.js';
 import { escapeXml } from './utils.js';
 import { eventBus } from './events.js';
-import { stopDictation, isDictationActive } from './voice.js';
+import { stopDictation, isDictationActive, speakText } from './voice.js';
 import { clearCircuit, navigatePoiDetails, toggleSelectionMode, loadCircuitById } from './circuit.js';
 import { map, clearMarkerHighlights } from './map.js';
 import { isMobileView, updatePoiPosition, renderMobileCircuitsList, renderMobilePoiList, switchMobileView } from './mobile.js';
@@ -289,6 +289,20 @@ if (chkInc) {
     }
 
     // (Ancien bouton Admin supprimé - géré par le crayon standard en God Mode)
+
+    // --- TTS (Text-To-Speech) ---
+    const speakBtns = document.querySelectorAll('.speak-btn');
+    speakBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+             const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+             if (!feature) return;
+             const props = feature.properties || {};
+             const userData = props.userData || {};
+             const textToRead = userData.description || props.Description || userData.Description || "Pas de description.";
+
+             speakText(textToRead, btn);
+        });
+    });
 
     // Gestion Photos DÉLÉGUÉE
     setupPhotoPanelListeners(poiId);
