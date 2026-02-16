@@ -260,7 +260,9 @@ export function renderExplorerList() {
             // 2. Si on a un flag dans le JSON disant qu'il y a une trace (hasRealTrack) -> FOOT
             // 3. Sinon -> BIRD
             let iconName = 'bird';
-            if (c.realTrack || c.hasRealTrack) {
+            if (c.realTrack && c.realTrack.length > 0) {
+                iconName = 'footprints';
+            } else if (c.hasRealTrack) {
                 iconName = 'footprints';
             }
 

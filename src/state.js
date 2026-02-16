@@ -1,5 +1,5 @@
 // state.js
-export const APP_VERSION = '3.5.6'; // Version incrémentée avec logs
+export const APP_VERSION = '3.5.7'; // Version incrémentée (Icon Fix + UI Cleanup)
 export const MAX_CIRCUIT_POINTS = 15;
 
 export const POI_CATEGORIES = [
