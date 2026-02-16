@@ -44,6 +44,8 @@ export function initMap(initialCenter = [33.77478, 10.94353], initialZoom = 12.7
 
     // Initialisation de la carte
     map = L.map('map', {
+        center: initialCenter,
+        zoom: initialZoom,
         zoomSnap: 0.1,
         zoomDelta: 0.1,
         wheelPxPerZoomLevel: 180,
