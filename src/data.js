@@ -81,6 +81,11 @@ export async function displayGeoJSON(geoJSON, mapId) {
         state.userData[pId] = state.userData[pId] || storedUserData[pId] || {};
         feature.properties.userData = state.userData[pId];
 
+        // --- GESTION OVERRIDE GEOMETRY (DÉPLACEMENT DE POINT) ---
+        if (state.userData[pId].lat && state.userData[pId].lng) {
+            feature.geometry.coordinates = [state.userData[pId].lng, state.userData[pId].lat];
+        }
+
         return feature;
     });
 
@@ -193,4 +198,38 @@ export async function addPoiFeature(feature) {
 
     // 3. Rafraîchissement de la carte pour afficher le nouveau point
     applyFilters();
+}
+
+// --- MISE À JOUR DE LA POSITION (GEOMETRY) ---
+
+export async function updatePoiCoordinates(poiId, lat, lng) {
+    // Initialisation
+    if (!state.userData[poiId]) state.userData[poiId] = {};
+
+    // Mise à jour des données (lat/lng)
+    state.userData[poiId].lat = lat;
+    state.userData[poiId].lng = lng;
+
+    // Mise à jour de la géométrie en mémoire vive
+    const feature = state.loadedFeatures.find(f => getPoiId(f) === poiId);
+    if (feature) {
+        feature.geometry.coordinates = [lng, lat];
+        feature.properties.userData = state.userData[poiId];
+    }
+
+    // Gestion de la persistance (Custom vs Officiel)
+    // Si c'est un POI custom, on doit aussi mettre à jour la liste des customFeatures
+    // car elle est sauvegardée séparément dans customPois_mapId
+    const customFeatureIndex = state.customFeatures.findIndex(f => getPoiId(f) === poiId);
+    if (customFeatureIndex !== -1) {
+        state.customFeatures[customFeatureIndex].geometry.coordinates = [lng, lat];
+        // On sauvegarde la liste complète des customs
+        await saveAppState(`customPois_${state.currentMapId}`, state.customFeatures);
+    }
+
+    // Dans tous les cas, on sauvegarde userData (pour les officiels, c'est la seule trace)
+    await savePoiData(state.currentMapId, poiId, state.userData[poiId]);
+
+    // Log
+    await logModification(poiId, 'Deplacement', 'All', null, `Nouvelle position : ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
 }
