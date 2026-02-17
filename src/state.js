@@ -36,6 +36,7 @@ export const state = {
     circuitIdToImportFor: null,
     orthodromicPolyline: null,
     realTrackPolyline: null,
+    ghostMarker: null, // Marqueur temporaire pour la recherche de coordonnées
     filterCompleted: false,
     isAdmin: false, // Activation du "God Mode"
     selectionModeFilters: {

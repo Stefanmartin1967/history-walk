@@ -27,7 +27,8 @@ export const ICONS = {
     googleMaps: `<i data-lucide="map-pin" style="width:18px;height:18px;"></i>`,
     globe: `<i data-lucide="globe" style="width:18px;height:18px;"></i>`,
     languages: `<i data-lucide="languages" style="width:18px;height:18px;"></i>`,
-    fileText: `<i data-lucide="file-text" style="width:18px;height:18px;"></i>`
+    fileText: `<i data-lucide="file-text" style="width:18px;height:18px;"></i>`,
+    move: `<i data-lucide="move" style="width:18px;height:18px;"></i>`
 };
 
 export function renderSource(allProps) {
@@ -135,6 +136,7 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                      <button class="action-button" id="btn-toggle-gpx-desc" title="Afficher/Masquer Description GPX">${ICONS.fileText}</button>
                      <button class="action-button btn-web-search" id="btn-web-search" title="Rechercher sur Google">${ICONS.globe}</button>
                      ${gmapsButtonHtml}
+                     <button class="action-button" id="btn-move-marker" title="Déplacer le marqueur">${ICONS.move}</button>
                      <button class="action-button" id="btn-global-edit" title="Modifier le lieu">${ICONS.pen}</button>
                      <button class="action-button" id="btn-soft-delete" title="Signaler pour suppression" style="color: var(--danger);">${ICONS.trash}</button>
                 </div>
@@ -168,6 +170,19 @@ export function buildDetailsPanelHtml(feature, circuitIndex) {
                 </div>
             </div>
             ${practicalDetailsHtml}
+            <div class="detail-section">
+                <h3>Position</h3>
+                <div class="content" style="display:flex; gap:10px;">
+                     <div style="flex:1;">
+                        <label style="font-size:11px; color:var(--ink-soft); display:block; margin-bottom:2px;">Latitude</label>
+                        <input type="number" id="poi-lat" step="0.00001" value="${feature.geometry.coordinates[1]}" readonly style="width:100%; padding:6px; border:1px solid var(--line); border-radius:6px; background:var(--surface-muted); color:var(--ink);">
+                     </div>
+                     <div style="flex:1;">
+                        <label style="font-size:11px; color:var(--ink-soft); display:block; margin-bottom:2px;">Longitude</label>
+                        <input type="number" id="poi-lng" step="0.00001" value="${feature.geometry.coordinates[0]}" readonly style="width:100%; padding:6px; border:1px solid var(--line); border-radius:6px; background:var(--surface-muted); color:var(--ink);">
+                     </div>
+                </div>
+            </div>
             <div class="detail-section">
                 <h3>Mon Suivi</h3>
                 <div class="content checkbox-group">
