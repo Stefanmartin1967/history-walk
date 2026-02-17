@@ -19,6 +19,17 @@ function escapeXml(unsafe) {
     }[c]));
 }
 
+function unescapeXml(safe) {
+    if (!safe) return '';
+    return safe.replace(/&(lt|gt|amp|apos|quot);/g, (match, entity) => ({
+        'lt': '<',
+        'gt': '>',
+        'amp': '&',
+        'apos': "'",
+        'quot': '"'
+    }[entity]));
+}
+
 // Haversine formula to calculate distance between two points
 function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371e3; // metres
@@ -98,7 +109,14 @@ function processDirectory(mapId) {
         // Extract Name
         const nameMatch = content.match(/<name>(.*?)<\/name>/);
         if (nameMatch) {
-            name = nameMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1'); // Handle CDATA
+            let extractedName = nameMatch[1];
+            if (extractedName.includes('<![CDATA[')) {
+                extractedName = extractedName.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1'); // Handle CDATA
+            } else {
+                extractedName = unescapeXml(extractedName);
+            }
+            name = extractedName;
+
             // CLEANUP: Remove Wikiloc branding
             name = name.replace(/^Wikiloc\s*-\s*/i, '').replace(/Wikiloc/gi, '').trim();
         }
@@ -106,7 +124,13 @@ function processDirectory(mapId) {
         // Extract Description
         const descMatch = content.match(/<desc>(.*?)<\/desc>/); // Simple regex, might miss multiline CDATA but robust enough for basic
         if (descMatch) {
-            description = descMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
+            let extractedDesc = descMatch[1];
+            if (extractedDesc.includes('<![CDATA[')) {
+                extractedDesc = extractedDesc.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
+            } else {
+                extractedDesc = unescapeXml(extractedDesc);
+            }
+            description = extractedDesc;
         }
 
         // 2. ID Resolution & Preservation
